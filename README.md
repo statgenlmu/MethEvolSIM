@@ -20,11 +20,9 @@ loaded and checked using the following:
 
 ``` r
 library(devtools)
-#> Warning: package 'devtools' was built under R version 4.1.3
 #> Loading required package: usethis
 load_all()
 #> i Loading MethEvolRSIM
-#> Warning: package 'testthat' was built under R version 4.1.3
 ```
 
 `check()` runs the unit tests. The unit tests that test the functions
