@@ -8,7 +8,7 @@ Authors@R: c(
 Author: Sara Castillo Vicente [aut, cre],
         Dirk Metzler [aut, ths]
 Maintainer: Sara Castillo Vicente <castillo@bio.lmu.de>
-Description: Software for simulation of DNA methylation dynamics on different genomic structures under the basic model for the evolution of DNA methylation along genealogies.
+Description: Software for simulation of DNA methylation dynamics on different genomic structures along genealogies.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE, r6 = TRUE)
