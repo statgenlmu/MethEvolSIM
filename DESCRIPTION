@@ -1,20 +1,23 @@
-Package: MethEvolRSIM
+Package: MethEvolSIM
 Title: Simulate DNA Methylation Dynamics on Different Genomic Structures along Genealogies
-Version: 0.0.0.9000
+Version: 0.1
 Authors@R: c(
-    person('Sara', 'Castillo', , 'sara.castillo@campus.lmu.de', role=c('aut')),
-    person('Dirk', 'Metzler', , 'metzler@bio.lmu.de', role=c('aut', 'cre', 'ths'))
+    person('Sara', 'Castillo Vicente', , 'castillo@bio.lmu.de', role=c('aut', 'cre')),
+    person('Dirk', 'Metzler', , 'metzler@bio.lmu.de', role=c('aut', 'ths'))
     )
-Author: Sara Castillo [aut],
-        Dirk Metzler [aut, ths, cre]
-Maintainer: Dirk Metzler <metzler@bio.lmu.de>
+Author: Sara Castillo Vicente [aut, cre],
+        Dirk Metzler [aut, ths]
+Maintainer: Sara Castillo Vicente <castillo@bio.lmu.de>
 Description: Software for simulation of DNA methylation dynamics on different genomic structures under the basic model for the evolution of DNA methylation along genealogies.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE, r6 = TRUE)
 RoxygenNote: 7.3.1
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: R6
 Depends: R (>= 4.0)
+VignetteBuilder: knitr

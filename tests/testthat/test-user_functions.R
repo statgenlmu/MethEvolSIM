@@ -5,8 +5,7 @@ get_private <- function(x) {
 
 test_that("get_parameterValues()",{
   # Test error when rootData is not instance of combiStructureGenerator
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   output <- get_parameterValues()
   output$alpha_pI <- 0.5
@@ -16,8 +15,7 @@ test_that("get_parameterValues()",{
   output <- get_parameterValues()
   expect_true(is.data.frame(output), info = "fails to output dataframe")
   # Test return rootData parameter values
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   output$alpha_pI <- 0.5
   rootData <- simulate_initialData(infoStr = infoStr, params = output)$data
@@ -27,28 +25,27 @@ test_that("get_parameterValues()",{
 
 test_that("simulate_initialData",{
   # Test errors for incorrect input
+
   ## a) Incomplete infoStr argument
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300))
-  expect_error(simulate_initialData(infoStr = infoStr), info ="fails to throw error 'infoStr should be a dataframe with columns: 'start', 'end', 'globalState''")
-  ## b) infoStr with eqFreqs: incorrect values
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100))
+  expect_error(simulate_initialData(infoStr = infoStr), info ="fails to throw error 'infoStr should be a dataframe with columns: 'n', 'globalState''")
+
+   ## b) infoStr with eqFreqs: incorrect values
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(NA, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
   expect_error(simulate_initialData(infoStr = infoStr), info = "fails to throw error when given eqFreqs in infoStr have missing values")
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
   expect_error(simulate_initialData(infoStr = infoStr), info = "fails to throw error when given eqFreqs in infoStr are incorrect")
+
   ## c) incorrect customized params
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"))
   custom_params <- matrix(1:11, ncol = 11)
   colnames(custom_params) <- c("alpha_pI", "beta_pI", "alpha_mI", "beta_mI", "alpha_pNI", "beta_pNI", "alpha_mNI", "beta_mNI", "mu", "alpha_Ri", "iota")
@@ -59,15 +56,13 @@ test_that("simulate_initialData",{
 
   # Test output is correctly generated for correct input
   ## a) For input without customized eqFreqs or params
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   output <- simulate_initialData(infoStr = infoStr)
   expect_equal(class(output$data)[1], "combiStructureGenerator", info ="does not generate correct output$data class for correct input")
   expect_true(all(output$params == get_parameterValues()), info ="does not return default parameter values when not given a)")
   ## b) For input with customized eqFreqs
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0.1, 0.1, 0.1),
@@ -76,8 +71,7 @@ test_that("simulate_initialData",{
   expect_equal(class(output$data)[1], "combiStructureGenerator", info ="does not generate correct output$data class for correct input")
   expect_true(all(output$params == get_parameterValues()), info ="does not return default parameter values when not given b)")
   ## c) For input with customized params
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0.1, 0.1, 0.1),
@@ -89,33 +83,31 @@ test_that("simulate_initialData",{
   expect_true(all(output$params == custom_params), info ="does not return customized params when given")
 })
 
-test_that("simulate_evolData",{
+test_that("simulate_evolData input control",{
   # Test errors for incorrect input
   ## a) Missing tree or infoStr
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   tree <- "(a:1, c:2, (d:3.7, e:4):5);"
   expect_error(simulate_evolData(infoStr = infoStr), info='fails to throw error when tree argument is missing')
-  expect_error(simulate_evolData(tree = tree), info='fails to throw error when neither infoStr or rootData are given')
+  expect_error(simulate_evolData(tree = tree), info='fails to throw error when neither infoStr nor rootData are given')
+
   ## b) infoStr with eqFreqs: incorrect values
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(NA, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
   expect_error(simulate_evolData(infoStr = infoStr, tree = tree), info = "fails to throw error when given eqFreqs in infoStr have missing values")
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
   expect_error(simulate_evolData(infoStr = infoStr, tree = tree), info = "fails to throw error when given eqFreqs in infoStr are incorrect")
+
   ## c) incorrect customized params
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"))
   custom_params <- matrix(1:11, ncol = 11)
   colnames(custom_params) <- c("alpha_pI", "beta_pI", "alpha_mI", "beta_mI", "alpha_pNI", "beta_pNI", "alpha_mNI", "beta_mNI", "mu", "alpha_Ri", "iota")
@@ -123,42 +115,46 @@ test_that("simulate_evolData",{
   custom_params <- get_parameterValues()
   custom_params <- custom_params[,-1]
   expect_error(simulate_evolData(infoStr = infoStr, tree = tree, params = custom_params), info ="fails to throw error when given params dataframe is not complete")
+
   ## d) params given when rootData is given (if rootData is given, its parameter values are used)
   params <- get_parameterValues()
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   rootData <- simulate_initialData(infoStr = infoStr)$data
   expect_error(simulate_evolData(rootData = rootData, tree = tree, params = params), info = "fails to throw error when rootData is given and params not NULL")
 
+})
+
+test_that("simulate_evolData output",{
   # Test output is correctly generated for correct input
   ## a.1) For input without customized eqFreqs or params: input infoStr
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
+  tree <- "(a:1, c:2, (d:3.7, e:4):5);"
   silence <- capture.output({
     output <- simulate_evolData(infoStr = infoStr, tree = tree)
   })
-  expect_equal(class(output$data)[1], "treeMultiRegionSimulator", info ="does not generate correct output$data class for correct input infoStr")
-  print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[1])
+  expect_equal(class(output$data), "list", info ="does not generate correct output$data list (a1)")
+  print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[2])
   expect_print <- "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4)"
   expect_equal(print, expect_print, info = "Not simulating initial data when infoStr is given")
   expect_true(all(output$params == get_parameterValues()), info = "fails to return default params when not given")
-  expect_equal(output$tree, tree, info ="returns different tree from given one a1")
+  expect_equal(output$tree, tree, info ="returns different tree from given one (a1)")
+
   ## a.2) For input without customized eqFreqs or params: input rootData
   rootData <- simulate_initialData(infoStr = infoStr)$data
   silence <- capture.output({
     output <- simulate_evolData(rootData = rootData, tree = tree)
   })
-  expect_equal(class(output$data)[1], "treeMultiRegionSimulator", info ="does not generate correct output$data class for correct input rootData")
+  expect_equal(class(output$data), "list", info ="does not generate correct output$data list (a2)")
   print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[2])
   expect_print <- "Simulating evolution of given data at root along given tree:  (a:1, c:2, (d:3.7, e:4)"
   expect_equal(print, expect_print, info = "Not initiating evolution of given data when rootData is given")
   expect_true(all(output$params == get_parameterValues()), info = "fails to return default params when not given")
-  expect_equal(output$tree, tree, info ="returns different tree from given one a2")
+  expect_equal(output$tree, tree, info ="returns different tree from given one (a2)")
+
   ## b) For input with customized eqFreqs
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0.1, 0.1, 0.1),
@@ -166,15 +162,15 @@ test_that("simulate_evolData",{
   silence <- capture.output({
     output <- simulate_evolData(infoStr = infoStr, tree = tree)
   })
-  expect_equal(class(output$data)[1], "treeMultiRegionSimulator", info ="does not generate correct output$data class for correct input b)")
-  print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[1])
+  expect_equal(class(output$data), "list", info ="does not generate correct output$data list (b)")
+  print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[2])
   expect_print <- "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4)"
-  expect_equal(print, expect_print, info = "Not simulating initial data when infoStr is given b)")
+  expect_equal(print, expect_print, info = "Not simulating initial data when infoStr is given (b)")
   expect_true(all(output$params == get_parameterValues()), info ="does not return default parameter values when not given b)")
-  expect_equal(output$tree, tree, info ="returns different tree from given one b)")
+  expect_equal(output$tree, tree, info ="returns different tree from given one (b)")
+
   ## c) For input with customized params: input infoStr and params
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0.1, 0.1, 0.1),
@@ -184,30 +180,97 @@ test_that("simulate_evolData",{
   silence <- capture.output({
     output <- simulate_evolData(infoStr = infoStr, tree = tree, params = custom_params)
   })
-  expect_equal(class(output$data)[1], "treeMultiRegionSimulator", info ="does not generate correct output$data class for correct input")
+  expect_equal(class(output$data), "list", info ="does not generate correct output$data list (c)")
   print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[1])
   expect_print <- "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4)"
   expect_equal(print, expect_print, info = "Not simulating initial data when infoStr is given c)")
   expect_true(all(output$params == custom_params), info ="does not return customized params when given")
-  expect_equal(output$tree, tree, info ="returns different tree from given one c)")
+  expect_equal(output$tree, tree, info ="returns different tree from given one (c)")
+
   ## d) For input with customized params: input rootData
   custom_params <- get_parameterValues()
   custom_params$alpha_mNI <- 0.5
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   rootData <- simulate_initialData(infoStr = infoStr, params = custom_params)$data
   silence <- capture.output({
     output <- simulate_evolData(rootData = rootData, tree = tree)
   })
-  expect_equal(class(output$data)[1], "treeMultiRegionSimulator", info ="does not generate correct output$data class for correct input")
+  expect_equal(class(output$data), "list", info ="does not generate correct output$data list (d)")
   print <- sub("\\[\\d+\\] \"(.*)\"", "\\1", silence[1])
   expect_print <- "Parameter values set as in given rootData"
   expect_equal(print, expect_print, info = "Fails to inform that parameter values are set as in given rootData d)")
   expect_equal(output$params$alpha_mNI, 0.5, info = "does not return params as in given rootData")
-  expect_equal(output$data$Branch[[1]]$get_singleStr(1)$get_alpha_mNI(), 0.5,
-               info = "data returned does not have rootData customized parameter value")
+
 })
+
+test_that("simulate_evolData output$data",{
+
+  infoStr <- data.frame(n = c(100, 100, 100),
+                        globalState= c("M", "U", "M"))
+  tree <- "(a:1, c:2, (d:3.7, e:4):5);"
+  replicate_number <- 3
+
+  # Case only_tip = TRUE
+  silence <- capture.output({
+    output <- simulate_evolData(infoStr = infoStr, tree = tree, n_rep = replicate_number, only_tip = TRUE)
+  })
+  expect_equal(length(output$data), replicate_number, info = "$data output length not equal to number of replicates")
+  expect_equal(length(output$data[[1]]), 4, info = "replicate output lenght different from number of tree tips when only_tip = TRUE")
+  expect_equal(names(output$data[[1]][[1]]), c("name", "seq"), info = "tip information does not include 'name' and 'seq'")
+  expect_equal(output$data[[1]][[1]]$name, "a", info = "returns incorrect tip name")
+  expect_equal(output$data[[1]][[2]]$name, "c", info = "returns incorrect tip name")
+  expect_equal(output$data[[1]][[3]]$name, "d", info = "returns incorrect tip name")
+  expect_equal(output$data[[1]][[4]]$name, "e", info = "returns incorrect tip name")
+  expect_equal(length(output$data[[1]][[1]]$seq), dim(infoStr)[1], info = "returns incorrect number of $seq vectors")
+  expect_equal(class(output$data[[1]][[1]]$seq[[1]]), "numeric", info = "fails to return numeric vector with methylation encoding per structure")
+
+  # Case only_tip = FALSE
+  silence <- capture.output({
+    output <- simulate_evolData(infoStr = infoStr, tree = tree, n_rep = 3, only_tip = FALSE)
+  })
+  expect_true("sim_data" %in% names(output$data), info = "$data output does not contain simulated data")
+  expect_true("branchInTree" %in% names(output$data), info = "$data output does not contain info on relationship between tree branches")
+  expect_equal(length(output$data$sim_data), replicate_number, info = "$data output length not equal to number of replicates")
+  expect_equal(length(output$data$sim_data[[1]]), 6, info = "replicate output lenght different from number of tree branches when only_tip = FALSE")
+  expect_equal(names(output$data$sim_data[[1]][[1]]), c("name", "IWE", "seq", "eqFreqs"), info = " incomplete branch information")
+  expect_null(output$data$sim_data[[1]][[1]]$name, info = "returns incorrect branch name")
+  expect_equal(output$data$sim_data[[1]][[2]]$name, "a", info = "returns incorrect branch name")
+  expect_equal(output$data$sim_data[[1]][[3]]$name, "c", info = "returns incorrect branch name")
+  expect_null(output$data$sim_data[[1]][[4]]$name, info = "returns incorrect branch name")
+  expect_equal(output$data$sim_data[[1]][[5]]$name, "d", info = "returns incorrect branch name")
+  expect_equal(output$data$sim_data[[1]][[6]]$name, "e", info = "returns incorrect branch name")
+  expect_equal(length(output$data$sim_data[[1]][[1]]$seq), dim(infoStr)[1], info = "returns incorrect number of $seq vectors")
+  expect_equal(class(output$data$sim_data[[1]][[1]]$seq[[1]]), "numeric", info = "fails to return numeric vector with methylation encoding per structure")
+  expect_null(output$data$sim_data[[1]][[1]]$IWE, info = "returns not NULL $IWE information for tree root")
+  for (i in 2:length(output$data$sim_data[[1]])){
+    IWE <- output$data$sim_data[[1]][[i]]$IWE
+    if (is.logical(IWE)) {
+      # If IWE is a logical value (FALSE), assert that it is FALSE
+      expect_false(IWE, info = paste("IWE for i =", i, "is not FALSE"))
+    } else {
+      # If IWE is a list, assert that it contains names "island" and "times"
+      expect_true("islands" %in% names(IWE), info = paste("island missing for i =", i))
+      expect_true("times" %in% names(IWE), info = paste("times missing for i =", i))
+    }
+  }
+  expect_equal(length(output$data$sim_data[[1]][[1]]$eqFreqs), dim(infoStr)[1], info = "returns incorrect number of $eqFreqs vectors")
+  expect_equal(class(output$data$sim_data[[1]][[1]]$eqFreqs[[1]]), "numeric", info = "fails to return numeric vector with methylation equilibrium frequencies")
+  expect_null(output$data$branchInTree[[1]]$parent_index, info = "tree root does not have NULL parent_index")
+  expect_equal(output$data$branchInTree[[1]]$offspring_index, c(2,3,4))
+  expect_equal(output$data$branchInTree[[2]]$parent_index, 1)
+  expect_equal(output$data$branchInTree[[3]]$parent_index, 1)
+  expect_equal(output$data$branchInTree[[4]]$parent_index, 1)
+  expect_null(output$data$branchInTree[[2]]$offspring_index)
+  expect_null(output$data$branchInTree[[3]]$offspring_index)
+  expect_equal(output$data$branchInTree[[4]]$offspring_index, c(5,6))
+  expect_equal(output$data$branchInTree[[5]]$parent_index, 4)
+  expect_equal(output$data$branchInTree[[6]]$parent_index, 4)
+  expect_null(output$data$branchInTree[[5]]$offspring_index)
+  expect_null(output$data$branchInTree[[6]]$offspring_index)
+})
+
+
 
 
 

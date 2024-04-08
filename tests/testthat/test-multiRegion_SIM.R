@@ -9,8 +9,7 @@ test_that("singleStructureGenerator initialization",{
   expect_true(is.null(get_private(single_obj)$my_combiStructure),
               info = "direct singleStructureGenerator initialization assigns not null $my_combiStructure")
 
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
 
   combi_obj <- combiStructureGenerator$new(infoStr)
@@ -31,17 +30,12 @@ test_that("singleStructureGenerator initialization",{
 })
 
 test_that("combiStructureGenerator initialization", {
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
 
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(length(get_private(combi_obj)$singleStr), nrow(infoStr),
                info = "length of $singleStr not equal to row number in input dataframe")
-  expect_equal(length(get_private(combi_obj)$singleStr_start), nrow(infoStr),
-               info = "length of $singleStr_start not equal to row number in input dataframe")
-  expect_equal(length(get_private(combi_obj)$singleStr_end), nrow(infoStr),
-               info = "length of $singleStr_end not equal to row number in input dataframe")
   expect_equal(length(get_private(combi_obj)$singleStr_globalState), nrow(infoStr),
                info = "length of $singleStr_globalState not equal to row number in input dataframe")
   for (i in 1:nrow(infoStr)){
@@ -51,8 +45,7 @@ test_that("combiStructureGenerator initialization", {
 })
 
 test_that("singleStructureGenerator get_seq()", {
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
   # Define expected $seq under testing mode
@@ -66,8 +59,7 @@ test_that("singleStructureGenerator get_seq()", {
 
 test_that("singleStructureGenerator get_seqFirstPos() from combiStructureGenerator instance", {
   # Under testing mode: known $seq
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
   for (i in 1:nrow(infoStr)){
@@ -84,8 +76,7 @@ test_that("singleStructureGenerator get_seqFirstPos() from combiStructureGenerat
 
 test_that("singleStructureGenerator get_seqLastPos() from combiStructureGenerator instance", {
   # Under testing mode: known $seq
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
   for (i in 1:nrow(infoStr)){
@@ -102,8 +93,7 @@ test_that("singleStructureGenerator get_seqLastPos() from combiStructureGenerato
 
 test_that("singleStructureGenerator get_leftStr_neighbSt() from combiStructureGenerator instance", {
   # Under testing mode: known $seq
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
   expect_error(get_private(combi_obj$get_singleStr(1))$get_leftStr_neighbSt(),
@@ -122,8 +112,7 @@ test_that("singleStructureGenerator get_leftStr_neighbSt() from combiStructureGe
 
 test_that("singleStructureGenerator get_rightStr_neighbSt() from combiStructureGenerator instance", {
   # Under testing mode: known $seq
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
   expect_error(get_private(combi_obj$get_singleStr(3))$get_rightStr_neighbSt(),
@@ -141,8 +130,7 @@ test_that("singleStructureGenerator get_rightStr_neighbSt() from combiStructureG
 })
 
 test_that("singleStructureGenerator get_nextStr()", {
-  infoStr <- data.frame(start = c(1, 11, 12),
-                        end = c(10, 11, 21),
+  infoStr <- data.frame(n = c(10, 1, 10),
                         globalState= c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(length(get_private(combi_obj$get_singleStr(1))$get_nextStr()$get_seq()), 1)
@@ -155,8 +143,7 @@ test_that("singleStructureGenerator get_nextStr()", {
 
 
 test_that("singleStructureGenerator get_prevStr()", {
-  infoStr <- data.frame(start = c(1, 11, 12),
-                        end = c(10, 11, 21),
+  infoStr <- data.frame(n = c(10, 1, 10),
                         globalState= c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_null(get_private(combi_obj$get_singleStr(1))$get_prevStr())
@@ -175,8 +162,7 @@ test_that("singleStructureGenerator init_neighbSt()", {
 
   # Test cases of singleStructure instances initiated from combiStructure instance
   ## Test case 1: initialization of long sequences
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
   expected_neighbSt_Str1 <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 4)
@@ -191,8 +177,7 @@ test_that("singleStructureGenerator init_neighbSt()", {
 
   # Test case 2: "long" single singleStructure instance initiated from combiStructure instance
   mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
-  infoStr <- data.frame(start = c(1),
-                        end = c(5),
+  infoStr <- data.frame(n = c(5),
                         globalState = c("M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # position 1
@@ -227,8 +212,7 @@ test_that("singleStructureGenerator init_neighbSt()", {
                info = "incorrect initialization test case 2, position 5")
 
   # Test case 3: "short" single singleStructure instance initiated from combiStructure instance
-  infoStr <- data.frame(start = c(1),
-                        end = c(2),
+  infoStr <- data.frame(n = c(2),
                         globalState = c("M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # position 1
@@ -246,8 +230,7 @@ test_that("singleStructureGenerator init_neighbSt()", {
 
   # Test case 4: "short" singleStructure instances within combiStructure instances with more than 1 singleStructure
   ## Test case 4.1: "short" singleStructure instance is first one
-  infoStr <- data.frame(start = c(1, 3, 8),
-                        end = c(2, 7, 12),
+  infoStr <- data.frame(n = c(2, 5, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # singleStr1: position 1
@@ -324,8 +307,7 @@ test_that("singleStructureGenerator init_neighbSt()", {
                info = "incorrect initialization test case 4.1, singleStr3: position 5")
 
   ## Test case 4.2: "short" singleStructure instance is second one
-  infoStr <- data.frame(start = c(1, 6, 8),
-                        end = c(5, 7, 12),
+  infoStr <- data.frame(n = c(5, 2, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # singleStr1: position 1
@@ -402,8 +384,7 @@ test_that("singleStructureGenerator init_neighbSt()", {
                info = "incorrect initialization test case 4.2, singleStr3: position 5")
 
   ## Test case 4.3: "short" singleStructure instance is last one
-  infoStr <- data.frame(start = c(1, 6, 11),
-                        end = c(5, 10, 12),
+  infoStr <- data.frame(n = c(5, 5, 2),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # singleStr1: position 1
@@ -489,8 +470,7 @@ test_that("init_neighbSt() in structure of length 1", {
                info ="assigns incorrect $neighbSt in singleStructure instance of length 1")
 
   # Test case 2: intermediate structure of length 1 in combiStructure instance
-  infoStr <- data.frame(start = c(1, 11, 12),
-                        end = c(10, 11, 21),
+  infoStr <- data.frame(n = c(10, 1, 10),
                         globalState= c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # Check lengths according to expected
@@ -505,8 +485,7 @@ test_that("init_neighbSt() in structure of length 1", {
                info = "intermediate singleStr of length 1 gets wrong assignment of neighbSt")
 
   # Test case 3: first structure of length 1 in combiStructure instance
-  infoStr <- data.frame(start = c(1, 2, 12),
-                        end = c(1, 11, 21),
+  infoStr <- data.frame(n = c(1, 10, 10),
                         globalState= c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # Check lengths according to expected
@@ -520,8 +499,7 @@ test_that("init_neighbSt() in structure of length 1", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt, exp_neighbSt,
                info = "first singleStr of length 1 gets wrong assignment of neighbSt")
   # Test case 3.1: first combiStr instance with only singleStr instance of length 1
-  infoStr <- data.frame(start = c(1),
-                        end = c(1),
+  infoStr <- data.frame(n = c(1),
                         globalState= c("M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   leftN <- combi_obj$get_singleStr(1)$get_seq()
@@ -532,8 +510,7 @@ test_that("init_neighbSt() in structure of length 1", {
 
 
   # Test case 4: last structure of length 1 in combiStructure instance
-  infoStr <- data.frame(start = c(1, 11, 21),
-                        end = c(10, 20, 21),
+  infoStr <- data.frame(n = c(10, 10, 1),
                         globalState= c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # Check lengths according to expected
@@ -550,8 +527,7 @@ test_that("init_neighbSt() in structure of length 1", {
 
 test_that("singleStructureGenerator get_seq2ndPos() from combiStructureGenerator instance", {
   # Under testing mode: known $seq
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # expected under seq length not = 1, $seq second position
@@ -560,15 +536,13 @@ test_that("singleStructureGenerator get_seq2ndPos() from combiStructureGenerator
                  info = "returns $seq second position different from expected for length not = 1")
   }
   # expected under seq length = 1 followed by another structure
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 18),
+  infoStr <- data.frame(n = c(13, 1, 4),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(combi_obj$get_singleStr(2)$get_seq2ndPos(), combi_obj$get_singleStr(3)$get_seq()[1],
                info ="returns $sec second position different expected under seq length = 1 followed by another structure")
   # expected under seq length = 1 NOT followed by another structure
-  infoStr <- data.frame(start = c(1, 14, 19),
-                        end = c(13, 18, 19),
+  infoStr <- data.frame(n = c(13, 5, 1),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_null(combi_obj$get_singleStr(3)$get_seq2ndPos())
@@ -577,8 +551,7 @@ test_that("singleStructureGenerator get_seq2ndPos() from combiStructureGenerator
 
 test_that("singleStructureGenerator get_seq2ndButLastPos() from combiStructureGenerator instance", {
   # Under testing mode: known $seq
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # expected under seq length not = 1, $seq second position
@@ -587,15 +560,13 @@ test_that("singleStructureGenerator get_seq2ndButLastPos() from combiStructureGe
                  info = "returns $seq second but last position different from expected for length not = 1")
   }
   # expected under seq length = 1 preceded by another structure
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 18),
+  infoStr <- data.frame(n = c(13, 1, 4),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(combi_obj$get_singleStr(2)$get_seq2ndButLastPos(), combi_obj$get_singleStr(1)$get_seq()[length(combi_obj$get_singleStr(1)$get_seq())],
                info ="returns $sec second but lastposition different expected under seq length = 1 preceded by another structure")
   # expected under seq length = 1 NOT preceded by another structure
-  infoStr <- data.frame(start = c(1, 2, 16),
-                        end = c(1, 15, 19),
+  infoStr <- data.frame(n = c(1, 14, 4),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_null(combi_obj$get_singleStr(1)$get_seq2ndButLastPos())
@@ -758,8 +729,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   #### Test cases: change of methylation state in different positions within combiStructure instances
   ### Case 2: First position
   ## Case 2.1. First position of structure without left neighbouring structure
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 3)
@@ -771,8 +741,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
                info = "assigns wrong right neighbSt case 2.1 a)")
   ### b) Length to the right < position + 2 and no right structure
-  infoStr <- data.frame(start = c(1),
-                        end = c(2),
+  infoStr <- data.frame(n = c(2),
                         globalState = c("M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
@@ -782,8 +751,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
                info = "assigns wrong right neighbSt case 2.1 b)")
   ### c) Length to the right < position + 2 with right structure
   mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
-  infoStr <- data.frame(start = c(1, 3),
-                        end = c(2, 8),
+  infoStr <- data.frame(n = c(2, 6),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
@@ -798,8 +766,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
 
   ## Case 2.2. First position of structure with left neighbouring structure with length > 1
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
@@ -814,8 +781,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
                info = "assigns wrong right neighbSt case 2.2 a)")
   ### b) Length to the right < position + 2 and no right structure
-  infoStr <- data.frame(start = c(1, 14),
-                        end = c(13, 15),
+  infoStr <- data.frame(n = c(13, 2),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
@@ -826,8 +792,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
                info = "assigns wrong right neighbSt case 2.2 b)")
   ### c) Length to the right < position + 2 with right structure
-  infoStr <- data.frame(start = c(1, 14, 16),
-                        end = c(13, 15, 18),
+  infoStr <- data.frame(n = c(13, 2, 3),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
@@ -839,8 +804,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
                info = "assigns wrong right neighbSt case 2.2 c)")
 
   ## Case 2.3. First position of structure with left neighbouring structure with length = 1 and additional left neighbStr
-  infoStr <- data.frame(start = c(1, 14, 15),
-                       end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                        globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # left neighbSt
@@ -859,8 +823,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[2], exp_neighbSt,
                info = "assigns wrong right neighbSt case 2.3 a)")
   ### b) Length to the right < position + 2 and no right structure
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 16),
+  infoStr <- data.frame(n = c(13, 1, 2),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(3)$modify_seqPos(position = 1, newState = 2)
@@ -871,8 +834,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[2], exp_neighbSt,
                info = "assigns wrong right neighbSt case 2.3 b)")
   ### c) Length to the right < position + 2 with right structure
-  infoStr <- data.frame(start = c(1, 14, 15, 17),
-                        end = c(13, 14, 16, 17),
+  infoStr <- data.frame(n = c(13, 1, 2, 1),
                         globalState = c("M", "U", "M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(3)$modify_seqPos(position = 1, newState = 2)
@@ -885,8 +847,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
 
   ## Case 2.4. First position of structure with left neighbouring structure with length = 1 without additional left neighbStr
-  infoStr <- data.frame(start = c(1, 2, 15),
-                        end = c(1, 14, 19),
+  infoStr <- data.frame(n = c(1, 13, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # left neighbSt (there is no left neighbor, so right neighb counts as both neighbors)
@@ -906,8 +867,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
                info = "assigns wrong right neighbSt case 2.4 a)")
   ### b) Length to the right < position + 2 and no right structure
-  infoStr <- data.frame(start = c(1, 2),
-                        end = c(1, 3),
+  infoStr <- data.frame(n = c(1, 2),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
@@ -918,8 +878,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
                info = "assigns wrong right neighbSt case 2.4 b)")
   ### c) Length to the right < position + 2 with right structure
-  infoStr <- data.frame(start = c(1, 2, 4),
-                        end = c(1, 3, 4),
+  infoStr <- data.frame(n = c(1, 2, 1),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
@@ -933,8 +892,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
   ### Case 3: 2nd position
   ## Case 3.1. Second position of structure without left neighbouring structure
-  infoStr <- data.frame(start = c(1, 15),
-                        end = c(14, 19),
+  infoStr <- data.frame(n = c(14, 5),
                         globalState = c("U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # left neighbSt (there is no left neighbor, so right neighb counts as both neighbors)
@@ -953,8 +911,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
                info = "assigns wrong right neighbSt case 3.1 a)")
   ### b) Length to the right < position + 2 and no right structure
-  infoStr <- data.frame(start = c(1),
-                        end = c(3),
+  infoStr <- data.frame(n = c(3),
                         globalState = c("U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
@@ -965,8 +922,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
                info = "assigns wrong right neighbSt case 3.1 b)")
   ### c) Length to the right < position + 2 with right structure
-  infoStr <- data.frame(start = c(1, 4),
-                        end = c(3, 4),
+  infoStr <- data.frame(n = c(3, 1),
                         globalState = c("U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
@@ -978,8 +934,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
                info = "assigns wrong right neighbSt case 3.1 c)")
 
   ## Case 3.2. Second position of structure with left neighbouring structure
-  infoStr <- data.frame(start = c(1, 2, 15),
-                        end = c(1, 14, 19),
+  infoStr <- data.frame(n = c(1, 13, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # left neighbSt
@@ -998,8 +953,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
                info = "assigns wrong right neighbSt case 3.2 a)")
   ### b) Length to the right < position + 2 and no right structure
-  infoStr <- data.frame(start = c(1, 2),
-                        end = c(1, 4),
+  infoStr <- data.frame(n = c(1, 3),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
@@ -1010,8 +964,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
                info = "assigns wrong right neighbSt case 3.2 b)")
   ### c) Length to the right < position + 2 with right structure
-  infoStr <- data.frame(start = c(1, 2, 5),
-                        end = c(1, 4, 6),
+  infoStr <- data.frame(n = c(1, 3, 2),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
@@ -1025,8 +978,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
   ### Case 4: 2ndButLast position
   ## Case 4.1. 2ndButLast position of structure without right neighbouring structure
-  infoStr <- data.frame(start = c(1, 15),
-                        end = c(14, 19),
+  infoStr <- data.frame(n = c(14, 5),
                         globalState = c("U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 4, newState = 2)
@@ -1045,8 +997,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
                info = "assigns wrong left neighbSt case 4.1 a)")
   ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(start = c(1),
-                        end = c(3),
+  infoStr <- data.frame(n = c(3),
                         globalState = c("U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
@@ -1057,8 +1008,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
                info = "assigns wrong left neighbSt case 4.1 b)")
   ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(start = c(1, 2),
-                        end = c(1, 4),
+  infoStr <- data.frame(n = c(1, 3),
                         globalState = c("U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
@@ -1071,8 +1021,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
 
   ## Case 4.2. 2ndButLast position of structure with right neighbouring structure
-  infoStr <- data.frame(start = c(1, 2, 15),
-                        end = c(1, 14, 19),
+  infoStr <- data.frame(n = c(1, 13, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 12, newState = 2)
@@ -1091,8 +1040,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[11], exp_neighbSt,
                info = "assigns wrong left neighbSt case 4.2 a)")
   ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(start = c(1, 4),
-                        end = c(3, 4),
+  infoStr <- data.frame(n = c(3, 1),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
@@ -1103,8 +1051,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
                info = "assigns wrong left neighbSt case 4.2 b)")
   ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(start = c(1, 2, 5),
-                        end = c(1, 4, 5),
+  infoStr <- data.frame(n = c(1, 3, 1),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
@@ -1118,8 +1065,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
   ### Case 5: Last position
   ## Case 5.1. Last position of structure without right neighbouring structure
-  infoStr <- data.frame(start = c(1, 2, 15),
-                        end = c(1, 14, 19),
+  infoStr <- data.frame(n = c(1, 13, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # left neighbSt
@@ -1132,8 +1078,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[4], exp_neighbSt,
                info = "assigns wrong left neighbSt case 5.1 a)")
   ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(start = c(1),
-                        end = c(2),
+  infoStr <- data.frame(n = c(2),
                         globalState = c("M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
@@ -1144,8 +1089,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
                info = "assigns wrong left neighbSt case 5.1 b)")
   ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(start = c(1, 2),
-                        end = c(1, 3),
+  infoStr <- data.frame(n = c(1, 2),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
@@ -1158,8 +1102,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
 
   ## Case 5.2. Last position of structure with right neighbouring structure with length > 1
-  infoStr <- data.frame(start = c(1, 2, 15),
-                        end = c(1, 14, 19),
+  infoStr <- data.frame(n = c(1, 13, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 13, newState = 2)
@@ -1178,8 +1121,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[12], exp_neighbSt,
                info = "assigns wrong left neighbSt case 5.2 a)")
   ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(start = c(1, 3),
-                        end = c(2, 14),
+  infoStr <- data.frame(n = c(2, 12),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
@@ -1190,8 +1132,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
                info = "assigns wrong left neighbSt case 5.2 b)")
   ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(start = c(1, 2, 4),
-                        end = c(1, 3, 14),
+  infoStr <- data.frame(n = c(1, 2, 11),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
@@ -1204,8 +1145,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
 
   ## Case 5.3. Last position of structure with right neighbouring structure with length = 1 and additional right neighbStr
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 13, newState = 2)
@@ -1224,8 +1164,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[12], exp_neighbSt,
                info = "assigns wrong left neighbSt case 5.3 a)")
   ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(start = c(1, 3, 4),
-                        end = c(2, 3, 9),
+  infoStr <- data.frame(n = c(2, 1, 6),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
@@ -1236,8 +1175,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
                info = "assigns wrong left neighbSt case 5.3 b)")
   ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(start = c(1, 2, 4, 5),
-                        end = c(1, 3, 4, 9),
+  infoStr <- data.frame(n = c(1, 2, 1, 5),
                         globalState = c("M", "U", "M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
@@ -1250,8 +1188,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
 
   ## Case 5.4. Last position of structure with right neighbouring structure with length = 1 without additional right neighbStr
-  infoStr <- data.frame(start = c(1, 14),
-                        end = c(13, 14),
+  infoStr <- data.frame(n = c(13, 1),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 13, newState = 2)
@@ -1270,8 +1207,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[12], exp_neighbSt,
                info = "assigns wrong left neighbSt case 5.4 a)")
   ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(start = c(1, 3),
-                        end = c(2, 3),
+  infoStr <- data.frame(n = c(2, 1),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
@@ -1282,8 +1218,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
                info = "assigns wrong left neighbSt case 5.4 b)")
   ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(start = c(1, 2, 4),
-                        end = c(1, 3, 4),
+  infoStr <- data.frame(n = c(1, 2, 1),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
@@ -1296,8 +1231,7 @@ test_that("singleStructureGenerator update_neighbSt()", {
 
 
   ### Case 6: Position between 2 and n-1
-  infoStr <- data.frame(start = c(1, 14),
-                        end = c(13, 14),
+  infoStr <- data.frame(n = c(13, 1),
                         globalState = c("M", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # left neighbSt
@@ -1326,8 +1260,7 @@ test_that("singleStructureGenerator init_Ri_values()",{
   expect_equal(length(get_private(single_obj)$Ri_values), 3,
                info = "incorrect number of Ri values in isolated singleStructure instance")
   # combiStructure instance
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   for (i in 1:nrow(infoStr)){
@@ -1347,8 +1280,7 @@ test_that("singleStructureGenerator init_Rc_values()", {
   expect_equal(length(get_private(single_obj)$Rc_values), 2,
                info ="incorrect number of Rc values in isolated singleStructure instance")
   # combiStructure instance
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   for (i in 1:nrow(infoStr)){
@@ -1377,8 +1309,7 @@ test_that("singleStructureGenerator set_Qi()", {
   expect_equal(output, all_valid, info = "validation properties not met in isolated singleStructure instance")
 
   # combiStructure instance
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   ## Check Qi structure
@@ -1425,8 +1356,7 @@ test_that("singleStructureGenerator set_Qc()", {
   expect_equal(output, all_valid, info = "validation properties not met in isolated singleStructure instance")
 
   # combiStructure instance
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   ## Check Qc structure
@@ -1480,8 +1410,7 @@ test_that("singleStructureGenerator set_Q()", {
   }
 
   # combiStructure instance
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   for (i in 1:nrow(infoStr)){
@@ -1529,8 +1458,7 @@ test_that("singleStructureGenerator initialize_ratetree()", {
   # combiStructure instance
   ### a) with sequences of long length
   # Check that all $ratetree levels sum the same total rate after initialize_ratetree
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   for (i in 1:nrow(infoStr)){
@@ -1538,8 +1466,7 @@ test_that("singleStructureGenerator initialize_ratetree()", {
                  info=paste("Different total rate sums in levels of ratetree after singleStructure instance within combiStructure initialization:\n", sapply(get_private(obj)$ratetree, sum)))
   }
   ### b) with sequence of length 1
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(length(get_private(combi_obj$get_singleStr(2))$ratetree), 1,
@@ -1548,8 +1475,7 @@ test_that("singleStructureGenerator initialize_ratetree()", {
               info = "ratetree initialization does not output numeric rate after singleStructure instance within combiStructure initialization b)")
   ### c) with sequence of length 2
   # Check that all $ratetree levels sum the same total rate after initialize_ratetree
-  infoStr <- data.frame(start = c(1, 14, 16),
-                        end = c(13, 15, 19),
+  infoStr <- data.frame(n = c(13, 2, 4),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(sd(sapply(get_private(combi_obj$get_singleStr(2))$ratetree, sum)), 0,
@@ -1587,8 +1513,7 @@ test_that("singleStructureGenerator update_ratetree()", {
 
   # combiStructure instance
   ### a) with sequences of long length
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   get_private(combi_obj$get_singleStr(1))$update_ratetree(1, newrate)
@@ -1599,8 +1524,7 @@ test_that("singleStructureGenerator update_ratetree()", {
                  info=paste("Different total rate sums in levels of ratetree after singleStructure instance within combiStructure update:\n", sapply(get_private(obj)$ratetree, sum)))
   }
   ### b) with sequence of length 1
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   newrate <- 0.3
@@ -1650,8 +1574,7 @@ test_that("combiStructureGenerator set_singleStr() and copy()",{
       private$seq[position] <-newState
     })
   }
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combiObj <- combiStructureGenerator$new(infoStr)
   cloned_combiObj <- combiObj$copy()
@@ -1703,8 +1626,7 @@ test_that("singleStructureGenerator SSE_evol()", {
   expect_null(result, info="output not null in isolated singleStr instance")
 
   #################### combiStructure instance ##
-  infoStr <- data.frame(start = c(1, 14, 27),
-                        end = c(13, 26, 39),
+  infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   original_combi_obj <- combi_obj$copy()
@@ -1744,8 +1666,7 @@ test_that("singleStructureGenerator SSE_evol()", {
 
 test_that("combiStructureGenerator SSE_evol()",{
   # Test 1: combiStructure instance with number of singleStr > 1
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   test_info <- get_private(combi_obj)$SSE_evol(dt = 0.01, testing=TRUE)
@@ -1753,8 +1674,7 @@ test_that("combiStructureGenerator SSE_evol()",{
   expect_equal(length(test_info$testing_info), combi_obj$get_singleStr_number(), info = "Test1: length of SSE testing info different from singleStr number")
 
   # Test 1: combiStructure instance with number of singleStr > 1
-  infoStr <- data.frame(start = c(1),
-                        end = c(13),
+  infoStr <- data.frame(n = c(13),
                         globalState = c("M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   test_info <- get_private(combi_obj)$SSE_evol(dt = 0.01, testing=TRUE)
@@ -1767,8 +1687,7 @@ test_that("combiStructureGenerator SSE_evol()",{
 })
 
 test_that("combiStructureGenerator interval_evol()",{
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   # Testing mode:
@@ -1989,31 +1908,26 @@ test_that("singleStructureGenerator IWE_evol()", {
 
 
 test_that("combiStructureGenerator get_island_number()",{
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(combi_obj$get_island_number(), 1)
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("U", "U", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(combi_obj$get_island_number(), 3)
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(combi_obj$get_island_number(), 0)
 })
 
 test_that("combiStructureGenerator get_island_index()",{
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(combi_obj$get_island_index(), 2)
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("U", "U", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(combi_obj$get_island_index(), c(1,2,3))
@@ -2021,8 +1935,7 @@ test_that("combiStructureGenerator get_island_index()",{
 
 test_that("combiStructureGenerator $set_IWE_rate()",{
   # Test 1
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   mu <- get_private(combi_obj)$mu
@@ -2030,16 +1943,14 @@ test_that("combiStructureGenerator $set_IWE_rate()",{
   expected <- mu * island_number
   expect_equal(get_private(combi_obj)$IWE_rate, expected, info ="test 1 fails")
   # Test 2
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("U", "U", "U"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   island_number <- 3
   expected <- mu * island_number
   expect_equal(get_private(combi_obj)$IWE_rate, expected, info ="test 2 fails")
   # Test 3
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   island_number <- 0
@@ -2049,8 +1960,7 @@ test_that("combiStructureGenerator $set_IWE_rate()",{
 })
 
 test_that("combiStructureGenerator $IWE_events",{
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_null(combi_obj$get_IWE_events(), info = "$IWE_events not initialized as NULL")
@@ -2061,8 +1971,7 @@ test_that("combiStructureGenerator $IWE_events",{
 test_that("combiStructureGenerator $branch_evol()", {
   # Testing mode:
   # No islands: Simulation without IWEs
-  infoStr <- data.frame(start = c(1, 101, 201, 301, 401, 501, 601),
-                        end = c(100, 200, 300, 400, 500, 600, 601),
+  infoStr <- data.frame(n = c(100, 100, 100, 100, 100, 100, 100),
                         globalState= c("M", "M", "M", "M", "M", "M", "M"))
 
   obj <- combiStructureGenerator$new(infoStr)
@@ -2072,8 +1981,7 @@ test_that("combiStructureGenerator $branch_evol()", {
   expect_equal(obj$get_IWE_events(), "Simulation without IWE events.")
 
   # Long branch length to favor IWE events
-  infoStr <- data.frame(start = c(1, 101, 201, 301, 401, 501, 601),
-                        end = c(100, 200, 300, 400, 500, 600, 601),
+  infoStr <- data.frame(n = c(100, 100, 100, 100, 100, 100, 100),
                         globalState= c("M", "U", "M", "U", "U", "U", "U"))
 
   obj <- combiStructureGenerator$new(infoStr)
@@ -2106,8 +2014,7 @@ test_that("combiStructureGenerator $branch_evol()", {
   }
 
   # Short branch length to favor no IWE events
-  infoStr <- data.frame(start = c(1, 101, 201, 301, 401, 501, 601),
-                        end = c(100, 200, 300, 400, 500, 600, 601),
+  infoStr <- data.frame(n = c(100, 100, 100, 100, 100, 100, 100),
                         globalState= c("M", "U", "M", "U", "U", "U", "U"))
 
   obj <- combiStructureGenerator$new(infoStr)
@@ -2147,8 +2054,7 @@ test_that("combiStructureGenerator $branch_evol()", {
 })
 
 test_that("combiStructureGenerator $set_name() and $get_name()", {
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_null(combi_obj$get_name(), info = "$name is not itialized as null")
@@ -2157,8 +2063,7 @@ test_that("combiStructureGenerator $set_name() and $get_name()", {
 })
 
 test_that("combiStructureGenerator $set_own_index() and $get_own_index()", {
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_null(combi_obj$get_own_index(), info = "$own_index is not itialized as null")
@@ -2167,8 +2072,7 @@ test_that("combiStructureGenerator $set_own_index() and $get_own_index()", {
 })
 
 test_that("combiStructureGenerator $set_offspring_index() and $get_offspring_index()", {
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_null(combi_obj$get_offspring_index(), info = "$offspring_index is not itialized as null")
@@ -2177,8 +2081,7 @@ test_that("combiStructureGenerator $set_offspring_index() and $get_offspring_ind
 })
 
 test_that("combiStructureGenerator $add_offspring_index()", {
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_null(combi_obj$get_offspring_index(), info = "$offspring_index is not itialized as null")
@@ -2189,8 +2092,7 @@ test_that("combiStructureGenerator $add_offspring_index()", {
 })
 
 test_that("combiStructureGenerator $set_parent_index() and $get_parent_index()", {
-  infoStr <- data.frame(start = c(1, 14, 15),
-                        end = c(13, 14, 19),
+  infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_null(combi_obj$get_parent_index(), info = "$parent_index is not itialized as null")
@@ -2316,8 +2218,7 @@ test_that("split_newick correctly splits Newick tree", {
 })
 
 test_that("treeMultiRegionSimulator", {
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"))
   treeData <- treeMultiRegionSimulator$new(infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);")
   expect_equal(length(treeData$Branch), 6, info = "Generates incorrect number of branches")
@@ -2368,8 +2269,7 @@ test_that("customized params", {
   params <- get_parameterValues()
   params$alpha_Ri <- 0.3
   params$mu <- 0.05
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr, params)
   expect_equal(combi_obj$get_singleStr(1)$get_alpha_Ri(), 0.3,
@@ -2398,8 +2298,7 @@ test_that("customized params", {
 })
 
 test_that("fixed eqFreqs",{
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0.1, 0.1, 0.1),
@@ -2418,8 +2317,7 @@ test_that("fixed eqFreqs",{
   }
 
   # Incorrect frequencies or missing values
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(NA, 0.1, 0.1),
@@ -2428,8 +2326,7 @@ test_that("fixed eqFreqs",{
                info = "fails throwing an error when eqFreqs have missing values. Generated from combiStructureGenerator")
   expect_error(treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"),
                info = "fails throwing an error when eqFreqs have missing values. Generated from treeMultiRegionSimulator")
-  infoStr <- data.frame(start = c(1, 101, 201),
-                        end = c(100, 200, 300),
+  infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0, 0.1, 0.1),

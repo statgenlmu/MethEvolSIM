@@ -3,48 +3,47 @@
 #'
 #' @description
 #' an R6 class representing a single genomic structure
-#' @export
 singleStructureGenerator <-
   R6::R6Class("singleStructureGenerator",
               portable = FALSE,
               private = list(
-                #' @field my_combiStructure Private attribute: Object of class combiStructureGenerator containing it
+                ## @field my_combiStructure Private attribute: Object of class combiStructureGenerator containing it
                 my_combiStructure = NULL,
-                #' @field combiStructure_index Private attribute: Index in Object of class combiStructureGenerator
+                ## @field combiStructure_index Private attribute: Index in Object of class combiStructureGenerator
                 combiStructure_index = NULL,
-                #' @field alpha_pI Private attribute: Model parameter for sampling island equilibrium frequencies
+                ## @field alpha_pI Private attribute: Model parameter for sampling island equilibrium frequencies
                 alpha_pI = 0.1,
-                #' @field beta_pI Private attribute: Model parameter for sampling island equilibrium frequencies
+                ## @field beta_pI Private attribute: Model parameter for sampling island equilibrium frequencies
                 beta_pI = 1,
-                #' @field alpha_mI Private attribute: Model parameter for sampling island equilibrium frequencies
+                ## @field alpha_mI Private attribute: Model parameter for sampling island equilibrium frequencies
                 alpha_mI = 0.1,
-                #' @field beta_mI Private attribute: Model parameter for sampling island equilibrium frequencies
+                ## @field beta_mI Private attribute: Model parameter for sampling island equilibrium frequencies
                 beta_mI = 0.5,
-                #' @field alpha_pNI Private attribute: Model parameter for sampling non-island equilibrium frequencies
+                ## @field alpha_pNI Private attribute: Model parameter for sampling non-island equilibrium frequencies
                 alpha_pNI = 0.1,
-                #' @field beta_pNI Private attribute: Model parameter for sampling non-island equilibrium frequencies
+                ## @field beta_pNI Private attribute: Model parameter for sampling non-island equilibrium frequencies
                 beta_pNI = 1,
-                #' @field alpha_mNI Private attribute: Model parameter for sampling non-island equilibrium frequencies
+                ## @field alpha_mNI Private attribute: Model parameter for sampling non-island equilibrium frequencies
                 alpha_mNI = 0.5,
-                #' @field beta_mNI Private attribute: Model parameter for sampling non-island equilibrium frequencies
+                ## @field beta_mNI Private attribute: Model parameter for sampling non-island equilibrium frequencies
                 beta_mNI = 0.1,
-                #' @field globalState Private attribute: Structure's favored global state: "M" for methylated (island structures) / "U" for unmethylated (non-island structures)
+                ## @field globalState Private attribute: Structure's favored global state: "M" for methylated (island structures) / "U" for unmethylated (non-island structures)
                 globalState = NULL,
-                #' @field eqFreqs Private attribute: Structure's methylation state equilibrium frequencies (for unmethylated, partially methylated and methylated)
+                ## @field eqFreqs Private attribute: Structure's methylation state equilibrium frequencies (for unmethylated, partially methylated and methylated)
                 eqFreqs = NULL,
 
-                #' @description
-                #' Private method: Sample equilibrium frequencies
-                #'
-                #' This function samples the object's eqFreqs based on the object's globalState.
-                #' Cases when the sample_eqFreqs method is called:
-                #'
-                #' 1. **During Initialization:** If equilibrium frequencies (eqFreqs) are not provided during the initialization of the object, this method is automatically called to set eqFreqs based on the object's globalState.
-                #'
-                #' 2. **In IWE_evol():** The method is called within the IWE_evol() function to sample new equilibrium frequencies for the structure.
-                #'
-                #' @return A numeric vector representing equilibrium frequencies for unmethylated, partially methylated, and methylated states.
-                #'
+                ## @description
+                ## Private method: Sample equilibrium frequencies
+                ##
+                ## This function samples the object's eqFreqs based on the object's globalState.
+                ## Cases when the sample_eqFreqs method is called:
+                ##
+                ## 1. **During Initialization:** If equilibrium frequencies (eqFreqs) are not provided during the initialization of the object, this method is automatically called to set eqFreqs based on the object's globalState.
+                ##
+                ## 2. **In IWE_evol():** The method is called within the IWE_evol() function to sample new equilibrium frequencies for the structure.
+                ##
+                ## @return A numeric vector representing equilibrium frequencies for unmethylated, partially methylated, and methylated states.
+                ##
                 sample_eqFreqs = function() {
                   if (private$globalState == "M") {
                     p <- stats::rbeta(1, private$alpha_pNI, private$beta_pNI)
@@ -59,13 +58,13 @@ singleStructureGenerator <-
                   }
                   return(c(u, p, m))
                 },
-                #' @field seq Private attribute: Encoded sequence of CpGs methylation state: 1 for unmethylated, 2 for partially-methylated, 3 for methylated
+                ## @field seq Private attribute: Encoded sequence of CpGs methylation state: 1 for unmethylated, 2 for partially-methylated, 3 for methylated
                 seq = NULL,
-                #' @field siteR Private attribute: Encoded sequence of CpGs site SSEi rate: 1 for Ri_values[1], 2 for Ri_values[2] and 3 for Ri_values[3]
+                ## @field siteR Private attribute: Encoded sequence of CpGs site SSEi rate: 1 for Ri_values[1], 2 for Ri_values[2] and 3 for Ri_values[3]
                 siteR = NULL,
-                #' @field neighbSt Private attribute: Encoded sequence of CpGs site neighbor state: as in mapNeighbSt_matrix
+                ## @field neighbSt Private attribute: Encoded sequence of CpGs site neighbor state: as in mapNeighbSt_matrix
                 neighbSt = NULL,
-                #' @field mapNeighbSt_matrix Private attribute: Matrix encoding neighbor state
+                ## @field mapNeighbSt_matrix Private attribute: Matrix encoding neighbor state
                 ## Map from neighbor state to numerical coding #########################
                 #### #### Rows represent left neighbor state (u,p,m)
                 #### #### columns represent right neighbor state (u,p,m)
@@ -74,9 +73,9 @@ singleStructureGenerator <-
                 #### ####[2,]    4    5    6
                 #### ####[3,]    7    8    9
                 mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3),
-                #' @description
-                #' Private method: Get left singleStructureGenerator object in my_combiStructure object last seq state
-                #' @return last seq value
+                ## @description
+                ## Private method: Get left singleStructureGenerator object in my_combiStructure object last seq state
+                ## @return last seq value
                 get_leftStr_neighbSt = function(){
                   if (private$combiStructure_index == 1) {
                     stop("'combiStructure_index' is 1, no leftStr available")
@@ -85,9 +84,9 @@ singleStructureGenerator <-
                     private$my_combiStructure$get_singleStr(private$combiStructure_index - 1)$get_seqLastPos()
                   }
                 },
-                #' @description
-                #' Private method: Get right singleStructureGenerator object in my_combiStructure object first seq state
-                #' @return first seq value
+                ## @description
+                ## Private method: Get right singleStructureGenerator object in my_combiStructure object first seq state
+                ## @return first seq value
                 get_rightStr_neighbSt = function(){
                   if (private$combiStructure_index == private$my_combiStructure$get_singleStr_number()) {
                     stop("'combiStructure_index' is last, no rightStr available")
@@ -96,9 +95,9 @@ singleStructureGenerator <-
                     private$my_combiStructure$get_singleStr(private$combiStructure_index + 1)$get_seqFirstPos()
                   }
                 },
-                #' @description
-                #' Private method: Get next singleStructureGenerator object in my_combiStructure object
-                #' @return next singleStructureGenerator object if it exists, NULL if it does not exist
+                ## @description
+                ## Private method: Get next singleStructureGenerator object in my_combiStructure object
+                ## @return next singleStructureGenerator object if it exists, NULL if it does not exist
                 get_nextStr = function(){
                   if (is.null(private$combiStructure_index)) return(NULL)
                   if (private$combiStructure_index == private$my_combiStructure$get_singleStr_number()) return(NULL)
@@ -106,9 +105,9 @@ singleStructureGenerator <-
                     private$my_combiStructure$get_singleStr(private$combiStructure_index + 1)
                   }
                 },
-                #' @description
-                #' Private method: Get previous singleStructureGenerator object in my_combiStructure object
-                #' @return previous singleStructureGenerator object if it exists, NULL if it does not exist
+                ## @description
+                ## Private method: Get previous singleStructureGenerator object in my_combiStructure object
+                ## @return previous singleStructureGenerator object if it exists, NULL if it does not exist
                 get_prevStr = function(){
                   if (is.null(private$combiStructure_index)) return(NULL)
                   if (private$combiStructure_index == 1) return(NULL)
@@ -116,16 +115,16 @@ singleStructureGenerator <-
                     private$my_combiStructure$get_singleStr(private$combiStructure_index - 1)
                   }
                 },
-                #' @description
-                #' Private method: Update $neighbSt of a CpG position's neighbors within singleStructureGenerator object
-                #'
-                #' This fuction takes in the position index of a CpG site that
-                #' changed $seq state and updates $neighbSt for the neighbors of the changed position
-                #'
-                #' @param position position index of the $seq change
-                #'
-                #' @return NULL
-                #'
+                ## @description
+                ## Private method: Update $neighbSt of a CpG position's neighbors within singleStructureGenerator object
+                ##
+                ## This fuction takes in the position index of a CpG site that
+                ## changed $seq state and updates $neighbSt for the neighbors of the changed position
+                ##
+                ## @param position position index of the $seq change
+                ##
+                ## @return NULL
+                ##
                 update_intraStr_neighbSt = function(position){
                   if (!is.numeric(position) || length(position) != 1) {
                     stop("'position' must be one number")
@@ -162,16 +161,16 @@ singleStructureGenerator <-
                     }
                   }
                 },
-                #' @description
-                #' Private method: Update $neighbSt of a CpG position's neighbors within and between singleStructureGenerator objects
-                #'
-                #' This fuction takes in the position index of a CpG site that
-                #' changed $seq state and updates $neighbSt for the neighbors of the changed position
-                #'
-                #' @param position position index of the $seq change
-                #'
-                #' @return NULL
-                #'
+                ## @description
+                ## Private method: Update $neighbSt of a CpG position's neighbors within and between singleStructureGenerator objects
+                ##
+                ## This fuction takes in the position index of a CpG site that
+                ## changed $seq state and updates $neighbSt for the neighbors of the changed position
+                ##
+                ## @param position position index of the $seq change
+                ##
+                ## @return NULL
+                ##
                 update_neighbSt = function(position){
                   if (is.null(private$combiStructure_index)){ # case of isolated singleStructure instance
                     private$update_intraStr_neighbSt(position)
@@ -216,19 +215,19 @@ singleStructureGenerator <-
                     }
                   }
                 },
-                #' @field alpha_Ri Private attribute: Model parameter for gamma distribution shape to initialize the 3 $Ri_values
+                ## @field alpha_Ri Private attribute: Model parameter for gamma distribution shape to initialize the 3 $Ri_values
                 alpha_Ri = 0.1,
-                #' @field iota Private attribute: Model parameter for gamma distribution expected value to initialize the 3 $Ri_values
+                ## @field iota Private attribute: Model parameter for gamma distribution expected value to initialize the 3 $Ri_values
                 iota = 0.3,
-                #' @field Ri_values Private attribute: Vector containing 3 Ri rate values
+                ## @field Ri_values Private attribute: Vector containing 3 Ri rate values
                 Ri_values = NULL,
-                #' @description
-                #' Private method: Initialize $Ri_values
-                #'
-                #' This fuction uses $iota and $alpha_Ri to compute the 3 Ri_values
-                #'
-                #' @return A list with the 3 Ri_values
-                #'
+                ## @description
+                ## Private method: Initialize $Ri_values
+                ##
+                ## This fuction uses $iota and $alpha_Ri to compute the 3 Ri_values
+                ##
+                ## @return A list with the 3 Ri_values
+                ##
                 init_Ri_values = function(){
                   # Set the values that divide the gamma distribution in 3 equal probability categories
                   qGamma_oneThird <- stats::qgamma(1/3, shape = private$alpha_Ri, scale= private$iota / private$alpha_Ri)
@@ -240,33 +239,33 @@ singleStructureGenerator <-
                   Ri3 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  alpha_Ri, scale =  iota / alpha_Ri) * 3, qGamma_twoThird, Inf)$value
                   return(c(Ri1, Ri2, Ri3))
                 },
-                #' @field Ri_values Private attribute: Vector containing 2 Rc rate values
+                ## @field Rc_values Private attribute: Vector containing 2 Rc rate values
                 Rc_values = NULL,
-                #' @description
-                #' Private method: Initialize $Rc_values
-                #'
-                #' This fuction uses $iota to compute the 2 Rc_values
-                #'
-                #' @return A list with the 2 Rc_values
-                #'
+                ## @description
+                ## Private method: Initialize $Rc_values
+                ##
+                ## This fuction uses $iota to compute the 2 Rc_values
+                ##
+                ## @return A list with the 2 Rc_values
+                ##
                 init_Rc_values = function(){
                   Rcl <- (1 - private$iota) / 2
                   Rcr <- (1 - private$iota) / 2
                   return(list(Rcl = Rcl, Rcr= Rcr))
                 },
-                #' @field Ri_values Private attribute: Rate matrix for the independent SSE process
+                ## @field Qi Private attribute: Rate matrix for the independent SSE process
                 Qi = NULL,
-                #' @description
-                #' Private method: Set $Qi
-                #'
-                #' This fuction is used:
-                #'
-                #' 1. **During Initialization:** During the initialization of the object, this method is automatically called to set $Qi.
-                #'
-                #' 2. **In IWE_evol():** The method is called within the IWE_evol() to update $Qi after new $eqFreqs are sampled.
-                #'
-                #' @return NULL
-                #'
+                ## @description
+                ## Private method: Set $Qi
+                ##
+                ## This fuction is used:
+                ##
+                ## 1. **During Initialization:** During the initialization of the object, this method is automatically called to set $Qi.
+                ##
+                ## 2. **In IWE_evol():** The method is called within the IWE_evol() to update $Qi after new $eqFreqs are sampled.
+                ##
+                ## @return NULL
+                ##
                 set_Qi = function(){
                   ## Extract methylation state frequencies
                   u <- private$eqFreqs[1]
@@ -283,15 +282,15 @@ singleStructureGenerator <-
                   ## Save rate matrices in a list, and validate them
                   private$Qi <<- list(Qi1, Qi2, Qi3)
                 },
-                #' @field Ri_values Private attribute: Rate matrix for the correlated SSE process
+                ## @field Qc Private attribute: Rate matrix for the correlated SSE process
                 Qc = NULL,
-                #' @description
-                #' Private method: Set $Qc
-                #'
-                #' This fuction is used to initialize the singleStructure object
-                #'
-                #' @return NULL
-                #'
+                ## @description
+                ## Private method: Set $Qc
+                ##
+                ## This fuction is used to initialize the singleStructure object
+                ##
+                ## @return NULL
+                ##
                 set_Qc = function(){
                   ##### Matrices for SSEcor for neighbors state as coded in mapNeighbSt_matrix
                   Rcl <- private$Rc_values$Rcl
@@ -316,19 +315,19 @@ singleStructureGenerator <-
                   Qc9 <- matrix(c(-Rcl - Rcr, 0, Rcl + Rcr, 0, -Rcl - Rcr, Rcl + Rcr, 0, 0, 0), nrow = 3, byrow = TRUE)
                   private$Qc <<- list(Qc1, Qc2, Qc3, Qc4, Qc5, Qc6, Qc7, Qc8, Qc9)
                 },
-                #' @field Ri_values Private attribute: Rate matrix for the complete SSE process
+                ## @field Q Private attribute: Rate matrix for the complete SSE process
                 Q = NULL,
-                #' @description
-                #' Private method: Set $Q
-                #'
-                #' This fuction is used:
-                #'
-                #' 1. **During Initialization:** During the initialization of the object, this method is automatically called to set $Q.
-                #'
-                #' 2. **In IWE_evol():** The method is called within the IWE_evol() to update $Q after new $Qi is updated with the new $eqFreqs.
-                #'
-                #' @return NULL
-                #'
+                ## @description
+                ## Private method: Set $Q
+                ##
+                ## This fuction is used:
+                ##
+                ## 1. **During Initialization:** During the initialization of the object, this method is automatically called to set $Q.
+                ##
+                ## 2. **In IWE_evol():** The method is called within the IWE_evol() to update $Q after new $Qi is updated with the new $eqFreqs.
+                ##
+                ## @return NULL
+                ##
                 set_Q = function() {
                   # Initialize a list to store the results
                   private$Q <<- list()
@@ -350,7 +349,7 @@ singleStructureGenerator <-
 
                   }
                 },
-                #' @field ratetree Private attribute: Cumulative Rate of Change Binary Tree
+                ## @field ratetree Private attribute: Cumulative Rate of Change Binary Tree
                 ## This will contain a list of K vectors of length 1, 2, 4,.., N=2^(K-1), where
                 ## 2^(K-1) >= length($seq) > 2^(K-2).
                 ## The first length($seq) entries of ratetree[[K]][1:length($seq)] will be the rates
@@ -362,17 +361,17 @@ singleStructureGenerator <-
                 ## The four values in ratetree[[3]] will be the sums of the values in each quarter of the values
                 ## in ratetree[[K]], and so on.
                 ratetree = NULL,
-                #' @description
-                #' Private method: Update $ratetree after a CpG position's change of methylation state
-                #'
-                #' This fuction takes in the position index of a CpG site that
-                #' changed $seq state and the new rate of change and updates $ratetree
-                #'
-                #' @param position position index of the $seq change
-                #' @param rate new rate of change
-                #'
-                #' @return NULL
-                #'
+                ## @description
+                ## Private method: Update $ratetree after a CpG position's change of methylation state
+                ##
+                ## This fuction takes in the position index of a CpG site that
+                ## changed $seq state and the new rate of change and updates $ratetree
+                ##
+                ## @param position position index of the $seq change
+                ## @param rate new rate of change
+                ##
+                ## @return NULL
+                ##
                 update_ratetree = function(position, rate) {
                   ## check_ratetree("beginning of update_ratetree")
                   K <- length(private$ratetree)
@@ -387,11 +386,11 @@ singleStructureGenerator <-
                   ## check_ratetree("end of update_ratetree")
                  },
 
-                #' @description
-                #' Private method: checkes whether $ratetree is consitent
-                #'
-                #' @param s a string that can be used to indicate where in the code the test failed
-                #'
+                ## @description
+                ## Private method: checkes whether $ratetree is consitent
+                ##
+                ## @param s a string that can be used to indicate where in the code the test failed
+                ##
                 check_ratetree = function(s) {
                   K <- length(private$ratetree)
                   if (K > 1){
@@ -407,16 +406,16 @@ singleStructureGenerator <-
                   }
                 },
 
-                #' @description
-                #' Private method: Update $ratetree after a CpG position's change of methylation state
-                #'
-                #' This fuction takes in the position index of a CpG site that
-                #' changed $seq state and the new rate of change and updates $ratetree
-                #'
-                #' @param testing default FALSE. TRUE for enabling testing output
-                #'
-                #' @return $seq index if testing FALSE and additional sampled value if testing TRUE
-                #'
+                ## @description
+                ## Private method: Update $ratetree after a CpG position's change of methylation state
+                ##
+                ## This fuction takes in the position index of a CpG site that
+                ## changed $seq state and the new rate of change and updates $ratetree
+                ##
+                ## @param testing default FALSE. TRUE for enabling testing output
+                ##
+                ## @return $seq index if testing FALSE and additional sampled value if testing TRUE
+                ##
                 choose_random_seqpos = function(testing=FALSE) {
                   ## return a random sequence position that is chosen with a probability that is
                   ## proportional to the change rates stored in private$ratetree
@@ -440,18 +439,18 @@ singleStructureGenerator <-
                   }
                   i
                 },
-                #' @description
-                #' Private method: Sample a number of changes in time interval of length dt
-                #'
-                #' This fuction takes in the length of the time interval (dt) and
-                #' samples a number of changing state events from a Poisson distribution
-                #' with rate given by the total rate of change of the singleStructure object
-                #' over dt time
-                #'
-                #' @param dt length of time interval
-                #'
-                #' @return sampled number of changes
-                #'
+                ## @description
+                ## Private method: Sample a number of changes in time interval of length dt
+                ##
+                ## This fuction takes in the length of the time interval (dt) and
+                ## samples a number of changing state events from a Poisson distribution
+                ## with rate given by the total rate of change of the singleStructure object
+                ## over dt time
+                ##
+                ## @param dt length of time interval
+                ##
+                ## @return sampled number of changes
+                ##
                 choose_number_of_changes = function(dt) {
                   ## choose a number of changes to happen in the next time interval of the short length dt
                   if (private$ratetree[[1]][1] < 0){
@@ -569,7 +568,7 @@ singleStructureGenerator <-
                 #'
                 #' @param globalState Character. Structure's favored global state: "M" for methylated (island structures) / "U" for unmethylated (non-island structures).
                 #' @param n Numerical Value. Number of CpG positions
-                #' @param eqFreqs Default NULL. When given: numerical vector with tructure's methylation state equilibrium frequencies (for unmethylated, partially methylated and methylated)
+                #' @param eqFreqs Default NULL. When given: numerical vector with structure's methylation state equilibrium frequencies (for unmethylated, partially methylated and methylated)
                 #' @param combiStr Default NULL. When initiated from combiStructureGenerator: object of class combiStructureGenerator containing it
                 #' @param combiStr_index Default NULL. When initiated from combiStructureGenerator: index in Object of class combiStructureGenerator
                 #' @param params Default NULL. When given: data frame containing model parameters
@@ -711,239 +710,291 @@ singleStructureGenerator <-
                 #' Public method: Get object's equilibrium Frequencies
                 #'
                 #' @return vector with equilibrium frequencies of unmethylated, partially methylated and methylated
-                get_eqFreqs = function() private$eqFreqs
+                get_eqFreqs = function() private$eqFreqs,
+
+                #' @description
+                #' Public method. Simulate how CpG dinucleotide methylation state changes due to the SSE process
+                #' along a time step of length dt
+                #'
+                #' @param dt time step length.
+                #' @param testing logical value for testing purposes. Default FALSE.
+                #'
+                #' @return default NULL. If testing TRUE it returns a list with the number of events sampled and a
+                #' dataframe with the position(s) affected, new state and old methylation state.
+                #'
+                SSE_evol = function(dt, testing = FALSE) {
+                    if (testing){
+                        event_number <- 0
+                        SSE_evolInfo <- data.frame(
+                            position = integer(),
+                            old_St = integer(),
+                            new_St = integer()
+                        )
+                    }
+                    ## get a number of changes to happen in the next time interval of the short length dt
+                    M <- private$choose_number_of_changes(dt)
+                    if (M>0){
+                        for(m in 1:M) {
+                            i <- private$choose_random_seqpos()
+                            if (testing){
+                                event_number <- M
+                                position <- i
+                                old_St <- private$seq[i]
+                            }
+                                        # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
+                            private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
+                            if (testing){
+                                new_St <- private$seq[i]
+                                SSE_evolInfo <- rbind(SSE_evolInfo, data.frame(position, old_St, new_St))
+                            }
+                            private$update_neighbSt(i)
+                            for(j in max(i-1, 1):min(i+1, length(private$seq))) {
+                                private$update_ratetree(j, abs(private$Q[[private$siteR[j]]][[private$neighbSt[j]]][private$seq[j],private$seq[j]]))
+                            }
+                        }
+                    }
+                    if (testing){
+                        return(list(event_number = event_number,
+                                    SSE_evolInfo = SSE_evolInfo))
+                    }
+                },
+
+                #' @description
+                #' Public Method. Simulate IWE Events
+                #'
+                #' Simulates how CpG Islands' methylation state frequencies change and simultaneous sites change methylation state
+                #' along a branch of length t according to the SSE-IWE model.
+                #'
+                #' @param testing logical value for testing purposes. Default FALSE.
+                #'
+                #' @return If testing = TRUE it returns a list.
+                #' If there was a change in the equilibrium frequencies} {the list contains the following 7 elements, if not it contains the first 3 elements:
+                #' \describe{
+                #'       \item{\code{eqFreqsChange}}{logical indicating if there was a change in the equilibrium frequencies.}
+                #'       \item{\code{old_eqFreqs}}{Original equilibrium frequencies before the IWE event.}
+                #'       \item{\code{new_eqFreqs}}{New equilibrium frequencies after the IWE event.}
+                #'       \item{\code{old_obsFreqs}}{Original observed frequencies before the IWE event.}
+                #'       \item{\code{new_obsFreqs}}{New observed frequencies after the IWE event.}
+                #'       \item{\code{IWE_case}}{Description of the IWE event case.}
+                #'       \item{\code{Mk}}{Transition matrix used for the IWE event.}
+                #' }
+                #'
+                #'
+                #' @details The function checks if the methylation equilibrium frequencies (\code{eqFreqs}) and sequence observed
+                #' frequencies (\code{obsFreqs}) change after the IWE event. If there is a change in either
+                #' frequencies, the corresponding change flags(\code{eqFreqsChange}
+                #' in the \code{infoIWE} list will be set to \code{TRUE}.
+                #'
+                IWE_evol = function(testing = FALSE) {
+                    ## Extract previous state equilibrium frequencies
+                    u <- private$eqFreqs[1]
+                    p <- private$eqFreqs[2]
+                    m <- private$eqFreqs[3]
+                    old_eqFreqs <- c(u,p,m)
+
+                    if (testing){
+                                        # compute previous observed methylation frequencies
+                        old_obsFreqs <- c(sum(private$seq==1), sum(private$seq==2), sum(private$seq==3))/length(private$seq)
+                                        # Save previous rates
+                        old_Q <- private$Q
+                                        # Initiate changedPos with NULL
+                        changedPos <- NULL
+                    }
+
+                                        # Sample new methylation frequencies with the structure's global strategie
+                    new_eqFreqs <- private$sample_eqFreqs()
+
+                                        # Check if new_eqFreqs are equal to old ones
+                    if (identical(old_eqFreqs, new_eqFreqs)) {
+                        eqFreqsChange = F
+
+                    } else{
+                        eqFreqsChange = T
+
+                                        # Set the IWE transition matrix according to current case
+                                        # Check Case 1: 1 new frequency value bigger and 2 smaller
+                        if (new_eqFreqs[1] > u & new_eqFreqs[2] <= p & new_eqFreqs[3] <= m) {
+                            IWE_case <- "Case 1. u bigger"
+                            Mk <- matrix(c(1, 0, 0,
+                            (p-new_eqFreqs[2])/p, new_eqFreqs[2]/p, 0,
+                            (m-new_eqFreqs[3])/m, 0, new_eqFreqs[3]/m),
+                            nrow = 3, byrow = TRUE)
+
+                        }
+                        if (new_eqFreqs[2] > p & new_eqFreqs[1] <= u & new_eqFreqs[3] <= m) {
+                            IWE_case <- "Case 1. p bigger"
+                            Mk <- matrix(c(new_eqFreqs[1]/u, (u-new_eqFreqs[1])/u, 0,
+                                           0, 1, 0,
+                                           0, (m-new_eqFreqs[3])/m, new_eqFreqs[3]/m),
+                                         nrow = 3, byrow = TRUE)
+                        }
+                        if (new_eqFreqs[3] > m & new_eqFreqs[2] <= p & new_eqFreqs[1] <= u) {
+                            IWE_case <- "Case 1. m bigger"
+                            Mk <- matrix(c(new_eqFreqs[1]/u, 0, (u-new_eqFreqs[1])/u,
+                                           0, new_eqFreqs[2]/p, (p-new_eqFreqs[2])/p,
+                                           0, 0, 1),
+                                         nrow = 3, byrow = TRUE)
+
+                        }
+                                        # Check Case 2: 1 new frequency value smaller
+                        if (new_eqFreqs[1] < u & new_eqFreqs[2] >= p & new_eqFreqs[3] >= m) {
+                            IWE_case <- "Case 2. u smaller"
+                            Mk <- matrix(c(new_eqFreqs[1]/u, (new_eqFreqs[2]-p)/u, (new_eqFreqs[3]-m)/u,
+                                           0, 1, 0,
+                                           0, 0, 1),
+                                         nrow = 3, byrow = TRUE)
+                        }
+                        if (new_eqFreqs[2] < p & new_eqFreqs[1] >= u & new_eqFreqs[3] >= m) {
+                            IWE_case <- "Case 2. p smaller"
+                            Mk <- matrix(c(1, 0, 0,
+                            (new_eqFreqs[1]-u)/p, new_eqFreqs[2]/p, (new_eqFreqs[3]-m)/p,
+                            0, 0, 1),
+                            nrow = 3, byrow = TRUE)
+                        }
+                        if (new_eqFreqs[3] < m & new_eqFreqs[2] >= p & new_eqFreqs[1] >= u) {
+                            IWE_case <- "Case 2. m smaller"
+                            Mk <- matrix(c(1, 0, 0,
+                                           0, 1, 0,
+                                           (new_eqFreqs[1]-u)/m, (new_eqFreqs[2]-p)/m, new_eqFreqs[3]/m),
+                                         nrow = 3, byrow = TRUE)
+                        }
+
+                                        # Change data equilibrium frequencies
+                        private$eqFreqs <<- new_eqFreqs
+                                        # Update Qi and Q
+                        private$set_Qi()
+                        private$set_Q()
+
+                        if(testing){
+
+                                        # Validate updated rate matrices
+                            validationStates <- listRateMatrix_validation(private$Qi, "Qi matrices IWE")
+                            listMatrices_validationResults(validationStates)
+
+                            validationStates <- listRateMatrix_validation(private$Q[[1]], "Q matrices IWE R1")
+                            listMatrices_validationResults(validationStates)
+
+                            validationStates <- listRateMatrix_validation(private$Q[[2]], "Q matrices IWE R2")
+                            listMatrices_validationResults(validationStates)
+
+                            validationStates <- listRateMatrix_validation(private$Q[[3]], "Q matrices IWE R3")
+                            listMatrices_validationResults(validationStates)
+
+                                        # Validate transition matrix
+                            validationStates <- listTransitionMatrix_validation(list(Mk), "Mk")
+                            listMatrices_validationResults(validationStates)
+
+                                        # Validate methylation equilibrium tripple (extra control at IWE)
+                            validationStates <- listFreqVector_validation(list(old_eqFreqs, new_eqFreqs), "IWE_evol control old_eqFreqs and new_eqFreqs")
+                            listFreqVector_validationResults(validationStates)
+
+                                        # Validate Markov Chain State Transition Property
+                            validationStates <- transPropMC_validation(old_eqFreqs, Mk, new_eqFreqs, listName = "transPropMC IWE")
+                            transPropMC_validationResults(validationStates)
+                        }
+
+                                        # Sample $seq accordint to transition probablities
+                        newseq <- rep(0, length(private$seq))
+                        for(i in 1:length(newseq)) {
+                            newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
+                        }
+
+                                        # Update $seq and $neighbSt
+                        if(any(private$seq != newseq)){
+                            changedPos <- which(private$seq !=newseq)
+                            private$seq <<- newseq
+                            for (i in changedPos){
+                                private$update_neighbSt(i)
+                                        # Update $ratetree
+                                for(j in max(i-1, 1):min(i+1, length(private$seq))) {
+                                    private$update_ratetree(j, abs(private$Q[[private$siteR[j]]][[private$neighbSt[j]]][private$seq[j],private$seq[j]]))
+                                }
+                            }
+                        }
+
+                                        #Compute the new_obsFreqs after the IWE event
+                        new_obsFreqs <- c(sum(private$seq==1), sum(private$seq==2), sum(private$seq==3))/length(private$seq)
+                    }
+
+                    if (testing){
+                        if(eqFreqsChange){
+                            return(list(combiStructure_index = private$combiStructure_index,
+                                        eqFreqsChange = eqFreqsChange,
+                                        old_eqFreqs = old_eqFreqs,
+                                        new_eqFreqs = new_eqFreqs,
+                                        old_obsFreqs = old_obsFreqs,
+                                        new_obsFreqs = new_obsFreqs,
+                                        IWE_case = IWE_case,
+                                        Mk = Mk,
+                                        old_Q = old_Q,
+                                        new_Q = private$Q,
+                                        changedPos = changedPos))
+                        } else {
+                            return(list(eqFreqsChange = eqFreqsChange,
+                                        old_eqFreqs = old_eqFreqs,
+                                        new_eqFreqs = new_eqFreqs))
+                        }
+                    }
+                },
+                                        # Island equilibrium frequencies sampling strategia
+                #' @description
+                #' Public Method.
+                #' @return Model parameter alpha_pI for sampling island equilibrium frequencies
+                get_alpha_pI = function() private$alpha_pI,
+
+                #' @description
+                #' Public Method.
+                #' @return Model parameter for sampling island equilibrium frequencies
+                get_beta_pI = function() private$beta_pI,
+
+                #' @description
+                #' Public Method.
+                #' @return Model parameter for sampling island equilibrium frequencies
+                get_alpha_mI = function() private$alpha_mI,
+
+                #' @description
+                #' Public Method.
+                #' @return Model parameter for sampling island equilibrium frequencies
+                get_beta_mI = function() private$beta_mI,
+
+                                        #sampling strategy
+                #' @description
+                #' Public Method.
+                #' @return Model parameter for sampling non-island equilibrium frequencies
+                get_alpha_pNI = function() private$alpha_pNI,
+
+                #' @description
+                #' Public Method.
+                #' @return Model parameter for sampling non-island equilibrium frequencies
+                get_beta_pNI = function() private$beta_pNI,
+
+                #' @description
+                #' Public Method.
+                #' @return Model parameter for sampling non-island equilibrium frequencies
+                get_alpha_mNI = function() private$alpha_mNI,
+
+                #' @description
+                #' Public Method.
+                #' @return Model parameter for sampling non-island equilibrium frequencies
+                get_beta_mNI = function() private$beta_mNI,
+
+                                        # SSE
+                #' @description
+                #' Public Method.
+                #' @return Model parameter for gamma distribution shape to initialize the 3 $Ri_values
+                get_alpha_Ri = function() private$alpha_Ri,
+
+                #' @description
+                #' Public Method.
+                #' @return Model parameter for gamma distribution expected value to initialize the 3 $Ri_values
+                get_iota = function() private$iota,
+
+                #' @description
+                #' Public Method.
+                #' @return The 3 $Ri_values
+                get_Ri_values = function() private$Ri_values
               )
-  )
-
-#' @description
-#' Public method. Simulate how CpG dinucleotide methylation state changes due to the SSE process
-#' along a time step of length dt
-#'
-#' @param dt time step length.
-#' @param testing logical value for testing purposes. Default FALSE.
-#'
-#' @return default NULL. If testing TRUE it returns a list with the number of events sampled and a
-#' dataframe with the position(s) affected, new state and old methylation state.
-#'
-#' @noRd
-singleStructureGenerator$set("public", "SSE_evol", function(dt, testing = FALSE) {
-  if (testing){
-    event_number <- 0
-    SSE_evolInfo <- data.frame(
-      position = integer(),
-      old_St = integer(),
-      new_St = integer()
-    )
-  }
-  ## get a number of changes to happen in the next time interval of the short length dt
-  M <- private$choose_number_of_changes(dt)
-  if (M>0){
-    for(m in 1:M) {
-      i <- private$choose_random_seqpos()
-      if (testing){
-        event_number <- M
-        position <- i
-        old_St <- private$seq[i]
-      }
-      # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
-      private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
-      if (testing){
-        new_St <- private$seq[i]
-        SSE_evolInfo <- rbind(SSE_evolInfo, data.frame(position, old_St, new_St))
-      }
-      private$update_neighbSt(i)
-      for(j in max(i-1, 1):min(i+1, length(private$seq))) {
-        private$update_ratetree(j, abs(private$Q[[private$siteR[j]]][[private$neighbSt[j]]][private$seq[j],private$seq[j]]))
-      }
-    }
-  }
-  if (testing){
-    return(list(event_number = event_number,
-                SSE_evolInfo = SSE_evolInfo))
-  }
-})
-
-#' @description
-#' Public Method. Simulate IWE Events
-#'
-#' Simulates how CpG Islands' methylation state frequencies change and simultaneous sites change methylation state
-#' along a branch of length t according to the SSE-IWE model.
-#'
-#' @param testing logical value for testing purposes. Default FALSE.
-#'
-#' @return If testing = TRUE it returns a list
-#' \describe{
-#'   \item If there was a change in the equilibrium frequencies the list contains the following 7 elements, if not it contains the first 3 elements:
-#'     \describe{
-#'       \item{\code{eqFreqsChange}}{logical indicating if there was a change in the equilibrium frequencies.}
-#'       \item{\code{old_eqFreqs}}{Original equilibrium frequencies before the IWE event.}
-#'       \item{\code{new_eqFreqs}}{New equilibrium frequencies after the IWE event.}
-#'       \item{\code{old_obsFreqs}}{Original observed frequencies before the IWE event.}
-#'       \item{\code{new_obsFreqs}}{New observed frequencies after the IWE event.}
-#'       \item{\code{IWE_case}}{Description of the IWE event case.}
-#'       \item{\code{Mk}}{Transition matrix used for the IWE event.}
-#'     }
-#'   }
-#'
-#'
-#' @details The function checks if the methylation equilibrium frequencies (\code{eqFreqs}) and sequence observed
-#' frequencies (\code{obsFreqs}) change after the IWE event. If there is a change in either
-#' frequencies, the corresponding change flags(\code{eqFreqsChange}
-#' in the \code{infoIWE} list will be set to \code{TRUE}.
-#'
-#' @noRd
-singleStructureGenerator$set("public", "IWE_evol", function(testing = FALSE) {
-
-  ## Extract previous state equilibrium frequencies
-  u <- private$eqFreqs[1]
-  p <- private$eqFreqs[2]
-  m <- private$eqFreqs[3]
-  old_eqFreqs <- c(u,p,m)
-
-  if (testing){
-    # compute previous observed methylation frequencies
-    old_obsFreqs <- c(sum(private$seq==1), sum(private$seq==2), sum(private$seq==3))/length(private$seq)
-    # Save previous rates
-    old_Q <- private$Q
-    # Initiate changedPos with NULL
-    changedPos <- NULL
-  }
-
-  # Sample new methylation frequencies with the structure's global strategie
-  new_eqFreqs <- private$sample_eqFreqs()
-
-  # Check if new_eqFreqs are equal to old ones
-  if (identical(old_eqFreqs, new_eqFreqs)) {
-    eqFreqsChange = F
-
-  } else{
-    eqFreqsChange = T
-
-    # Set the IWE transition matrix according to current case
-    # Check Case 1: 1 new frequency value bigger and 2 smaller
-    if (new_eqFreqs[1] > u & new_eqFreqs[2] <= p & new_eqFreqs[3] <= m) {
-      IWE_case <- "Case 1. u bigger"
-      Mk <- matrix(c(1, 0, 0,
-                     (p-new_eqFreqs[2])/p, new_eqFreqs[2]/p, 0,
-                     (m-new_eqFreqs[3])/m, 0, new_eqFreqs[3]/m),
-                   nrow = 3, byrow = TRUE)
-
-    }
-    if (new_eqFreqs[2] > p & new_eqFreqs[1] <= u & new_eqFreqs[3] <= m) {
-      IWE_case <- "Case 1. p bigger"
-      Mk <- matrix(c(new_eqFreqs[1]/u, (u-new_eqFreqs[1])/u, 0,
-                     0, 1, 0,
-                     0, (m-new_eqFreqs[3])/m, new_eqFreqs[3]/m),
-                   nrow = 3, byrow = TRUE)
-    }
-    if (new_eqFreqs[3] > m & new_eqFreqs[2] <= p & new_eqFreqs[1] <= u) {
-      IWE_case <- "Case 1. m bigger"
-      Mk <- matrix(c(new_eqFreqs[1]/u, 0, (u-new_eqFreqs[1])/u,
-                     0, new_eqFreqs[2]/p, (p-new_eqFreqs[2])/p,
-                     0, 0, 1),
-                   nrow = 3, byrow = TRUE)
-
-    }
-    # Check Case 2: 1 new frequency value smaller
-    if (new_eqFreqs[1] < u & new_eqFreqs[2] >= p & new_eqFreqs[3] >= m) {
-      IWE_case <- "Case 2. u smaller"
-      Mk <- matrix(c(new_eqFreqs[1]/u, (new_eqFreqs[2]-p)/u, (new_eqFreqs[3]-m)/u,
-                     0, 1, 0,
-                     0, 0, 1),
-                   nrow = 3, byrow = TRUE)
-    }
-    if (new_eqFreqs[2] < p & new_eqFreqs[1] >= u & new_eqFreqs[3] >= m) {
-      IWE_case <- "Case 2. p smaller"
-      Mk <- matrix(c(1, 0, 0,
-                     (new_eqFreqs[1]-u)/p, new_eqFreqs[2]/p, (new_eqFreqs[3]-m)/p,
-                     0, 0, 1),
-                   nrow = 3, byrow = TRUE)
-    }
-    if (new_eqFreqs[3] < m & new_eqFreqs[2] >= p & new_eqFreqs[1] >= u) {
-      IWE_case <- "Case 2. m smaller"
-      Mk <- matrix(c(1, 0, 0,
-                     0, 1, 0,
-                     (new_eqFreqs[1]-u)/m, (new_eqFreqs[2]-p)/m, new_eqFreqs[3]/m),
-                   nrow = 3, byrow = TRUE)
-    }
-
-    # Change data equilibrium frequencies
-    private$eqFreqs <<- new_eqFreqs
-    # Update Qi and Q
-    private$set_Qi()
-    private$set_Q()
-
-    if(testing){
-
-      # Validate updated rate matrices
-      validationStates <- listRateMatrix_validation(private$Qi, "Qi matrices IWE")
-      listMatrices_validationResults(validationStates)
-
-      validationStates <- listRateMatrix_validation(private$Q[[1]], "Q matrices IWE R1")
-      listMatrices_validationResults(validationStates)
-
-      validationStates <- listRateMatrix_validation(private$Q[[2]], "Q matrices IWE R2")
-      listMatrices_validationResults(validationStates)
-
-      validationStates <- listRateMatrix_validation(private$Q[[3]], "Q matrices IWE R3")
-      listMatrices_validationResults(validationStates)
-
-      # Validate transition matrix
-      validationStates <- listTransitionMatrix_validation(list(Mk), "Mk")
-      listMatrices_validationResults(validationStates)
-
-      # Validate methylation equilibrium tripple (extra control at IWE)
-      validationStates <- listFreqVector_validation(list(old_eqFreqs, new_eqFreqs), "IWE_evol control old_eqFreqs and new_eqFreqs")
-      listFreqVector_validationResults(validationStates)
-
-      # Validate Markov Chain State Transition Property
-      validationStates <- transPropMC_validation(old_eqFreqs, Mk, new_eqFreqs, listName = "transPropMC IWE")
-      transPropMC_validationResults(validationStates)
-    }
-
-    # Sample $seq accordint to transition probablities
-    newseq <- rep(0, length(private$seq))
-    for(i in 1:length(newseq)) {
-      newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
-    }
-
-    # Update $seq and $neighbSt
-    if(any(private$seq != newseq)){
-      changedPos <- which(private$seq !=newseq)
-      private$seq <<- newseq
-      for (i in changedPos){
-        private$update_neighbSt(i)
-        # Update $ratetree
-        for(j in max(i-1, 1):min(i+1, length(private$seq))) {
-          private$update_ratetree(j, abs(private$Q[[private$siteR[j]]][[private$neighbSt[j]]][private$seq[j],private$seq[j]]))
-        }
-      }
-    }
-
-    #Compute the new_obsFreqs after the IWE event
-    new_obsFreqs <- c(sum(private$seq==1), sum(private$seq==2), sum(private$seq==3))/length(private$seq)
-  }
-
-  if (testing){
-    if(eqFreqsChange){
-      return(list(combiStructure_index = private$combiStructure_index,
-                  eqFreqsChange = eqFreqsChange,
-                  old_eqFreqs = old_eqFreqs,
-                  new_eqFreqs = new_eqFreqs,
-                  old_obsFreqs = old_obsFreqs,
-                  new_obsFreqs = new_obsFreqs,
-                  IWE_case = IWE_case,
-                  Mk = Mk,
-                  old_Q = old_Q,
-                  new_Q = private$Q,
-                  changedPos = changedPos))
-    } else {
-      return(list(eqFreqsChange = eqFreqsChange,
-                  old_eqFreqs = old_eqFreqs,
-                  new_eqFreqs = new_eqFreqs))
-    }
-  }
-})
+              )
 
 #' @title combiStructureGenerator
 #' @importFrom R6 R6Class
@@ -953,27 +1004,22 @@ singleStructureGenerator$set("public", "IWE_evol", function(testing = FALSE) {
 #' Each genomic structure contained is an object of class singleStructureGenerator.
 #' Note that default clone(deep=TRUE) fails to clone singleStructureGenerator objects contained, use method $copy() instead.
 #'
-#' @export
 combiStructureGenerator <-
   R6::R6Class("combiStructureGenerator",
               private = list(
-                #' @field singleStr Private attribute: List containing objects of class singleStructureGenerator
+                ## @field singleStr Private attribute: List containing objects of class singleStructureGenerator
                 singleStr = NULL,
-                #' @field singleStr_start Private attribute: Vector with the start indexes of each singleStructureGenerator object
-                singleStr_start = NULL,
-                #' @field singleStr_end Private attribute: Vector with the end indexes of each singleStructureGenerator object
-                singleStr_end = NULL,
-                #' @field globalState Private attribute: Vector with each singleStructureGenerator object favored global state
+                ## @field globalState Private attribute: Vector with each singleStructureGenerator object favored global state
                 singleStr_globalState = NULL,
-                #' @field mu Private attribute: Model parameter for the rate of the IWE evolutionary process (per island and branch length).
+                ## @field mu Private attribute: Model parameter for the rate of the IWE evolutionary process (per island and branch length).
                 mu = 0.1,
-                #' @field IWE_rate Private attribute: Total rate of the IWE evolutionary process for the combiStructureObject.
+                ## @field IWE_rate Private attribute: Total rate of the IWE evolutionary process for the combiStructureObject.
                 IWE_rate = NULL,
-                #' @description
-                #' Private Method: Compute the total rate of IWE evolutionary process.
-                #' The total rate of change is given by the rate per CpG island times the number of CpG islands
-                #'
-                #' @return NULL.
+                ## @description
+                ## Private Method: Compute the total rate of IWE evolutionary process.
+                ## The total rate of change is given by the rate per CpG island times the number of CpG islands
+                ##
+                ## @return NULL.
                 set_IWE_rate = function(){
                   if (self$get_island_number() != 0){
                     private$IWE_rate <- self$get_island_number() * private$mu
@@ -981,118 +1027,198 @@ combiStructureGenerator <-
                     private$IWE_rate <- 0
                   }
                 },
-                #' @field IWE_events Private attribute: Information of the IWE events sampled in a tree branch
-                IWE_events = NULL,
-                #' @field name Private attribute: If evolutionary process (simulated from class treeMultiRegionSimulator) ends in a tree leaf, the name of the leaf
-                name = NULL,
-                #' @field own_index Private attribute: Own branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
-                own_index = NULL,
-                #' @field parent_index Private attribute: Parent branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
-                parent_index = NULL,
-                #' @field parent_index Private attribute: Offspring branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
-                offspring_index = NULL
-              ), public = list(
-                #' @description
-                #' Create a new combiStructureGenerator object.
-                #'
-                #' Note that this object can be generated within a treeMultiRegionSimulator object.
-                #'
-                #' @param infoStr Dataframe with 'start' and 'end' indexes and 'globalState' for each singleStructureGenerator object.
-                #' If initial equilibrium frequencies are given the dataframe must contain 3 additional columns: 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
-                #' @param params Default NULL. When given: data frame containing model parameters.
-                #' @param testing Default FALSE. TRUE for testing output.
-                #'
-                #' @return A new `combiStructureGenerator` object.
-                initialize = function (infoStr, params = NULL, testing = FALSE){
-                  private$singleStr <- list()
-                  private$singleStr_start <- c()
-                  private$singleStr_end <- c()
-                  private$singleStr_globalState <- c()
-                  if (testing){ # data with seqlength 13
-                    for (i in 1:nrow(infoStr)) {
-                      private$singleStr_start[i] <- infoStr[i, "start"]
-                      private$singleStr_end[i] <- infoStr[i, "end"]
-                      u_length <- length(private$singleStr_start[i]:private$singleStr_end[i])
-                      private$singleStr_globalState[i] <- infoStr[i, "globalState"]
-                      private$singleStr[[i]] <- singleStructureGenerator$new(private$singleStr_globalState[i],
-                                                                             u_length,
-                                                                             combiStr = self, combiStr_index = i,
-                                                                             testing = TRUE)
-                    }
-                  } else {
-                    for (i in 1:nrow(infoStr)) {
-                      private$singleStr_start[i] <- infoStr[i, "start"]
-                      private$singleStr_end[i] <- infoStr[i, "end"]
-                      u_length <- length(private$singleStr_start[i]:private$singleStr_end[i])
-                      private$singleStr_globalState[i] <- infoStr[i, "globalState"]
-                      if(all(c("u_eqFreq", "p_eqFreq", "m_eqFreq") %in% colnames(infoStr))){
-                        eqFreqs <- c(infoStr$u_eqFreq[i], infoStr$p_eqFreq[i], infoStr$m_eqFreq[i])
-                      } else{
-                        eqFreqs <- NULL
-                      }
-                      private$singleStr[[i]] <- singleStructureGenerator$new(globalState = private$singleStr_globalState[i],
-                                                                             n = u_length,
-                                                                             eqFreqs = eqFreqs,
-                                                                             combiStr = self ,combiStr_index = i,
-                                                                             params = params)
 
+                ## @description
+                ## Private method: Simulate SSE evolution at each short time step in each of the
+                ## singleStructureGenerator objects in $singleStr. It samples each object in $singleStr
+                ## in random order and calls singleStructureGenerator$SSE_evol()
+                ##
+                ## @param dt length of time step for SSE evolution.
+                ## @param testing default FALSE. True for testing output
+                ##
+                ## @return default NULL. If testing TRUE it returns testing information
+                SSE_evol = function(dt, testing = FALSE){
+                    evol_order <- sample(1:self$get_singleStr_number(), self$get_singleStr_number(), replace = FALSE)
+                    if (!testing){
+                        for (i in evol_order) private$singleStr[[i]]$SSE_evol(dt, testing)
+                    } else {
+                        testing_info <- vector("list", self$get_singleStr_number())
+                        for (i in evol_order) testing_info[[i]] <- private$singleStr[[i]]$SSE_evol(dt, testing)
                     }
-                  }
-                  for (i in 1:length(private$singleStr)){
-                    private$singleStr[[i]]$init_neighbSt()
-                    private$singleStr[[i]]$initialize_ratetree()
-                  }
-                  if(!is.null(params)){
-                    private$mu <- params$mu
-                  }
-                  private$set_IWE_rate()
-
+                    if (testing){
+                        return(list(evol_order = evol_order,
+                                    testing_info = testing_info))
+                    }
                 },
-                #' @description
-                #' Public method: Get one singleStructureGenerator object in $singleStr
-                #'
-                #' @param i index of the singleStructureGenerator object in $singleStr
-                #'
-                #' @return the singleStructureGenerator object in $singleStr with index i
-                get_singleStr = function(i) private$singleStr[[i]],
-                #' @description
-                #' Public method: Get number of singleStructureGenerator objects in $singleStr
-                #'
-                #' @return number of singleStructureGenerator object contained in $singleStr
-                get_singleStr_number = function () length(private$singleStr),
-                #' @description
-                #' Public method: Get number of singleStructureGenerator objects in $singleStr with $globalState "U" (CpG islands)
-                #'
-                #' @return number of singleStructureGenerator in $singleStr objects with $globalState "U" (CpG islands)
-                get_island_number = function (){
-                  indexes <- which(private$singleStr_globalState == "U")
+
+                ## @description
+                ## Simulate SSE evolutionary process within a given interval length by time steps of length dt.
+                ##
+                ## @param testing Default FALSE. Logical for testing purposes.
+                ## @param dt Length of time steps for SSE_evol.
+                ## @param interval_length Length of the total time interval.
+                ##
+                ## @return Default NULL. If testing = TRUE returns information for testing purposes.
+                ##
+                ## @details The function simulates SSE events within a specified interval length.
+                ##
+                interval_evol = function(interval_length, dt, testing = FALSE) {
+                    if(testing){
+                        interval_evolInfo <- c()
+                    }
+                                        # Compute number of dt for discretized time steps
+                    number_dt <- floor(interval_length / dt)
+                    remainder <- interval_length %% dt
+                    if(interval_length < dt){
+                        if(testing){
+                            interval_evolInfo <- paste("SSE evolving in shorter interval_length than dt. Interval length:", interval_length)
+                        }
+                        private$SSE_evol(dt = interval_length)
+                    } else{
+                        if(testing){
+                            interval_evolInfo <- paste("Number of SSE:", number_dt, ". Interval length:", dt)
+                        }
+                        for(i in 1:number_dt){
+                            private$SSE_evol(dt = dt)
+                        }
+                        if (dt * number_dt == interval_length){
+                            if(testing){
+                                interval_evolInfo <- c(interval_evolInfo, "No remainder")
+                            }
+                        } else{
+                            if(testing){
+                                interval_evolInfo <- c(interval_evolInfo, paste("Last SSE with remainder dt of length", remainder))
+                            }
+                            private$SSE_evol(dt = remainder)
+                        }
+                    }
+                    if(testing){interval_evolInfo}
+                },
+
+                ## @field IWE_events Private attribute: Information of the IWE events sampled in a tree branch
+                IWE_events = NULL,
+                ## @field name Private attribute: If evolutionary process (simulated from class treeMultiRegionSimulator) ends in a tree leaf, the name of the leaf
+                name = NULL,
+                ## @field own_index Private attribute: Own branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
+                own_index = NULL,
+                ## @field parent_index Private attribute: Parent branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
+                parent_index = NULL,
+                ## @field parent_index Private attribute: Offspring branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
+                offspring_index = NULL
+              ),
+              public = list(
+                  #' @description
+                  #' Create a new combiStructureGenerator object.
+                  #'
+                  #' Note that this object can be generated within a treeMultiRegionSimulator object.
+                  #'
+                  #' @param infoStr Dataframe with 'start' and 'end' indexes and 'globalState' for each singleStructureGenerator object.
+                  #' If initial equilibrium frequencies are given the dataframe must contain 3 additional columns: 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
+                  #' @param params Default NULL. When given: data frame containing model parameters.
+                  #' @param testing Default FALSE. TRUE for testing output.
+                  #'
+                  #' @return A new `combiStructureGenerator` object.
+                  initialize = function (infoStr, params = NULL, testing = FALSE){
+                      private$singleStr <- list()
+                      private$singleStr_globalState <- c()
+                      if (testing){ # data with seqlength 13
+                          for (i in 1:nrow(infoStr)) {
+                              u_length <- infoStr[i, "n"]
+                              private$singleStr_globalState[i] <- infoStr[i, "globalState"]
+                              private$singleStr[[i]] <- singleStructureGenerator$new(private$singleStr_globalState[i],
+                                                                                     u_length,
+                                                                                     combiStr = self, combiStr_index = i,
+                                                                                     testing = TRUE)
+                          }
+                      } else {
+                          for (i in 1:nrow(infoStr)) {
+                              u_length <- infoStr[i, "n"]
+                              private$singleStr_globalState[i] <- infoStr[i, "globalState"]
+                              if(all(c("u_eqFreq", "p_eqFreq", "m_eqFreq") %in% colnames(infoStr))){
+                                  eqFreqs <- c(infoStr$u_eqFreq[i], infoStr$p_eqFreq[i], infoStr$m_eqFreq[i])
+                              } else{
+                                  eqFreqs <- NULL
+                              }
+                              private$singleStr[[i]] <- singleStructureGenerator$new(globalState = private$singleStr_globalState[i],
+                                                                                     n = u_length,
+                                                                                     eqFreqs = eqFreqs,
+                                                                                     combiStr = self ,combiStr_index = i,
+                                                                                     params = params)
+
+                          }
+                      }
+                      for (i in 1:length(private$singleStr)){
+                          private$singleStr[[i]]$init_neighbSt()
+                          private$singleStr[[i]]$initialize_ratetree()
+                      }
+                      if(!is.null(params)){
+                          private$mu <- params$mu
+                      }
+                      private$set_IWE_rate()
+
+                  },
+                  #' @description
+                  #' Public method: Get one singleStructureGenerator object in $singleStr
+                  #'
+                  #' @param i index of the singleStructureGenerator object in $singleStr
+                  #'
+                  #' @return the singleStructureGenerator object in $singleStr with index i
+                  get_singleStr = function(i) private$singleStr[[i]],
+
+
+                  #' @description
+                  #' Public method: Get number of singleStructureGenerator objects in $singleStr
+                  #'
+                  #' @return number of singleStructureGenerator object contained in $singleStr
+                  get_singleStr_number = function () length(private$singleStr),
+
+
+                  #' @description
+                  #' Public method: Get number of singleStructureGenerator objects in $singleStr with $globalState "U" (CpG islands)
+                  #'
+                  #' @return number of singleStructureGenerator in $singleStr objects with $globalState "U" (CpG islands)
+                  get_island_number = function (){
+                      indexes <- which(private$singleStr_globalState == "U")
                   if (length(indexes) == 0){
                     return(0)
                   } else {
                     return(length(indexes))
                   }
                 },
+
                 #' @description
                 #' Public method: Get index of singleStructureGenerator objects in $singleStr with $globalState "U" (CpG islands)
                 #'
                 #' @return index of singleStructureGenerator objects in $singleStr with $globalState "U" (CpG islands)
                 get_island_index = function() which(private$singleStr_globalState == "U"),
+
+
                 #' @description
                 #' Public method: Set information of the IWE events sampled in a tree branch
                 #'
+                #' @param a value to which IWE_events should be set
+                #'
                 #' @return NULL
                 set_IWE_events = function(a) private$IWE_events <- a,
+
+
                 #' @description
                 #' Public method: Get information of the IWE events sampled in a tree branch
                 #'
                 #' @return information of the IWE events sampled in a tree branch
                 get_IWE_events = function() private$IWE_events,
+
+
                 #' @description
                 #' Public method: Set the name of the leaf if evolutionary process
                 #' (simulated from class treeMultiRegionSimulator) ends in a tree leaf.
                 #'
+                #' @param a value to which name should be set
+                #'
                 #' @return NULL
                 set_name = function(a) {private$name <- a},
+
+
                 #' @description
                 #' Public method: Get the name of the leaf if evolutionary process
                 #' (simulated from class treeMultiRegionSimulator) ended in a tree leaf.
@@ -1101,6 +1227,8 @@ combiStructureGenerator <-
                 #' (simulated from class treeMultiRegionSimulator) ended in a tree leaf.
                 #' For iner tree nodes return NULL
                 get_name = function() {private$name},
+
+
                 #' @description
                 #' Public method: Set own branch index in the tree
                 #' along which the evolutionary process is simulated
@@ -1108,15 +1236,21 @@ combiStructureGenerator <-
                 #'
                 #' @return NULL
                 get_own_index =  function() {private$own_index},
+
+
                 #' @description
                 #' Public method: Get own branch index in the tree
                 #' along which the evolutionary process is simulated
                 #' (from class treeMultiRegionSimulator).
                 #'
+                #' @param i index of focal object
+                #'
                 #' @return Own branch index in the tree
                 #' along which the evolutionary process is simulated
                 #' (from class treeMultiRegionSimulator).
                 set_own_index =  function(i) {private$own_index <- i},
+
+
                 #' @description
                 #' Public method: Get parent branch index in the tree
                 #' along which the evolutionary process is simulated
@@ -1126,13 +1260,19 @@ combiStructureGenerator <-
                 #' along which the evolutionary process is simulated
                 #' (from class treeMultiRegionSimulator).
                 get_parent_index = function() {private$parent_index},
+
+
                 #' @description
                 #' Public method: Set parent branch index in the tree
                 #' along which the evolutionary process is simulated
                 #' (from class treeMultiRegionSimulator).
                 #'
+                #' @param i set parent_index to this value
+                #'
                 #' @return NULL
                 set_parent_index = function(i) {private$parent_index <- i},
+
+
                 #' @description
                 #' Public method: Get offspring branch index in the tree
                 #' along which the evolutionary process is simulated
@@ -1142,17 +1282,25 @@ combiStructureGenerator <-
                 #' along which the evolutionary process is simulated
                 #' (from class treeMultiRegionSimulator).
                 get_offspring_index = function() {private$offspring_index},
+
+
                 #' @description
                 #' Public method: Set offspring branch index in the tree
                 #' along which the evolutionary process is simulated
                 #' (from class treeMultiRegionSimulator).
                 #'
+                #' @param i set offspring_index to this value
+                #'
                 #' @return NULL
                 set_offspring_index = function(i) {private$offspring_index <- i},
+
+
                 #' @description
                 #' Public method: Add offspring branch index in the tree
                 #' along which the evolutionary process is simulated
                 #' (from class treeMultiRegionSimulator).
+                #'
+                #' @param i index to be added
                 #'
                 #' @return NULL
                 add_offspring_index = function(i) {
@@ -1161,169 +1309,110 @@ combiStructureGenerator <-
                   } else {
                     private$offspring_index <- c(private$offspring_index, i)
                   }
+                },
+
+                #' @description
+                #' Public method.
+                #'
+                #' @return Model parameter for the rate of the IWE evolutionary process (per island and branch length).
+                get_mu = function() private$mu,
+
+                #' @description
+                #' Public method: Clone each singleStructureGenerator object in $singleStr
+                #'
+                #' @param singStrList object to be cloned
+                #'
+                #' @return NULL
+                set_singleStr = function(singStrList){
+                    private$singleStr <- lapply(singStrList, function(singleStr) {
+                        singleStr$clone()
+                    })
+                },
+
+                #' @description
+                #' Public method: Clone combiStructureGenerator object and all singleStructureGenerator objects in it
+                #'
+                #' @return cloned combiStructureGenerator object
+                copy = function(){
+                    new_obj <- self$clone()
+                    new_obj$set_singleStr(private$singleStr)
+                    return(new_obj)
+                },
+
+                #' @description
+                #' Simulate CpG dinucleotide methylation state evolution along a tree branch.
+                #' The function samples the IWE events on the tree branch and simulates the
+                #' evolution through the SSE and IWE processes.
+                #'
+                #' @param dt Length of SSE time steps.
+                #' @param testing Default FALSE. TRUE for testing purposes.
+                #' @param branch_length Length of the branch.
+                #'
+                #' @return Default NULL. If testing = TRUE it returns information for testing purposes.
+                #'
+                #' @details
+                #' It handles both cases where IWE events are sampled or not sampled within the branch.
+                #'
+                branch_evol = function(branch_length, dt, testing = FALSE) {
+                    branchEvolInfo <- list()
+                                        # Initialize IWE_times as an empty vector
+                                        #branchEvolInfo$IWE_times <- c()
+
+                    if(private$IWE_rate == 0){
+                        branchEvolInfo$IWE_event <- FALSE
+                        self$set_IWE_events("Simulation without IWE events.")
+                        SSE_intervals <- branch_length
+                                        # Sequence evolution along the branch
+                        private$interval_evol(interval_length = branch_length, dt = dt)
+                    } else {
+                                        # Draw IWE times
+                        IWE_t <- stats::rexp(1, private$IWE_rate)
+                        if (IWE_t >= branch_length) { # If there is no IWE sampled in the tree branch
+                            branchEvolInfo$IWE_event <- FALSE
+                                        # Save IWE_events
+                            self$set_IWE_events(FALSE)
+                            branchEvolInfo$IWE_times <- IWE_t
+                            SSE_intervals <- branch_length
+                                        # Sequence evolution along the branch
+                            private$interval_evol(interval_length = branch_length, dt = dt)
+                        } else{ # If there is at least 1 IWE sampled in the tree branch
+                            branchEvolInfo$IWE_event <- TRUE
+                            while (IWE_t < branch_length) {
+                                branchEvolInfo$IWE_times <- c(branchEvolInfo$IWE_times, IWE_t)
+                                IWE_t <- IWE_t + stats::rexp(1, private$mu)
+                            }
+                                        # Sample islands to apply IWE_events
+                            if(length(self$get_island_index() == 1)){
+                                branchEvolInfo$islands <- rep(self$get_island_index(), length(branchEvolInfo$IWE_times))
+                            } else {
+                                branchEvolInfo$islands <- sample(self$get_island_index(), length(branchEvolInfo$IWE_times), replace = TRUE)
+                            }
+                                        # Save islands and IWE times
+                            self$set_IWE_events(list(islands = branchEvolInfo$islands,
+                                                     times = branchEvolInfo$IWE_times))
+                                        # Compute the branch intervals for SSE evolution
+                            if (length(branchEvolInfo$IWE_times)==1){
+                                SSE_intervals <- c(branchEvolInfo$IWE_times, branch_length-branchEvolInfo$IWE_times)
+                            } else if (length(branchEvolInfo$IWE_times) > 1){
+                                SSE_intervals <- c(branchEvolInfo$IWE_times[1], diff(branchEvolInfo$IWE_times), branch_length - branchEvolInfo$IWE_times[length(branchEvolInfo$IWE_times)])
+                            }
+                            branchEvolInfo$SSE_intervals <- SSE_intervals
+                            branchEvolInfo$infoIWE <- list()
+                                        # Sequence evolution along the branch intervals followed by IWEs
+                            for (i in 1:(length(SSE_intervals)-1)){
+                                private$interval_evol(interval_length = SSE_intervals[i], dt = dt)
+                                branchEvolInfo$infoIWE[[i]] <- private$singleStr[[branchEvolInfo$islands[i]]]$IWE_evol(testing=TRUE)
+                            }
+                                        # Sequence evolution along the last branch interval
+                            private$interval_evol(interval_length = SSE_intervals[length(SSE_intervals)], dt = dt)
+                        }
+                    }
+                    if(testing){
+                        return(branchEvolInfo)
+                    }
                 }
                 )
               )
-
-#' @description
-#' Public method: Clone each singleStructureGenerator object in $singleStr
-#'
-#' @return NULL
-combiStructureGenerator$set("public", "set_singleStr", function(singStrList){
-  private$singleStr <- lapply(singStrList, function(singleStr) {
-    singleStr$clone()
-  })
-})
-
-#' @description
-#' Public method: Clone combiStructureGenerator object and all singleStructureGenerator objects in it
-#'
-#' @return cloned combiStructureGenerator object
-combiStructureGenerator$set("public", "copy", function(){
-  new_obj <- self$clone()
-  new_obj$set_singleStr(private$singleStr)
-  return(new_obj)
-})
-
-#' @description
-#' Public method: Simulate SSE evolution at each short time step in each of the
-#' singleStructureGenerator objects in $singleStr. It samples each object in $singleStr
-#' in random order and calls singleStructureGenerator$SSE_evol()
-#'
-#' @param dt length of time step for SSE evolution.
-#' @testing default FALSE. True for testing output
-#'
-#' @return default NULL. If testing TRUE it returns testing information
-combiStructureGenerator$set("private", "SSE_evol", function(dt, testing = FALSE){
-  evol_order <- sample(1:self$get_singleStr_number(), self$get_singleStr_number(), replace = FALSE)
-  if (!testing){
-    for (i in evol_order) private$singleStr[[i]]$SSE_evol(dt, testing)
-  } else {
-    testing_info <- vector("list", self$get_singleStr_number())
-    for (i in evol_order) testing_info[[i]] <- private$singleStr[[i]]$SSE_evol(dt, testing)
-  }
-  if (testing){
-    return(list(evol_order = evol_order,
-                testing_info = testing_info))
-  }
-})
-
-#' @description
-#' Simulate SSE evolutionary process within a given interval length by time steps of length dt.
-#'
-#' @param testing Default FALSE. Logical for testing purposes.
-#' @param dt Length of time steps for SSE_evol.
-#' @param interval_length Length of the total time interval.
-#'
-#' @return Default NULL. If testing = TRUE returns information for testing purposes.
-#'
-#' @details The function simulates SSE events within a specified interval length.
-#'
-combiStructureGenerator$set("private", "interval_evol", function(interval_length, dt, testing = FALSE) {
-  if(testing){
-    interval_evolInfo <- c()
-  }
-  # Compute number of dt for discretized time steps
-  number_dt <- floor(interval_length / dt)
-  remainder <- interval_length %% dt
-  if(interval_length < dt){
-    if(testing){
-      interval_evolInfo <- paste("SSE evolving in shorter interval_length than dt. Interval length:", interval_length)
-    }
-    private$SSE_evol(dt = interval_length)
-  } else{
-    if(testing){
-      interval_evolInfo <- paste("Number of SSE:", number_dt, ". Interval length:", dt)
-    }
-    for(i in 1:number_dt){
-      private$SSE_evol(dt = dt)
-    }
-    if (dt * number_dt == interval_length){
-      if(testing){
-        interval_evolInfo <- c(interval_evolInfo, "No remainder")
-      }
-    } else{
-      if(testing){
-        interval_evolInfo <- c(interval_evolInfo, paste("Last SSE with remainder dt of length", remainder))
-      }
-      private$SSE_evol(dt = remainder)
-    }
-  }
-  if(testing){interval_evolInfo}
-})
-
-#' @description
-#' Simulate CpG dinucleotide methylation state evolution along a tree branch.
-#' The function samples the IWE events on the tree branch and simulates the
-#' evolution through the SSE and IWE processes.
-#'
-#' @param dt Length of SSE time steps.
-#' @param testing Default FALSE. TRUE for testing purposes.
-#' @param branch_length Length of the branch.
-#'
-#' @return Default NULL. If testing = TRUE it returns information for testing purposes.
-#'
-#' @details
-#' It handles both cases where IWE events are sampled or not sampled within the branch.
-#'
-combiStructureGenerator$set("public", "branch_evol", function(branch_length, dt, testing = FALSE) {
-  branchEvolInfo <- list()
-  # Initialize IWE_times as an empty vector
-  #branchEvolInfo$IWE_times <- c()
-
-  if(private$IWE_rate == 0){
-    branchEvolInfo$IWE_event <- FALSE
-    self$set_IWE_events("Simulation without IWE events.")
-    SSE_intervals <- branch_length
-    # Sequence evolution along the branch
-    private$interval_evol(interval_length = branch_length, dt = dt)
-  } else {
-    # Draw IWE times
-    IWE_t <- stats::rexp(1, private$IWE_rate)
-    if (IWE_t >= branch_length) { # If there is no IWE sampled in the tree branch
-      branchEvolInfo$IWE_event <- FALSE
-      # Save IWE_events
-      self$set_IWE_events(FALSE)
-      branchEvolInfo$IWE_times <- IWE_t
-      SSE_intervals <- branch_length
-      # Sequence evolution along the branch
-      private$interval_evol(interval_length = branch_length, dt = dt)
-    } else{ # If there is at least 1 IWE sampled in the tree branch
-      branchEvolInfo$IWE_event <- TRUE
-      while (IWE_t < branch_length) {
-        branchEvolInfo$IWE_times <- c(branchEvolInfo$IWE_times, IWE_t)
-        IWE_t <- IWE_t + stats::rexp(1, private$mu)
-      }
-      # Sample islands to apply IWE_events
-      if(length(self$get_island_index() == 1)){
-        branchEvolInfo$islands <- rep(self$get_island_index(), length(branchEvolInfo$IWE_times))
-      } else {
-        branchEvolInfo$islands <- sample(self$get_island_index(), length(branchEvolInfo$IWE_times), replace = TRUE)
-      }
-      # Save islands and IWE times
-      self$set_IWE_events(list(islands = branchEvolInfo$islands,
-                               times = branchEvolInfo$IWE_times))
-      # Compute the branch intervals for SSE evolution
-      if (length(branchEvolInfo$IWE_times)==1){
-        SSE_intervals <- c(branchEvolInfo$IWE_times, branch_length-branchEvolInfo$IWE_times)
-      } else if (length(branchEvolInfo$IWE_times) > 1){
-        SSE_intervals <- c(branchEvolInfo$IWE_times[1], diff(branchEvolInfo$IWE_times), branch_length - branchEvolInfo$IWE_times[length(branchEvolInfo$IWE_times)])
-      }
-      branchEvolInfo$SSE_intervals <- SSE_intervals
-      branchEvolInfo$infoIWE <- list()
-      # Sequence evolution along the branch intervals followed by IWEs
-      for (i in 1:(length(SSE_intervals)-1)){
-        private$interval_evol(interval_length = SSE_intervals[i], dt = dt)
-        branchEvolInfo$infoIWE[[i]] <- private$singleStr[[branchEvolInfo$islands[i]]]$IWE_evol(testing=TRUE)
-      }
-      # Sequence evolution along the last branch interval
-      private$interval_evol(interval_length = SSE_intervals[length(SSE_intervals)], dt = dt)
-    }
-  }
-  if(testing){
-    return(branchEvolInfo)
-  }
-})
 
 #' Split Newick Tree
 #'
@@ -1333,6 +1422,7 @@ combiStructureGenerator$set("public", "branch_evol", function(branch_length, dt,
 #' @param tree A string in Newick format (with or without the ending semicolon).
 #' @return A data frame, rows corresponding to each subtree unit and columns
 #' $unit: chr (unit name), $brlen: num (unit branch length).
+#' @noRd
 split_newick <- function(tree) {
   if (!is.character(tree)) {stop("Input tree must be a character string.")}
   s <- strsplit(tree, '')[[1]]
@@ -1406,13 +1496,13 @@ split_newick <- function(tree) {
 #' The whole CpG sequence is an object of class combiStructureGenerator.
 #' Each genomic structure in it is contained in an object of class singleStructureGenerator.
 #'
-#' @export
 treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                              public = list(
                                #' @field Branch Public attribute: List containing objects of class combiStructureGenerator
                                Branch=NULL,
                                #' @field branchLength Public attribute: Vector with the corresponding branch lengths of each $Branch element
                                branchLength=NULL,
+
                                #' @description
                                #' Simulate CpG dinucleotide methylation state evolution along a tree.
                                #' The function splits a given tree and simulates evolution along its
@@ -1425,7 +1515,7 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                #' @param parent_index Default 1. When called recursivelly it is given the corresponding parent branch index.
                                #'
                                #' @return NULL
-                               treeEvol = function(T, dt=0.01, parent_index=1, testing=FALSE){
+                               treeEvol = function(T, dt=0.01, parent_index=1, testing=FALSE) {
                                  tl <- split_newick(T)    ## list of subtrees and lengths of branches leading to them
                                  if(testing) {
                                    print("List of subtrees and lengths of branches leading to them")
@@ -1437,6 +1527,7 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                    self$Branch[[ni]] <<- self$Branch[[parent_index]]$copy()
                                    self$Branch[[ni]]$set_IWE_events(NULL)
                                    self$Branch[[ni]]$set_offspring_index(NULL)
+                                   self$Branch[[ni]]$set_own_index(ni)
                                    self$Branch[[ni]]$set_parent_index(parent_index)
                                    self$Branch[[parent_index]]$add_offspring_index(ni)
                                    s <- tl[i, 1]
@@ -1450,6 +1541,7 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                    }
                                  }
                                },
+
                                #' @description
                                #' Create a new treeMultiRegionSimulator object.
                                #' $Branch is a list for the tree branches, its first element represents the tree root.
@@ -1457,6 +1549,7 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                #' Note that one of either infoStr or rootData needs to be given. Not both, not neither.
                                #'
                                #' @param rootData combiStructureGenerator object. When given, the simulation uses its parameter values.
+                               #' @param tree tree
                                #' @param infoStr Dataframe with 'start' and 'end' indexes and 'globalState' for each singleStructureGenerator object.
                                #' If initial equilibrium frequencies are given the dataframe must contain 3 additional columns: 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
                                #' @param params Default NULL. When given: data frame containing model parameters. Note that rootData is given, its parameter values are used.
@@ -1475,6 +1568,7 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                    self$Branch[[1]] <- rootData$copy()
                                  }
                                  self$branchLength[1] <- NULL
+                                 self$Branch[[1]]$set_own_index(1)
                                  #debug(self$treeEvol)
                                  self$treeEvol(T=tree, dt = dt, testing=testing)
                                }

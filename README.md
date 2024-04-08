@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# MethEvolRSIM
+# MethEvolSIM
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -14,15 +14,17 @@ methylated.
 
 # Installation
 
-You can use the development version of MethEvolRSIM from git. The
+You can use the development version of MethEvolSIM from git. The
 development is being implemented with the `devtools` package. It can be
 loaded and checked using the following:
 
 ``` r
 library(devtools)
+#> Warning: package 'devtools' was built under R version 4.1.3
 #> Loading required package: usethis
 load_all()
-#> i Loading MethEvolRSIM
+#> i Loading MethEvolSIM
+#> Warning: package 'testthat' was built under R version 4.1.3
 ```
 
 `check()` runs the unit tests. The unit tests that test the functions
@@ -90,7 +92,7 @@ infoStr
 
 ## Parameter values
 
-The default parameter values used by MethEvolRSIM can be obtained using
+The default parameter values used by MethEvolSIM can be obtained using
 the function `get_model_parameters()`, that returns a data frame with
 the columns named as specified in the section “Model parameters”:
 
@@ -486,7 +488,7 @@ methylation frequencies.
 
 **Island parameterization: alpha_pI, beta_pI, alpha_mI, beta_mI**
 
-MethEvolRSIM samples $\pi_p$ from the first Beta distribution. Current
+MethEvolSIM samples $\pi_p$ from the first Beta distribution. Current
 parameterization uses as initial parameter values a relatively small
 $\alpha_{I_p}$ and relatively large $\beta_{I_p}$ to encourage minor
 assignment of partially methylated states.

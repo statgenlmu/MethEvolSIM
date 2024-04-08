@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(MethEvolRSIM)
+library(MethEvolSIM)
 
-test_check("MethEvolRSIM")
+test_check("MethEvolSIM")
