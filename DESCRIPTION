@@ -8,7 +8,8 @@ Authors@R: c(
 Author: Sara Castillo Vicente [aut, cre],
         Dirk Metzler [aut, ths]
 Maintainer: Sara Castillo Vicente <castillo@bio.lmu.de>
-Description: Software for simulation of DNA methylation dynamics on different genomic structures along genealogies.
+Description: DNA methylation is an epigenetic modification involved on genomic stability, gene regulation, development and disease. DNA methylation occurs mainly through the addition of a methyl group to cytosines, leading to different methylation patterns. Tissue-specific methylation patterns imply genomic regions with different characteristic methylation levels, e.g. regions associated to promoters of expressed genes tend to be unmethylated.  MethEvolRSIM is a model-based simulation software for the generation and modification of cytosine methylation patterns along a given tree, which can be a genealogy of cells within an organism, a coalescent tree of DNA sequences sampled from a population, or a species tree.
+References: Konrad Grosser & Dirk Metzler (2020) <https://doi.org/10.1186/s12859-020-3438-5>
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE, r6 = TRUE)

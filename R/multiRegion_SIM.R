@@ -768,7 +768,7 @@ singleStructureGenerator <-
                 #' @param testing logical value for testing purposes. Default FALSE.
                 #'
                 #' @return If testing = TRUE it returns a list.
-                #' If there was a change in the equilibrium frequencies} {the list contains the following 7 elements, if not it contains the first 3 elements:
+                #' If there was a change in the equilibrium frequencies the list contains the following 7 elements, if not it contains the first 3 elements:
                 #' \describe{
                 #'       \item{\code{eqFreqsChange}}{logical indicating if there was a change in the equilibrium frequencies.}
                 #'       \item{\code{old_eqFreqs}}{Original equilibrium frequencies before the IWE event.}
