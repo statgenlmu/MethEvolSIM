@@ -286,7 +286,7 @@ simulate_evolData <- function(infoStr = NULL, rootData = NULL, tree, params = NU
     if(!is.null(params)){
       stop("When rootData is given, rootData parameter values are used. Argument 'params' needs to be null. \n To get rootData parameter values use get_parameterValues(rootData). \n To customize rootData parameter values use get_parameterValues() and modify the desired value(s) in the output dataframe. Then provide the  customized dataframe in the 'params' argument of the function simulate_initialData() to generate a new rootData instance with the customized parameter values.")
     }
-    print("Parameter values set as in given rootData")
+    message("Parameter values set as in given rootData")
     if(class(rootData)[1] != "combiStructureGenerator"){
       stop("rootData should be the output of simulate_initialData()")
     }
@@ -297,7 +297,7 @@ simulate_evolData <- function(infoStr = NULL, rootData = NULL, tree, params = NU
       stop("infoStr should be a dataframe with columns: 'n', 'globalState'")
     }
     if (is.null(params)){
-      print("Using default parameter values")
+      message("Using default parameter values")
     }
   }
   if(!is.character(tree)){

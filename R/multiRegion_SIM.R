@@ -1515,12 +1515,12 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                #' @param parent_index Default 1. When called recursivelly it is given the corresponding parent branch index.
                                #'
                                #' @return NULL
-                               treeEvol = function(T, dt=0.01, parent_index=1, testing=FALSE) {
-                                 tl <- split_newick(T)    ## list of subtrees and lengths of branches leading to them
+                               treeEvol = function(Tree, dt=0.01, parent_index=1, testing=FALSE) {
+                                 tl <- split_newick(Tree)    ## list of subtrees and lengths of branches leading to them
                                  if(testing) {
-                                   print("List of subtrees and lengths of branches leading to them")
-                                   print(tl)
-                                   print("Simulation on first branch")
+                                   message("List of subtrees and lengths of branches leading to them")
+                                   message(tl)
+                                   message("Simulation on first branch")
                                  }
                                  for(i in 1:nrow(tl)) {
                                    ni <- length(self$Branch) + 1  ## "new index", that is index of the new branch
@@ -1534,7 +1534,7 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                    self$branchLength[ni] <- tl[i, "brlen"]
                                    if(substr(s, 1, 1) == "(") {   ## real subtree
                                      self$Branch[[ni]]$branch_evol(tl[i, "brlen"], dt=dt)
-                                     self$treeEvol(T = s, dt=dt, parent_index=ni, testing=testing)
+                                     self$treeEvol(Tree = s, dt=dt, parent_index=ni, testing=testing)
                                    } else {   ## branch
                                      self$Branch[[ni]]$set_name(s)
                                      self$Branch[[ni]]$branch_evol(tl[i, "brlen"], dt=dt)
@@ -1560,17 +1560,16 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                initialize = function(infoStr = NULL, rootData = NULL, tree, params = NULL, dt = 0.01, testing = FALSE) {
                                  self$Branch <- list()
                                  if(!is.null(infoStr) && is.null(rootData)){
-                                   print(paste("Simulating data at root and letting it evolve along given tree: ", tree))
+                                   message(paste("Simulating data at root and letting it evolve along given tree: ", tree))
                                    self$Branch[[1]] <- combiStructureGenerator$new(infoStr, params = params, testing = testing)
                                  }
                                  if(!is.null(rootData)&& is.null(infoStr)){
-                                   print(paste("Simulating evolution of given data at root along given tree: ", tree))
+                                   message(paste("Simulating evolution of given data at root along given tree: ", tree))
                                    self$Branch[[1]] <- rootData$copy()
                                  }
                                  self$branchLength[1] <- NULL
                                  self$Branch[[1]]$set_own_index(1)
-                                 #debug(self$treeEvol)
-                                 self$treeEvol(T=tree, dt = dt, testing=testing)
+                                 self$treeEvol(Tree=tree, dt = dt, testing=testing)
                                }
                              )
 )

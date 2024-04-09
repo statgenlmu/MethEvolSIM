@@ -17,7 +17,7 @@ validate_freqVectorSums1 <- function(freqVector, tolerance = 1e-8) {
   if (!is.vector(freqVector) || !is.numeric(freqVector)) {stop("Argument 'freqVector' must be a numeric vector") }
   tryCatch({
     # Check if freqs sum to 1
-    if (!all.equal(sum(freqVector), 1, tolerance)) {
+    if (!isTRUE(all.equal(sum(freqVector), 1, tolerance))) {
       stop("Methylation equilibrium freqs do not sum to 1 within tolerance")
     } else {
       return(list(valid = TRUE, error = NULL, freqVector = freqVector))
@@ -131,28 +131,22 @@ listFreqVector_validationResults <- function(listValidationStates) {
   # Check if any validation state has valid = FALSE
   if (any(sapply(validationStates, function(states) any(!sapply(states, function(state) state$valid))))) {
     # Open a file connection for writing
-    sink(file = "validationResults.txt", append = TRUE) # Set append TRUE for appending to existing file instead of overwriting
-    cat("* \n")
-    cat("Run date and time:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n")
-    cat("This is a redirected validation result for list of frequency vectors:", listName, "\n")
+    warnstring <- paste("Run date and time:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), 
+                        "\nThis is a redirected validation result for list of frequency vectors:", listName, "\n")
     for (i in 1:length(validationStates)) {
       # Check if any validation state in the current list has valid = FALSE
       if (any(!sapply(validationStates[[i]], function(state) state$valid))) {
-        cat("Validation result listFreqVector vector number:", i, "\n")
+        warnstring <- paste(warnstring, "Validation result listFreqVector vector number:", i, "\n")
         # If validation state is FALSE, print the results in the file
         for (j in 1:length(validationStates[[i]])) {
           if (!validationStates[[i]][[j]]$valid) {
-            print(validationStates[[i]][[j]])
+            warnstring <- paste(warnstring, toString(validationStates[[i]][[j]]), "\n")
           }
         }
       }
     }
-    sink() # Close the sink connection
-    # Write in the terminal information for the user
-    cat("ERROR occurred: Detailed information in file: ", "validationResults.txt", "\n")
-  } else {
-    cat("All validation states are valid. No errors found.\n")
-  }
+    warning(warnstring)
+  } 
 }
 
 ############ Validation of Matrices ############################################
@@ -421,26 +415,21 @@ listMatrices_validationResults <- function(listValidationStates) {
   listName <- listValidationStates$listName
   # Check if any validation state has valid = FALSE
   if (any(sapply(validationStates, function(states) any(!sapply(states, function(state) state$valid))))) {
-    sink(file = "validationResults.txt", append = TRUE) # Set append TRUE for appending to existing file instead of overwriting
-    cat("* \n")
-    cat("Run date and time:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n")
-    cat("This is a redirected validation result for list of rate matrices:", listName, "\n")
+    warnstring <- paste("Run date and time:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+      "\nThis is a redirected validation result for list of rate matrices:", listName, "\n")
     for (i in 1:length(validationStates)) {
       # Check if any validation state in the current list has valid = FALSE
       if (any(!sapply(validationStates[[i]], function(state) state$valid))) {
-        cat("Validation result listRateMatrix matrix number:", i, "\n")
+        warnstring <- paste(warnstring, "Validation result listRateMatrix matrix number:", i, "\n") 
         # If validation state is FALSE, print the results
         for (j in 1:length(validationStates[[i]])) {
           if (!validationStates[[i]][[j]]$valid) {
-            print(validationStates[[i]][[j]])
+            warnstring <- paste(warnstring, toString(validationStates[[i]][[j]]), "\n")
           }
         }
       }
     }
-    sink() # Close the sink connection
-    cat("ERROR occurred: Detailed information in file: ", "validationResults.txt", "\n")
-  } else {
-    cat("All validation states are valid. No errors found.\n")
+    warning(warnstring)
   }
 }
 
@@ -472,7 +461,7 @@ validate_transPropMC <- function(old_eqFreqs, Mk, new_eqFreqs, tolerance = 1e-8)
   if (!is.matrix(Mk)) {stop("Argument 'Mk' must be a matrix") }
   tryCatch({
     # Check if freqs sum to 1
-    if (!all.equal(as.vector(old_eqFreqs %*% Mk), new_eqFreqs, tolerance)) {
+    if (!isTRUE(all.equal(as.vector(old_eqFreqs %*% Mk), new_eqFreqs, tolerance))) {
       stop("IWE does not fullfil state transition property of Markov Chain")
     } else {
       return(list(valid = TRUE, error = NULL, old_eqFreqs = old_eqFreqs,
@@ -544,15 +533,8 @@ transPropMC_validationResults <- function(listValidationStates) {
   listName <- listValidationStates$listName
   # Check if validation state has valid = FALSE
   if (!listValidationStates$validationStates$valid) {
-    ## sink(file = "validationResults.txt", append = TRUE) # Set append TRUE for appending to existing file instead of overwriting
-    ## cat("* \n")
     warning(paste("Run date and time:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n",
                   "This is a redirected validation result for Markov Chain State Transition Property:", listName, "\n",
                   paste(names(listValidationStates$validationStates), sapply(listValidationStates$validationStates, toString), sep=": ", collapse="; "),"\n"))
-    ## sink() # Close the sink connection
-    ## cat("ERROR occurred: Detailed information in file: ", "validationResults.txt", "\n")
     }
-  ##  else {
-      ##   cat("All validation states are valid. No errors found.\n")
-      ## }
 }
