@@ -544,14 +544,15 @@ transPropMC_validationResults <- function(listValidationStates) {
   listName <- listValidationStates$listName
   # Check if validation state has valid = FALSE
   if (!listValidationStates$validationStates$valid) {
-    sink(file = "validationResults.txt", append = TRUE) # Set append TRUE for appending to existing file instead of overwriting
-    cat("* \n")
-    cat("Run date and time:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n")
-    cat("This is a redirected validation result for Markov Chain State Transition Property:", listName, "\n")
-    print(listValidationStates$validationStates)
-    sink() # Close the sink connection
-    cat("ERROR occurred: Detailed information in file: ", "validationResults.txt", "\n")
-  } else {
-    cat("All validation states are valid. No errors found.\n")
-  }
+    ## sink(file = "validationResults.txt", append = TRUE) # Set append TRUE for appending to existing file instead of overwriting
+    ## cat("* \n")
+    warning(paste("Run date and time:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n",
+                  "This is a redirected validation result for Markov Chain State Transition Property:", listName, "\n",
+                  paste(names(listValidationStates$validationStates), sapply(listValidationStates$validationStates, toString), sep=": ", collapse="; "),"\n"))
+    ## sink() # Close the sink connection
+    ## cat("ERROR occurred: Detailed information in file: ", "validationResults.txt", "\n")
+    }
+  ##  else {
+      ##   cat("All validation states are valid. No errors found.\n")
+      ## }
 }

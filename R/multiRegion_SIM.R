@@ -1401,7 +1401,7 @@ combiStructureGenerator <-
                                         # Sequence evolution along the branch intervals followed by IWEs
                             for (i in 1:(length(SSE_intervals)-1)){
                                 private$interval_evol(interval_length = SSE_intervals[i], dt = dt)
-                                branchEvolInfo$infoIWE[[i]] <- private$singleStr[[branchEvolInfo$islands[i]]]$IWE_evol(testing=TRUE)
+                                branchEvolInfo$infoIWE[[i]] <- private$singleStr[[branchEvolInfo$islands[i]]]$IWE_evol()
                             }
                                         # Sequence evolution along the last branch interval
                             private$interval_evol(interval_length = SSE_intervals[length(SSE_intervals)], dt = dt)
