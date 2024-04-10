@@ -1303,8 +1303,7 @@ test_that("singleStructureGenerator set_Qi()", {
   ## Check Qi properties (rate matrices)
   validationStates <- listRateMatrix_validation(Qi_list, "set_Qi() test multiRegion_SIM.R in isolated singleStructure instance")
   output <- listMatrices_validationResults(validationStates)
-  all_valid <- "All validation states are valid. No errors found."
-  expect_equal(output, all_valid, info = "validation properties not met in isolated singleStructure instance")
+  expect_null(output, info = "validation properties of Qi not met in isolated singleStructure instance")
 
   # combiStructure instance
   infoStr <- data.frame(n = c(13, 13, 13),
@@ -1319,14 +1318,11 @@ test_that("singleStructureGenerator set_Qi()", {
     expect_equal(c(length(Qi_list[[1]]), length(Qi_list[[2]]), length(Qi_list[[3]])), c(9, 9, 9), info = "matrices are not of correct length in singleStructure instance within combiStructure")
   }
   ## Check Qi properties (rate matrices)
-  all_valid <- "All validation states are valid. No errors found."
   for (i in 1:nrow(infoStr)){
     Qi_list <- get_private(combi_obj$get_singleStr(i))$Qi
     validationStates <- listRateMatrix_validation(Qi_list, "set_Qi() test multiRegion_SIM.R in singleStructure instance within combiStructure")
-    output <- capture.output({
-      listMatrices_validationResults(validationStates)
-    })
-    expect_equal(output, all_valid, info = "validation properties not met in singleStructure instance within combiStructure")
+    output <- listMatrices_validationResults(validationStates)
+    expect_null(output, info = "validation properties of Qi not met in singleStructure instance within combiStructure")
   }
 })
 
@@ -1347,11 +1343,8 @@ test_that("singleStructureGenerator set_Qc()", {
                rep(9, 9), info = "matrices are not of correct length in isolated singleStructure instance")
   ## Check Qc properties (rate matrices)
   validationStates <- listRateMatrix_validation(Qc_list, "set_Qc() test multiRegion_SIM.R in isolated singleStructure instance")
-  output <- capture.output({
-    listMatrices_validationResults(validationStates)
-  })
-  all_valid <- "All validation states are valid. No errors found."
-  expect_equal(output, all_valid, info = "validation properties not met in isolated singleStructure instance")
+  output <- listMatrices_validationResults(validationStates)
+  expect_null(output, info = "validation properties of Qc not met in isolated singleStructure instance")
 
   # combiStructure instance
   infoStr <- data.frame(n = c(13, 13, 13),
@@ -1372,14 +1365,11 @@ test_that("singleStructureGenerator set_Qc()", {
                  rep(9, 9), info = "matrices are not of correct length in singleStructure instance within combiStructure")
   }
   ## Check Qc properties (rate matrices)
-  all_valid <- "All validation states are valid. No errors found."
   for (i in 1:nrow(infoStr)){
     Qc_list <- get_private(combi_obj$get_singleStr(i))$Qc
     validationStates <- listRateMatrix_validation(Qc_list, "set_Qc() test multiRegion_SIM.R in singleStructure instance within combiStructure")
-    output <- capture.output({
-      listMatrices_validationResults(validationStates)
-    })
-    expect_equal(output, all_valid, info = "validation properties not met in singleStructure instance within combiStructure")
+    output <- listMatrices_validationResults(validationStates)
+    expect_null(output, info = "validation properties of Qc not met in singleStructure instance within combiStructure")
   }
 })
 
@@ -1398,13 +1388,10 @@ test_that("singleStructureGenerator set_Q()", {
   expect_equal(length(Q_list[[3]]), 9, info = "does not generate correct number of rate matrices in nested list in isolated singleStructure instance")
   expect_true(all(is.matrix(Q_list[[1]][[9]]), is.matrix(Q_list[[2]][[5]]), is.matrix(Q_list[[3]][[1]])), info = "elements are not matrices in isolated singleStructure instance")
   ## Check Q properties (rate matrices)
-  all_valid <- "All validation states are valid. No errors found."
   for (Ri in 1:3){
     validationStates <- listRateMatrix_validation(Q_list[[Ri]], "set_Q() test multiRegion_SIM.R in isolated singleStructure instance")
-    output <- capture.output({
-      listMatrices_validationResults(validationStates)
-    })
-    expect_true(all(output == all_valid), info = "validation properties not met in isolated singleStructure instance")
+    output <- listMatrices_validationResults(validationStates)
+    expect_null(output, info = "validation properties of Q not met in isolated singleStructure instance")
   }
 
   # combiStructure instance
@@ -1426,10 +1413,8 @@ test_that("singleStructureGenerator set_Q()", {
     ## Check Q properties (rate matrices)
     for (Ri in 1:3){
       validationStates <- listRateMatrix_validation(Q_list[[Ri]], "set_Q() test multiRegion_SIM.R in singleStructure instance within combiStructure")
-      output <- capture.output({
-        listMatrices_validationResults(validationStates)
-      })
-      expect_true(all(output == all_valid), info = "validation properties not met in singleStructure instance within combiStructure")
+      output <- listMatrices_validationResults(validationStates)
+      expect_null(output, info = "validation properties of Q not met in singleStructure instance within combiStructure")
     }
   }
 })
@@ -1984,12 +1969,8 @@ test_that("combiStructureGenerator $branch_evol()", {
 
   obj <- combiStructureGenerator$new(infoStr)
   branchLength <- 10
-  validation_msgs <- capture.output({
-    output <- obj$branch_evol(branch_length = branchLength, dt = 0.01, testing=T)
-  })
+  output <- obj$branch_evol(branch_length = branchLength, dt = 0.01, testing=T)
   if(output$IWE_event){
-    all_valid <- "All validation states are valid. No errors found."
-    expect_true(all(validation_msgs == all_valid))
     expect_true(all(output$IWE_times < branchLength),
                 info = "not all IWE_times < branch_length when IWE_event TRUE")
     expect_true(length(output$SSE_intervals) == length(output$IWE_times)+1,
@@ -2008,7 +1989,7 @@ test_that("combiStructureGenerator $branch_evol()", {
     expect_true(output$IWE_times>branchLength,
                 info = "IWE_t is not bigger than branch_length when IWE_event FALSE")
     expect_false(obj$get_IWE_events(),
-                 info = "$IWE_events not FALSE IWE_times when IWE_event FALSE")
+                 info = "$IWE_events not FALSE when IWE_event FALSE")
   }
 
   # Short branch length to favor no IWE events
@@ -2017,12 +1998,8 @@ test_that("combiStructureGenerator $branch_evol()", {
 
   obj <- combiStructureGenerator$new(infoStr)
   branchLength <- 1
-  validation_msgs <- capture.output({
-    output <- obj$branch_evol(branch_length = branchLength, dt = 0.01, testing=T)
-  })
+  output <- obj$branch_evol(branch_length = branchLength, dt = 0.01, testing=T)
   if(output$IWE_event){
-    all_valid <- "All validation states are valid. No errors found."
-    expect_true(all(validation_msgs == all_valid))
     expect_true(all(output$IWE_times < branchLength),
                 info = "not all IWE_times < branch_length when IWE_event TRUE")
     expect_true(length(output$SSE_intervals) == length(output$IWE_times)+1,
@@ -2041,13 +2018,11 @@ test_that("combiStructureGenerator $branch_evol()", {
     expect_true(output$IWE_times>branchLength,
                 info = "IWE_t is not bigger than branch_length when IWE_event FALSE")
     expect_false(obj$get_IWE_events(),
-                 info = "$IWE_events not FALSE IWE_times when IWE_event FALSE")
+                 info = "$IWE_events not FALSE when IWE_event FALSE")
   }
 
   # Test that by default (testing = FALSE) the function returns nothing
-  validation_msgs <- capture.output({
-    output <- obj$branch_evol(branch_length = branchLength, dt = 0.01)
-  })
+  output <- obj$branch_evol(branch_length = branchLength, dt = 0.01)
   expect_null(output)
 })
 
@@ -2218,7 +2193,8 @@ test_that("split_newick correctly splits Newick tree", {
 test_that("treeMultiRegionSimulator", {
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"))
-  treeData <- treeMultiRegionSimulator$new(infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);")
+  message <- capture.output(treeData <- treeMultiRegionSimulator$new(infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"), type = "message")
+  expect_equal(message, "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4):5);")
   expect_equal(length(treeData$Branch), 6, info = "Generates incorrect number of branches")
   expect_equal(length(treeData$Branch), 6, info = "Generates incorrect number of branches")
   expect_null(treeData$Branch[[1]]$get_parent_index(), info = "Data at root has not null parent_index")
@@ -2283,7 +2259,8 @@ test_that("customized params", {
   params <- get_parameterValues()
   params$mu <- 0.002
   params$iota <- 0.1
-  treeData <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);", params = params)
+  message <- capture.output(treeData <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);", params = params), type = "message")
+  expect_equal(message, "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4):5);")
   for (br in 1:6){
     expect_equal(treeData$Branch[[br]]$get_mu(), 0.002,
                  info = paste("fails to initiate new parameter value in combiStructure initialized from treeMultiRegionSimulator, branch number: ", i))
@@ -2306,9 +2283,7 @@ test_that("fixed eqFreqs",{
     expect_equal(combi_obj$get_singleStr(i)$get_eqFreqs(), c(infoStr$u_eqFreq[i], infoStr$p_eqFreq[i], infoStr$m_eqFreq[i]),
                  info = "does not assign correct eqFreqs when given. Generated from combiStructureGenerator")
   }
-  capture.output({
-    tree_obj <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);")
-  })
+  silence <- capture.output(tree_obj <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"), type = "message")
   for (i in 1:nrow(infoStr)){
     expect_equal(tree_obj$Branch[[1]]$get_singleStr(i)$get_eqFreqs(), c(infoStr$u_eqFreq[i], infoStr$p_eqFreq[i], infoStr$m_eqFreq[i]),
                  info = "does not assign correct eqFreqs when given. Generated from combiStructureGenerator")
@@ -2320,9 +2295,9 @@ test_that("fixed eqFreqs",{
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(NA, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
-  expect_error(combiStructureGenerator$new(infoStr = infoStr),
+  expect_error(capture.output(combiStructureGenerator$new(infoStr = infoStr), type = "message"),
                info = "fails throwing an error when eqFreqs have missing values. Generated from combiStructureGenerator")
-  expect_error(treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"),
+  expect_error(capture.output(treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"), type = "message"),
                info = "fails throwing an error when eqFreqs have missing values. Generated from treeMultiRegionSimulator")
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
@@ -2331,7 +2306,7 @@ test_that("fixed eqFreqs",{
                         m_eqFreq = c(0.8, 0.1, 0.8))
   expect_error(combiStructureGenerator$new(infoStr = infoStr),
                info = "fails throwing an error when eqFreqs wrong frequencies. Generated from combiStructureGenerator")
-  expect_error(treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"),
+  expect_error(capture.output(treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"), type = "message"),
                info = "fails throwing an error when eqFreqs wrong frequencies. Generated from treeMultiRegionSimulator")
 })
 

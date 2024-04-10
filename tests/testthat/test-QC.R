@@ -4,7 +4,7 @@
 test_that("validate_freqVectorSums1", {
   # Test valid input
   valid_freqVector <- c(0.2, 0.3, 0.5)
-  expect_no_error(validate_freqVectorSums1(valid_freqVector))
+  expect_true(validate_freqVectorSums1(valid_freqVector)$valid)
 
   # Test invalid input - non-numeric freqVector
   non_numeric_freqVector <- c(0.2, "invalid", 0.5)
