@@ -1509,7 +1509,7 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                #' branches. It recursively simulates evolution in all of the subtrees in the given tree
                                #' until the tree leafs
                                #'
-                               #' @param T String. Tree in Newick format. When called recursivelly it is given the corresponding subtree.
+                               #' @param Tree String. Tree in Newick format. When called recursivelly it is given the corresponding subtree.
                                #' @param dt Length of SSE time steps.
                                #' @param testing Default FALSE. TRUE for testing purposes.
                                #' @param parent_index Default 1. When called recursivelly it is given the corresponding parent branch index.
