@@ -430,7 +430,7 @@ listMatrices_validationResults <- function(listValidationStates) {
       }
     }
     warning(warnstring)
-  }
+  }else{NULL}
 }
 
 
