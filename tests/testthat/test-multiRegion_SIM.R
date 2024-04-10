@@ -1302,9 +1302,7 @@ test_that("singleStructureGenerator set_Qi()", {
   expect_equal(c(length(Qi_list[[1]]), length(Qi_list[[2]]), length(Qi_list[[3]])), c(9, 9, 9), info = "matrices are not of correct length in isolated singleStructure instance")
   ## Check Qi properties (rate matrices)
   validationStates <- listRateMatrix_validation(Qi_list, "set_Qi() test multiRegion_SIM.R in isolated singleStructure instance")
-  output <- capture.output({
-    listMatrices_validationResults(validationStates)
-  })
+  output <- listMatrices_validationResults(validationStates)
   all_valid <- "All validation states are valid. No errors found."
   expect_equal(output, all_valid, info = "validation properties not met in isolated singleStructure instance")
 
