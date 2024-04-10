@@ -89,8 +89,8 @@ test_that("simulate_evolData input control",{
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   tree <- "(a:1, c:2, (d:3.7, e:4):5);"
-  expect_error(simulate_evolData(infoStr = infoStr), info='fails to throw error when tree argument is missing')
-  expect_error(simulate_evolData(tree = tree), info='fails to throw error when neither infoStr nor rootData are given')
+  expect_error(capture.output(simulate_evolData(infoStr = infoStr), type = "message"), info='fails to throw error when tree argument is missing')
+  expect_error(capture.output(simulate_evolData(tree = tree), type = "message"), info='fails to throw error when neither infoStr nor rootData are given')
 
   ## b) infoStr with eqFreqs: incorrect values
   infoStr <- data.frame(n = c(100, 100, 100),
@@ -98,13 +98,13 @@ test_that("simulate_evolData input control",{
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(NA, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
-  expect_error(simulate_evolData(infoStr = infoStr, tree = tree), info = "fails to throw error when given eqFreqs in infoStr have missing values")
+  expect_error(capture.output(simulate_evolData(infoStr = infoStr, tree = tree), type = "message"), info = "fails to throw error when given eqFreqs in infoStr have missing values")
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
-  expect_error(simulate_evolData(infoStr = infoStr, tree = tree), info = "fails to throw error when given eqFreqs in infoStr are incorrect")
+  expect_error(capture.output(simulate_evolData(infoStr = infoStr, tree = tree), type ="message"), info = "fails to throw error when given eqFreqs in infoStr are incorrect")
 
   ## c) incorrect customized params
   infoStr <- data.frame(n = c(100, 100, 100),
@@ -131,24 +131,20 @@ test_that("simulate_evolData output",{
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   tree <- "(a:1, c:2, (d:3.7, e:4):5);"
-  silence <- capture.output({
-    output <- simulate_evolData(infoStr = infoStr, tree = tree)
-  })
+  silence <- capture.output(output <- simulate_evolData(infoStr = infoStr, tree = tree), type = "message")
   expect_equal(class(output$data), "list", info ="does not generate correct output$data list (a1)")
   print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[2])
-  expect_print <- "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4)"
+  expect_print <- "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4):5);"
   expect_equal(print, expect_print, info = "Not simulating initial data when infoStr is given")
   expect_true(all(output$params == get_parameterValues()), info = "fails to return default params when not given")
   expect_equal(output$tree, tree, info ="returns different tree from given one (a1)")
 
   ## a.2) For input without customized eqFreqs or params: input rootData
   rootData <- simulate_initialData(infoStr = infoStr)$data
-  silence <- capture.output({
-    output <- simulate_evolData(rootData = rootData, tree = tree)
-  })
+  silence <- capture.output(output <- simulate_evolData(rootData = rootData, tree = tree), type = "message")
   expect_equal(class(output$data), "list", info ="does not generate correct output$data list (a2)")
   print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[2])
-  expect_print <- "Simulating evolution of given data at root along given tree:  (a:1, c:2, (d:3.7, e:4)"
+  expect_print <- "Simulating evolution of given data at root along given tree:  (a:1, c:2, (d:3.7, e:4):5);"
   expect_equal(print, expect_print, info = "Not initiating evolution of given data when rootData is given")
   expect_true(all(output$params == get_parameterValues()), info = "fails to return default params when not given")
   expect_equal(output$tree, tree, info ="returns different tree from given one (a2)")
@@ -159,12 +155,10 @@ test_that("simulate_evolData output",{
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0.1, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
-  silence <- capture.output({
-    output <- simulate_evolData(infoStr = infoStr, tree = tree)
-  })
+  silence <- capture.output(output <- simulate_evolData(infoStr = infoStr, tree = tree), type = "message")
   expect_equal(class(output$data), "list", info ="does not generate correct output$data list (b)")
   print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[2])
-  expect_print <- "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4)"
+  expect_print <- "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4):5);"
   expect_equal(print, expect_print, info = "Not simulating initial data when infoStr is given (b)")
   expect_true(all(output$params == get_parameterValues()), info ="does not return default parameter values when not given b)")
   expect_equal(output$tree, tree, info ="returns different tree from given one (b)")
@@ -177,12 +171,10 @@ test_that("simulate_evolData output",{
                         m_eqFreq = c(0.8, 0.1, 0.8))
   custom_params <- get_parameterValues()
   custom_params$iota <- 0.5
-  silence <- capture.output({
-    output <- simulate_evolData(infoStr = infoStr, tree = tree, params = custom_params)
-  })
+  silence <- capture.output(output <- simulate_evolData(infoStr = infoStr, tree = tree, params = custom_params), type = "message")
   expect_equal(class(output$data), "list", info ="does not generate correct output$data list (c)")
   print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[1])
-  expect_print <- "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4)"
+  expect_print <- "Simulating data at root and letting it evolve along given tree:  (a:1, c:2, (d:3.7, e:4):5);"
   expect_equal(print, expect_print, info = "Not simulating initial data when infoStr is given c)")
   expect_true(all(output$params == custom_params), info ="does not return customized params when given")
   expect_equal(output$tree, tree, info ="returns different tree from given one (c)")
@@ -193,9 +185,7 @@ test_that("simulate_evolData output",{
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   rootData <- simulate_initialData(infoStr = infoStr, params = custom_params)$data
-  silence <- capture.output({
-    output <- simulate_evolData(rootData = rootData, tree = tree)
-  })
+  silence <- capture.output(output <- simulate_evolData(rootData = rootData, tree = tree), type = "message")
   expect_equal(class(output$data), "list", info ="does not generate correct output$data list (d)")
   print <- sub("\\[\\d+\\] \"(.*)\"", "\\1", silence[1])
   expect_print <- "Parameter values set as in given rootData"
@@ -212,9 +202,7 @@ test_that("simulate_evolData output$data",{
   replicate_number <- 3
 
   # Case only_tip = TRUE
-  silence <- capture.output({
-    output <- simulate_evolData(infoStr = infoStr, tree = tree, n_rep = replicate_number, only_tip = TRUE)
-  })
+  silence <- capture.output(output <- simulate_evolData(infoStr = infoStr, tree = tree, n_rep = replicate_number, only_tip = TRUE), type = "message")
   expect_equal(length(output$data), replicate_number, info = "$data output length not equal to number of replicates")
   expect_equal(length(output$data[[1]]), 4, info = "replicate output lenght different from number of tree tips when only_tip = TRUE")
   expect_equal(names(output$data[[1]][[1]]), c("name", "seq"), info = "tip information does not include 'name' and 'seq'")
@@ -226,9 +214,7 @@ test_that("simulate_evolData output$data",{
   expect_equal(class(output$data[[1]][[1]]$seq[[1]]), "numeric", info = "fails to return numeric vector with methylation encoding per structure")
 
   # Case only_tip = FALSE
-  silence <- capture.output({
-    output <- simulate_evolData(infoStr = infoStr, tree = tree, n_rep = 3, only_tip = FALSE)
-  })
+  silence <- capture.output(output <- simulate_evolData(infoStr = infoStr, tree = tree, n_rep = 3, only_tip = FALSE), type = "message")
   expect_true("sim_data" %in% names(output$data), info = "$data output does not contain simulated data")
   expect_true("branchInTree" %in% names(output$data), info = "$data output does not contain info on relationship between tree branches")
   expect_equal(length(output$data$sim_data), replicate_number, info = "$data output length not equal to number of replicates")
