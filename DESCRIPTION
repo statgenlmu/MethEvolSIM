@@ -10,12 +10,13 @@ Author: Sara Castillo Vicente [aut, cre],
 Maintainer: Sara Castillo Vicente <castillo@bio.lmu.de>
 Description: DNA methylation is an epigenetic modification involved in genomic stability,
       gene regulation, development and disease.
-      DNA methylation occurs mainly through the addition of a methyl group to cytosines.
+      DNA methylation occurs mainly through the addition of a methyl group to cytosines, 
+      for example to cytosines in a CpG dinucleotide context (a cytosine followed by a guanine).
       Tissue-specific methylation patterns lead to genomic regions with different characteristic
       methylation levels.
-      E.g. in vertebrates so-called CpG islands that are associated to promoter regions of
+      E.g. in vertebrates CpG islands (regions with high CpG content) that are associated to promoter regions of
       expressed genes tend to be unmethylated.
-      MethEvolRSIM is a model-based simulation software for the generation and modification
+      'MethEvolSIM' is a model-based simulation software for the generation and modification
       of cytosine methylation patterns along a given tree, which can be a genealogy of
       cells within an organism, a coalescent tree of DNA sequences sampled from a population, or a species tree.
       The simulations are based on an extension of the model of
