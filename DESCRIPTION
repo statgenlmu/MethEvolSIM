@@ -11,7 +11,7 @@ Maintainer: Sara Castillo Vicente <castillo@bio.lmu.de>
 Description: DNA methylation is an epigenetic modification involved in genomic stability,
       gene regulation, development and disease.
       DNA methylation occurs mainly through the addition of a methyl group to cytosines, 
-      for example to cytosines in a CpG dinucleotide context (a cytosine followed by a guanine).
+      for example to cytosines in a CpG dinucleotide context (CpG stands for a cytosine followed by a guanine).
       Tissue-specific methylation patterns lead to genomic regions with different characteristic
       methylation levels.
       E.g. in vertebrates CpG islands (regions with high CpG content) that are associated to promoter regions of
