@@ -1112,7 +1112,7 @@ combiStructureGenerator <-
                   #'
                   #' Note that this object can be generated within a treeMultiRegionSimulator object.
                   #'
-                  #' @param infoStr Dataframe with 'start' and 'end' indexes and 'globalState' for each singleStructureGenerator object.
+                  #' @param infoStr A data frame containing columns 'n' for the number of sites, and 'globalState' for the favoured global methylation state.
                   #' If initial equilibrium frequencies are given the dataframe must contain 3 additional columns: 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
                   #' @param params Default NULL. When given: data frame containing model parameters.
                   #' @param testing Default FALSE. TRUE for testing output.
@@ -1550,7 +1550,7 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                #'
                                #' @param rootData combiStructureGenerator object. When given, the simulation uses its parameter values.
                                #' @param tree tree
-                               #' @param infoStr Dataframe with 'start' and 'end' indexes and 'globalState' for each singleStructureGenerator object.
+                               #' @param infoStr  A data frame containing columns 'n' for the number of sites, and 'globalState' for the favoured global methylation state.
                                #' If initial equilibrium frequencies are given the dataframe must contain 3 additional columns: 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
                                #' @param params Default NULL. When given: data frame containing model parameters. Note that rootData is given, its parameter values are used.
                                #' @param dt length of the dt time steps for the SSE evolutionary process
