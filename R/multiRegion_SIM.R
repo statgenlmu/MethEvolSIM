@@ -1379,10 +1379,10 @@ combiStructureGenerator <-
                             branchEvolInfo$IWE_event <- TRUE
                             while (IWE_t < branch_length) {
                                 branchEvolInfo$IWE_times <- c(branchEvolInfo$IWE_times, IWE_t)
-                                IWE_t <- IWE_t + stats::rexp(1, private$mu)
+                                IWE_t <- IWE_t + stats::rexp(1, private$IWE_rate)
                             }
                                         # Sample islands to apply IWE_events
-                            if(length(self$get_island_index() == 1)){
+                            if(length(self$get_island_index()) == 1){
                                 branchEvolInfo$islands <- rep(self$get_island_index(), length(branchEvolInfo$IWE_times))
                             } else {
                                 branchEvolInfo$islands <- sample(self$get_island_index(), length(branchEvolInfo$IWE_times), replace = TRUE)

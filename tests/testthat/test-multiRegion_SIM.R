@@ -2026,6 +2026,35 @@ test_that("combiStructureGenerator $branch_evol()", {
   expect_null(output)
 })
 
+#########################################
+
+island_n <- 10
+infoStr <- data.frame(n = rep(10, island_n),
+                      globalState = rep("U", island_n))
+custom_params <- get_parameterValues()
+custom_params$mu <- 1
+obj <- combiStructureGenerator$new(infoStr, params = custom_params)
+branchLength <- 1
+rep_n <- 100
+number_IWEs <- c()
+island_IWEs <- list()
+for (rep in 1:rep_n){
+  output <- obj$branch_evol(branch_length = branchLength, dt = 0.01, testing=T)
+  expect_equal(length(output$IWE_times), length(output$islands), 
+               info = paste("Different number of islands sampled for the number of IWEs sampled in rep_n: ", rep))
+  # I expect 10 IWE events (10 islands * rate/island and bL unit = 1)
+  if (output$IWE_event){
+    number_IWEs[rep] <- length(output$IWE_times)
+    island_IWEs[[rep]] <- output$islands
+  } else {
+    # Expected number of IWEs is 10. Quite unlikely to sample none
+    number_IWEs[rep] <- 0
+    island_IWEs[[rep]] <- NA
+  }
+}
+mean(number_IWEs)
+table(unlist(island_IWEs))
+
 test_that("combiStructureGenerator $set_name() and $get_name()", {
   infoStr <- data.frame(n = c(13, 1, 5),
                         globalState = c("M", "M", "M"))
