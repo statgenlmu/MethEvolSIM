@@ -56,7 +56,7 @@ get_parameterValues <- function(rootData = NULL){
 #'
 #' This function simulates initial data based on the provided information and parameters.
 #'
-#' @param infoStr A data frame containing columns 'start', 'end', and 'globalState'.
+#' @param infoStr A data frame containing columns 'n' for the number of sites, and 'globalState' for the favoured global methylation state.
 #'  If customized equilibrium frequencies are given, it also contains columns 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
 #'  with the equilibrium frequency values for unmethylated, partially methylated and methylated.
 #' @param params Optional data frame with specific parameter values.
@@ -212,7 +212,7 @@ extract_tipD <- function(R6obj){
 #' This function simulates methylation data evolution along a tree. Either by simulating data at the root of the provided evolutionary tree
 #' (if infoStr is given) or by using pre-existing data at the root (if rootData is given) and letting it evolve along the tree.
 #'
-#' @param infoStr A data frame containing columns 'start', 'end', and 'globalState'.
+#' @param infoStr A data frame containing columns 'n' for the number of sites, and 'globalState' for the favoured global methylation state.
 #'  If customized initial equilibrium frequencies are given, it also contains columns 'u_eqFreq', 'p_eqFreq', and 'm_eqFreq'
 #'  with the equilibrium frequency values for unmethylated, partially methylated, and methylated.
 #' @param rootData The output of the simulate_initialData()$data function. It represents the initial data at the root of the evolutionary tree.
