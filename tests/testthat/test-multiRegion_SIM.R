@@ -1520,7 +1520,7 @@ test_that("singleStructureGenerator update_ratetree()", {
                info = "fails to update rate value in singleStructure instance within combiStructure b) second change")
 })
 
-test_that("singleStructureGenerator choose_random_seqpos()",{
+test_that("singleStructureGenerator()",{
   obj <- singleStructureGenerator$new("U", 100)
   # Check chosen seqposition is correct
   # with long$seq length
@@ -1529,7 +1529,7 @@ test_that("singleStructureGenerator choose_random_seqpos()",{
   sampled_r <- v[2]
   rateTree <- get_private(obj)$ratetree
   rates <- rateTree[[length(rateTree)]]
-  expect_true(sum(rates[1:(index-1)]) < sampled_r,
+  expect_true(index == 1 | sum(rates[1:(index-1)]) < sampled_r,
               info = paste("Chosen index too large in long isolated singleStr instance.\n Sum of previous rates:", sum(rates[1:(index-1)]), "Sampled index:", sampled_r))
   expect_true(sampled_r <= sum(rates[1:index]),
               info = paste("Chosen index too small in long isolated singleStr instance.\n Sum of rates from 1 to index:", sum(rates[index:length(rates)]), "Sampled index:", sampled_r))
