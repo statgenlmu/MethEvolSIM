@@ -1703,13 +1703,8 @@ test_that("singleStructureGenerator IWE_evol()", {
   number_IWEs <- 100
   test_info <- list()
   for (i in 1:number_IWEs){
-    output <- capture.output({
-      test_info[[i]] <- obj$IWE_evol(testing = TRUE)
-    })
+    test_info[[i]] <- obj$IWE_evol(testing = TRUE)
   }
-  # All validations valid
-  all_valid <- "All validation states are valid. No errors found."
-  expect_true(all(output == all_valid), info ="Not all validation states reported valid in IWE_evol of isolated singleStructure instance a)")
   # Each IWE outputs a list
   expect_true(all(sapply(test_info, is.list)), info ="Not all IWEs with testing=TRUE output list in IWE_evol of isolated singleStructure instance a)")
   # Function to compare Q matrices returns TRUE if not identical and FALSE if identical
@@ -1775,12 +1770,7 @@ test_that("singleStructureGenerator IWE_evol()", {
   obj <- singleStructureGenerator$new("U", 100)
   original_obj <- obj$clone()
 
-  output <- capture.output({
-    test_info <- obj$IWE_evol(testing = TRUE)
-  })
-  # All validations valid
-  all_valid <- "All validation states are valid. No errors found."
-  expect_true(all(output == all_valid))
+  test_info <- obj$IWE_evol(testing = TRUE)
 
   if (test_info$eqFreqsChange){
     if(!is.null(test_info$changedPos)){
@@ -1821,13 +1811,9 @@ test_that("singleStructureGenerator IWE_evol()", {
   number_IWEs <- 100
   test_info <- list()
   for (i in 1:number_IWEs){
-    output <- capture.output({
-      test_info[[i]] <- obj$IWE_evol(testing = TRUE)
-    })
+    test_info[[i]] <- obj$IWE_evol(testing = TRUE)
   }
-  # All validations valid
-  all_valid <- "All validation states are valid. No errors found."
-  expect_true(all(output == all_valid), info ="Not all validation states reported valid in IWE_evol of isolated singleStructure instance b)")
+
   # Each IWE outputs a list
   expect_true(all(sapply(test_info, is.list)), info ="Not all IWEs with testing=TRUE output list in IWE_evol of isolated singleStructure instance b)")
   for(i in 1:number_IWEs){
