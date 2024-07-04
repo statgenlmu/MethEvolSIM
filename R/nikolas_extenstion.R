@@ -268,4 +268,8 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
 #print(ssg$RE_within(Y_seq=c(3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3),Y_eqFreqs=c(0.7,0.1,0.2)))
 
 
+my_str <- data.frame(n = c(100,100,100), globalState = c("U", "U", "U"))
+combi_1 <- combiStructureGenerator$new(infoStr = my_str)
+combi_2 <- combiStructureGenerator$new(infoStr = my_str)
+
 
