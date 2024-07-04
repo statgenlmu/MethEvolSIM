@@ -416,11 +416,11 @@ listMatrices_validationResults <- function(listValidationStates) {
   # Check if any validation state has valid = FALSE
   if (any(sapply(validationStates, function(states) any(!sapply(states, function(state) state$valid))))) {
     warnstring <- paste("Run date and time:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-      "\nThis is a redirected validation result for list of rate matrices:", listName, "\n")
+      "\nThis is a redirected validation result for list of matrices:", listName, "\n")
     for (i in 1:length(validationStates)) {
       # Check if any validation state in the current list has valid = FALSE
       if (any(!sapply(validationStates[[i]], function(state) state$valid))) {
-        warnstring <- paste(warnstring, "Validation result listRateMatrix matrix number:", i, "\n") 
+        warnstring <- paste(warnstring, "Validation result listMatrices matrix number:", i, "\n") 
         # If validation state is FALSE, print the results
         for (j in 1:length(validationStates[[i]])) {
           if (!validationStates[[i]][[j]]$valid) {
