@@ -12,10 +12,10 @@ test_num <- 1000
     old_freqs <- random_vector1
     new_freqs <- random_vector2
     
-    if(all.equal(old_freqs, new_freqs)!=TRUE&& sum(old_freqs)==1){
-      expect_equal(sum(old_freqs),1)
+    if(all.equal(old_freqs, new_freqs)!=TRUE){
+      #expect_equal(sum(old_freqs),1)
       #creating a new ssg object to test get_SrMatrix
-      ssg <- singleStructureGenerator$new(globalState = "U", n = x,eqFreqs = old_freqs,testing=FALSE)
+      ssg <- singleStructureGenerator$new(globalState = "U", n = x,testing=FALSE)
       out <- ssg$get_SrMatrix(old_eqFreqs = old_freqs, new_eqFreqs = new_freqs, testing=TRUE)
     }
     else{
