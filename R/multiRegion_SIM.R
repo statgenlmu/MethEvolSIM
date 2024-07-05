@@ -234,10 +234,6 @@ singleStructureGenerator <-
                   qGamma_twoThird <- stats::qgamma(2/3, shape = private$alpha_Ri, scale= private$iota / private$alpha_Ri)
 
                   # Calculate the center of gravity of each gamma distribution category
-                  print(paste("alpha_Ri:", private$alpha_Ri))
-                  print(paste("iota:", private$iota))
-                  print(paste("qGamma_oneThird:", qGamma_oneThird))
-                  print(paste("qGamma_oneThird:", qGamma_twoThird))
                   Ri1 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  alpha_Ri, scale =  iota / alpha_Ri) * 3, 0, qGamma_oneThird)$value
                   Ri2 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  alpha_Ri, scale =  iota / alpha_Ri) * 3, qGamma_oneThird, qGamma_twoThird)$value
                   Ri3 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  alpha_Ri, scale =  iota / alpha_Ri) * 3, qGamma_twoThird, Inf)$value
