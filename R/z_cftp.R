@@ -4,14 +4,16 @@
 ## leads to a sequence sampled from the equilibrium distribution of the Castillo-Vicente--Metzler model.
 ##
 ## Testing: Unit tests should check whether applications of events as above to two sequences a and b
-## of which a <= b is fulfilled ("a <= b" means that "a < b" or "a = b"), alwas lead to sequences a' and b'
+## of which a <= b is fulfilled ("a <= b" means that "a < b" or "a = b"), always lead to sequences a' and b'
 ## with a' <= b'.
 ##
 ## More time-consuming function tests could check with certain summary statistics, e.g. combinations of
 ## neighboring pairs or triples within CpGs, in non-CpG or at boundaries have the same frequencies in initial
 ## cftp-generated states as in states that evolved for a while after stating in such a state.
+## In particular: is state p (partial methylation) underrepresented?
 ##
-## Integrate contents of this file into class defintions in file multiRegion_SIM.R
+## Integrate contents of this file into class defintions in file multiRegion_SIM.R;
+## check for functions that are currently public whether they can be private
 ##
 ## Extend CFTP by allowing also IWEs.
 ##
