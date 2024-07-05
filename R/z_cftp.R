@@ -1,64 +1,146 @@
-singleStructureGenerator$set("public", "get_Q", function() {
-  private$Q
+## next steps and todos:
+##
+## Both of us should check whether this is really the CFTP algorithm and understand why the CFTP algorithm
+## leads to a sequence sampled from the equilibrium distribution of the Castillo-Vicente--Metzler model.
+##
+## Testing: Unit tests should check whether applications of events as above to two sequences a and b
+## of which a <= b is fulfilled ("a <= b" means that "a < b" or "a = b"), alwas lead to sequences a' and b'
+## with a' <= b'.
+##
+## More time-consuming function tests could check with certain summary statistics, e.g. combinations of
+## neighboring pairs or triples within CpGs, in non-CpG or at boundaries have the same frequencies in initial
+## cftp-generated states as in states that evolved for a while after stating in such a state.
+##
+## Integrate contents of this file into class defintions in file multiRegion_SIM.R
+##
+## Extend CFTP by allowing also IWEs.
+##
+## Perhaps later: look for possibilities to improve structure of implementation (refactoring) and efficiency
+
+
+singleStructureGenerator$set("public", "get_Q", function(siteR = NULL, neighbSt = NULL, oldSt = NULL, newSt = NULL){
+  if(is.null(siteR) && is.null(neighbSt) && is.null(oldSt) && is.null(newSt)){
+    private$Q
+  } else{
+    private$Q[[siteR]][[neighbSt]][oldSt,newSt]
+  }
+})
+
+## Make a singleStructure with the same segment lengths and parameters
+## as the focal one but all states are m
+singleStructureGenerator$set("public", "cftp_all_equal", function(state, testing = FALSE) {
+  n <- length(private$seq)
+  if (state == "U"){
+    private$globalState <- "U"
+    private$seq <- rep(1L, n)
+  }
+  if (state == "M"){
+    private$globalState <- "M"
+    private$seq <- rep(3L, n)
+  }
+})
+
+singleStructureGenerator$set("public", "get_siteR", function(index = NULL){
+  if(is.null(index)){
+    private$siteR
+  } else{
+    private$siteR[index]
+  }
+})
+
+singleStructureGenerator$set("public", "get_neighbSt", function(index = NULL){
+  if(is.null(index)){
+    private$neighbSt
+  } else{
+    private$neighbSt[index]
+  }
+})
+
+
+
+## set sequence, update neighbors BUT NOT THE ratetree
+singleStructureGenerator$set("public", "set_seq", function(index, newSt){
+  private$seq[index] <- newSt
+  private$update_neighbSt(index)
+})
+
+
+## note that this does not update the ratetrees; needs to be done after the whole CFTP run
+combiStructureGenerator$set("public", "cftp_apply_events", function() {
+  
+  for(k in length(private$CFTP_event):1) {
+    ### applies the CFTP_events from -n to 1 to the combiStructure
+    i <- private$CFTP_chosen_singleStr[k]
+    j <- private$CFTP_chosen_site[k]
+    siteR <- private$singleStr[[i]]$get_siteR(j)
+    neighbSt <- private$singleStr[[i]]$get_neighbSt(j)
+    oldSt <- private$singleStr[[i]]$get_seq()[j]
+    newSt <- private$CFTP_event[k]
+    if(oldSt != newSt) {
+      r <- private$singleStr[[i]]$get_Q(siteR = siteR, neighbSt = neighbSt, oldSt = oldSt, newSt = newSt)
+      if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
+          private$singleStr[[i]]$set_seq(j, newSt)
+      }
+    }
+  }
 })
 
 combiStructureGenerator$set("public", "cftp", function() {
+    equal <- FALSE
+    steps <- 10000
+    while(!equal) {
+        self$cftp_event_generator(steps)
+        combi_u <- self$clone()
+        combi_m <- self$clone()
+        for(str in 1:length(private$singleStr)){
+            combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
+            combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
+            ### note that rate trees are not updated in combi_u and combi_m
+            combi_u$get_singleStr(str)$init_neighbSt()
+            combi_m$get_singleStr(str)$init_neighbSt()
+        }
+        combi_u$cftp_apply_events()
+        combi_m$cftp_apply_events()
+        equal_str <- c()
+        for(str in 1:length(private$singleStr)){
+          equal_str[str] <- all(combi_u$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())
+        }
+        equal <- all(equal_str)
+        steps <- 2*steps
+    }
+    for(str in 1:length(private$singleStr)){
+      combi_u$get_singleStr(str)$initialize_ratetree()
+    }
+    return(combi_u)
+})
+
+
+combiStructureGenerator$set("public", "cftp_event_generator", function(steps) {
   
-  highest_rate <- 0
+  private$CFTP_highest_rate <- 0
   singleStr_n <- c()
   for(str in 1:length(private$singleStr)){
-    highest_rate <- max(highest_rate, 
-                        max(unlist(private$singleStr[[str]]$get_Q())))
+    private$CFTP_highest_rate <- max(private$CFTP_highest_rate, 
+                         max(unlist(private$singleStr[[str]]$get_Q())))
     singleStr_n[str] <- length(private$singleStr[[str]]$get_seq())
   }
+  chosen_singleStr <- integer(length=steps)
+  chosen_site <- integer(length=steps)
+  event <- integer(length=steps)
+  random_threshold <- numeric(length=steps)
+  for(n in steps:1) {
+    # For generation -n
+    # Propose 1 site and what may happen to it
+    chosen_singleStr[n] <- sample(1:length(private$singleStr), 1, prob=singleStr_n)
+    chosen_site[n] <- sample(1:length(private$singleStr[[str]]$get_seq()), 1)
+    event[n] <- sample(1:3, 1)  ## 1, 2, 3: go to u, p, m
   
-  # Propose 1 site and what may happen to it
-  chosen_singleStr <- sample(1:length(private$singleStr), 1, prob=singleStr_n)
-  chosen_site <- sample(1:length(private$singleStr[[str]]$get_seq()), 1)
-  print(chosen_singleStr)
-  print(chosen_site)
-  event <- sample(1:3, 1)  ## 1, 2, 3: go to u, p, m
-  
-  random_threshold <- runif(1)
-  
-    ## next steps and todos:
-    ##
-    ## for n steps (corresponding to time steps from -n, -n+1, ... -1; e.g for an initial n=10000)
-    ## sample a chosen site, an event and a random threshold; store them either in vectors
-    ## (where time step -k is stored at index k) or maybe even in a specific R6Class object.
-    ## (Or turn it into and R6Object later as part of refactoring.)
-    ## To be decided: are the two CpG sequences represented by two separate combiStructures or
-    ## by two simpler representations of {u,p,m}-Sequences, e.g. vectors.
-    ##
-    ## Apply these steps, depending on probabilities, beginning at time -n to two
-    ## CpG sequences, one consisting of all sites u and the other with all sites m.
-    ## An event is applied iff it probability is greather than the random_threshold
-    ## (by the way, iff is math slang for "if and only if")
-    ##
-    ## If at time 0, that is after all n possible events, the two CpG sequences agree in each position
-    ## this sequence is the result. Otherwise extend the series of events by simulating chosen sites,
-    ## events and a random thresholds for time points -2n, -2n+1,... -n-1. (Important: the events etc.
-    ## for -n, -n+1, ...,-1 are still the ones from above.) Then continue applying the steps as above
-    ## with n replaced by 2n to two sequences u,u,u,...,u and m,m,m,...,m starting at time -2n. 
-    ##
-    ## Continue as above until with always doubling n until the two sequences end in the same state
-    ## at time 0.
-    ##
-    ## Both of us should check whether this is really the CFTP algorithm and understand why the CFTP algorithm
-    ## leads to a sequence sampled from the equilibrium distribution of the Castillo-Vicente--Metzler model.
-    ##
-    ## Testing: Unit tests should check whether applications of events as above to two sequences a and b
-    ## of which a <= b is fulfilled ("a <= b" means that "a < b" or "a = b"), alwas lead to sequences a' and b'
-    ## with a' <= b'.
-    ##
-    ## More time-consuming function tests could check with certain summary statistics, e.g. combinations of
-    ## neighboring pairs or triples within CpGs, in non-CpG or at boundaries have the same frequencies in initial
-    ## cftp-generated states as in states that evolved for a while after stating in such a state.
-    ##
-    ## Extend CFTP by allowing also IWEs.
-    ##
-    ## Perhaps later: look for possibilities to improve structure of implementation (refactoring) and efficiency
-   
+    random_threshold[n] <- runif(1)
+  }
+  private$CFTP_chosen_singleStr <- c(private$CFTP_chosen_singleStr, chosen_singleStr)
+  private$CFTP_chosen_site <- c(private$CFTP_chosen_site, chosen_site)
+  private$CFTP_event <- c(private$CFTP_event, event)
+  private$CFTP_random <- c(private$CFTP_random, random_threshold) 
 })
 
 

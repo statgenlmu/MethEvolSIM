@@ -1104,7 +1104,14 @@ combiStructureGenerator <-
                 ## @field parent_index Private attribute: Parent branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
                 parent_index = NULL,
                 ## @field parent_index Private attribute: Offspring branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
-                offspring_index = NULL
+                offspring_index = NULL,
+                
+                ## CFTP attributes
+                CFTP_highest_rate = 0,
+                CFTP_chosen_singleStr = integer(length=0),
+                CFTP_chosen_site = integer(length=0),
+                CFTP_event = integer(length=0),
+                CFTP_random = numeric(length=0)
               ),
               public = list(
                   #' @description
