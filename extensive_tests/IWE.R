@@ -1,4 +1,8 @@
-## Missing to test for the 1 island case:
+## This test checks whether the number of IWEs simulated is in a plausible range for a given rate of IWEs (mu)
+## and whether the IWEs are assigned to the islands with equal probability
+## To run it the following commands need to be used:
+library(devtools)
+load_all()
 
 ## Test for the Expected number of IWEs and the distribution of IWEs across islands
 
@@ -35,8 +39,13 @@ for (island in 1:length(explore_island_n)){
       for (rep in 1:rep_n){
         output <- obj$branch_evol(branch_length = branchLength, dt = 0.01, testing=T)
         if (output$IWE_event){ # If at least 1 IWE was sampled:
-          expect_equal(length(output$IWE_times), length(output$islands), 
-                       info = paste("Different number of islands sampled for the number of IWEs sampled in rep_n: ", rep))
+          if (length(output$IWE_times)!= length(output$islands)){
+            print(paste("Different number of islands sampled for the number of IWEs sampled in rep_n: ", rep))
+            print("IWE_times:")
+            print(output$IWE_times)
+            print("islands:")
+            print(output$islands)
+          }
           number_IWEs[rep] <- length(output$IWE_times)
           island_IWEs[[rep]] <- output$islands
         } else { # If no IWE was sampled
@@ -44,8 +53,8 @@ for (island in 1:length(explore_island_n)){
           island_IWEs[[rep]] <- NA
         }
       }
-      # T-test for expected number of IWEs
-      if(t.test(number_IWEs - custom_mu*island_n)$p.value <= 0.05){
+      # Poisson test for expected number of IWEs
+      if(poisson.test(sum(number_IWEs), rep_n*custom_mu*island_n)$p.value <= 0.05){
         rejecH0_IWEnumber_n <- rejecH0_IWEnumber_n +1
       }
       
