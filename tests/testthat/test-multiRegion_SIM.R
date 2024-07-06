@@ -1437,6 +1437,13 @@ test_that("singleStructureGenerator initialize_ratetree()", {
   obj <- singleStructureGenerator$new("U", 2)
   expect_equal(sd(sapply(get_private(obj)$ratetree, sum)), 0,
                info=paste("Different total rate sums in levels of ratetree after isolated singleStructure initialization c):\n", sapply(get_private(obj)$ratetree, sum)))
+  ### d) with equilibrium frequencies as all methylated or all unmethylated the total rate should be 0
+  obj <- singleStructureGenerator$new(globalState = "U", 100, eqFreqs = c(1,0,0))
+  expect_equal(get_private(obj)$ratetree[[1]][1], 0,
+               info = paste("Completely unmethylated sequence has total rate different from 0. ratetree[[1]]:", get_private(obj)$ratetree[[1]]))
+  obj <- singleStructureGenerator$new(globalState = "M", 100, eqFreqs = c(0,0,1))
+  expect_equal(get_private(obj)$ratetree[[1]][1], 0,
+               info = paste("Completely methylated sequence has total rate different from 0. ratetree[[1]]:", get_private(obj)$ratetree[[1]]))
 
   # combiStructure instance
   ### a) with sequences of long length
@@ -1463,6 +1470,8 @@ test_that("singleStructureGenerator initialize_ratetree()", {
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(sd(sapply(get_private(combi_obj$get_singleStr(2))$ratetree, sum)), 0,
                info=paste("Different total rate sums in levels of ratetree after singleStructure instance within combiStructure initialization c):\n", sapply(get_private(obj)$ratetree, sum)))
+  
+  
 })
 
 test_that("singleStructureGenerator update_ratetree()", {
@@ -1549,6 +1558,14 @@ test_that("singleStructureGenerator choose_number_of_changes()",{
   # Check chosen number of changes is integer
   c <- get_private(obj)$choose_number_of_changes(dt = 0.01)
   expect_true(is.integer(c))
+  ## If sequence is totally unmethylated or methylated the total rate of change is 0, no changes should be sampled
+  obj <- singleStructureGenerator$new(globalState = "U", n = 100, eqFreqs = c(1,0,0))
+  dt_possibilities <- seq(from=0.01, to  = 10, by =0.1)
+  for(dt in 1:length(dt_possibilities)){
+    expect_equal(get_private(obj)$choose_number_of_changes(dt = dt), 0,
+                 info = paste("sampled number of changes non-0 for sequence with rate 0"))
+  }
+  
 })
 
 test_that("combiStructureGenerator set_singleStr() and copy()",{

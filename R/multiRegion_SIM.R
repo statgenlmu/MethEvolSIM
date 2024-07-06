@@ -48,11 +48,11 @@ singleStructureGenerator <-
                   if (private$globalState == "M") {
                     p <- stats::rbeta(1, private$alpha_pNI, private$beta_pNI)
                     m <- stats::rbeta(1, private$alpha_mNI, private$beta_mNI) * (1 - p)
-                    u <- 1 - p - m
+                    u <- 1 - p - m; if (u == 1) p = m = 0
                   } else if (private$globalState == "U") {
                     p <- stats::rbeta(1, private$alpha_pI, private$beta_pI)
                     m <- stats::rbeta(1, private$alpha_mI, private$beta_mI) * (1 - p)
-                    u <- 1 - p - m
+                    u <- 1 - p - m; if (u == 1) p = m = 0
                   } else {
                     stop("Invalid globalState")
                   }
@@ -742,7 +742,56 @@ singleStructureGenerator <-
                                 old_St <- private$seq[i]
                             }
                                         # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
-                            private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
+                            # Define a global variable to store error information
+                            error_info_global <- NULL
+                            
+                            # Try-catch block with error handling
+                            error_info <- tryCatch({
+                              # Attempt to run sample()
+                              private$seq[i] <<- sample(1:3, size = 1, prob = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0))
+                              NULL # If no error, return NULL
+                            }, error = function(e) {
+                              # Capture error information in a list
+                              singleStrcloned <- self$clone()
+                              list(
+                                message = conditionMessage(e),
+                                ratetree = private$ratetree[[1]][1],
+                                M = M,
+                                probabilities = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0),
+                                Q = Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ],
+                                singleStructure_index = private$combiStructure_index,
+                                CpG_position = i,
+                                singleStrcloned = singleStrcloned
+                              )
+                            })
+                            
+                            # If error_info is not NULL, it means an error occurred
+                            if (!is.null(error_info)) {
+                              print("Error occurred:")
+                              print(error_info$message)
+                              print(paste("ratetree", error_info$ratetree))
+                              print(paste("M", error_info$M))
+                              print("Probabilities")
+                              print(error_info$probabilities)
+                              print("Q")
+                              print(error_info$Q)
+                              print(paste("my_singleStructure_index", error_info$singleStructure_index))
+                              print(paste("CpG position", error_info$CpG_position))
+                              # Print singleStrcloned information if needed
+                              print("singleStrcloned")
+                              print(error_info$singleStrcloned)
+                              
+                              # Save the error information to a global variable
+                              error_info_global <<- error_info
+                              
+                              # Stop execution
+                              stop("Execution stopped due to an error.")
+                            }
+                            
+                            
+                            
+                            
+                            #private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
                             if (testing){
                                 new_St <- private$seq[i]
                                 SSE_evolInfo <- rbind(SSE_evolInfo, data.frame(position, old_St, new_St))
@@ -892,6 +941,14 @@ singleStructureGenerator <-
                             validationStates <- transPropMC_validation(old_eqFreqs, Mk, new_eqFreqs, listName = "transPropMC IWE")
                             transPropMC_validationResults(validationStates)
                         }
+                        
+                        if(!exists("Mk")){
+                          print("new_eqFreqs")
+                          print(new_eqFreqs)
+                          print("old_eqFreqs")
+                          print(old_eqFreqs)
+                        }
+                        #print("in IWE")
 
                                         # Sample $seq accordint to transition probablities
                         newseq <- rep(0, length(private$seq))
