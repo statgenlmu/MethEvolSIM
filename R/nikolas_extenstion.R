@@ -1,8 +1,10 @@
 library(R6)
 library(devtools)
 
+singleStructureGenerator$set("public","get_length",function(){
+  return(length(private$seq))
+})
 
-#get_SrMatrix <-
 singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new_eqFreqs, testing=FALSE){
   #set the transition matrix for the equilibrium frequencies
   Sr <- NULL
@@ -166,10 +168,17 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       listFreqVector_validationResults(validationStates)
       
     }
-      
+    print("1")
+    print(Sr)
+    print(chosen_eqFreqs)
+    print(X_seq)
+    print(Y_seq)
     # Sample Y_seq according to transition probablities
     new_seq <- rep(0, length(seq_to_update))
     for(i in 1:length(new_seq)) {
+      print(seq_to_update)
+      print(seq_to_update[i])
+      print(as.vector(Sr[seq_to_update[i],]))
       new_seq[i] <- sample(1:3, size=1, prob=as.vector(Sr[seq_to_update[i],]))
     }
     if (chosen_eqFreqs=="FreqsX"){
@@ -179,7 +188,7 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       new_whole_seq <- c(new_seq, Y_seq)
     }
   }
-
+  print("2")
   if(any(private$seq != new_whole_seq)){
     changedPos <- which(private$seq != new_whole_seq)
     private$seq <- new_whole_seq
@@ -191,7 +200,7 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       }
     }
   }
-
+  print("3")
 
   #Compute the new_obsFreqs after the RE event
   new_obsFreqs <- c(sum(private$seq==1), sum(private$seq==2), sum(private$seq==3))/length(private$seq)
@@ -203,14 +212,89 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       return(list(chosenEqFreqs = Y_eqFreqs,id= "FreqsY"))
     }
   }
-  
+  print("3")
 
 
 })
 
+combiStructureGenerator$set("public","RE_complete",function(combi_2, position){
+  #initializing variables to keep track of the length and the target single structure
+  cumulative_length <- 0
+  target_singleStr_index <- NULL
+  target_position_in_singleStr <- NULL
+  
+  cumulative_length_2 <- 0
+  target_singleStr_index_2 <- NULL
+  target_position_in_singleStr_2 <- NULL
+  
+  #loop through each stinglestructure in the combistructure
+  for(i in 1:self$get_singleStr_number()){
+    singleStr_length <- private$singleStr[[i]]$get_length()
+    cumulative_length <- cumulative_length + singleStr_length
+    
+    #check if the recombination position falls within the current singlestr
+    if(cumulative_length >= position){
+      target_singleStr_index <- i
+      target_position_in_singleStr <- position-(cumulative_length-singleStr_length)
+      break
+    }
+  }
+  
+  for(i in 1:combi_2$get_singleStr_number()){
+    singleStr_length_2 <- combi_2$get_singleStr(i)$get_length()
+    cumulative_length_2 <- cumulative_length_2 + singleStr_length_2
+    
+    if(cumulative_length_2 >= position){
+      target_singleStr_index_2 <- i
+      target_position_in_singleStr_2 <- position-(cumulative_length_2-singleStr_length_2)
+      break
+    }
+  }
+  
+  combi_2_target_ssg <- combi_2$get_singleStr(target_singleStr_index_2)
+  recomb_Yseq <- combi_2_target_ssg$get_seq()[target_position_in_singleStr_2:length(combi_2_target_ssg$get_seq())]
+  recomb_YeqFreqs <- combi_2_target_ssg$get_eqFreqs()
+  print("Test:")
+  print(recomb_Yseq)
+  private$singleStr[[target_singleStr_index]]$RE_within(Y_seq = recomb_Yseq, Y_eqFreqs = recomb_YeqFreqs)
+  
+  for(j in (target_singleStr_index+1):combi_2$get_singleStr_number()){
+    private$singleStr[[j]]<<- combi_2$get_singleStr(j)$clone()
+  }
+  
+  return(private$singleStr)
+
+})
+
+
+
+
+
+
+
+
+
 #for testing
 #ssg <- singleStructureGenerator$new(globalState = "U", n = 40,eqFreqs = c(1,0,0))
 #print(ssg$RE_within(Y_seq=c(3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3),Y_eqFreqs=c(0.7,0.1,0.2)))
+infoStr <- data.frame(n = c(12, 13, 13),
+                      globalState = c("M", "U", "M"))
+csg <- combiStructureGenerator$new(infoStr = infoStr)
+
+infoStr_2 <- data.frame(n= c(5,5,3),globalState=c("M","M","U"))
+csg_2 <- combiStructureGenerator$new(infoStr = infoStr_2)
+print(csg_2$get_singleStr_number())
+for(i in 1:csg_2$get_singleStr_number()){
+  print(csg_2$get_singleStr(i)$get_seq())
+}
+
+
+csg$RE_complete(combi_2 = csg_2,position = 8)
+
+
+
+
+
 
 
 
