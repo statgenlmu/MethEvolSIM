@@ -297,4 +297,8 @@ csg$RE_complete(combi_2 = csg_2,position = 8)
 
 
 
+my_str <- data.frame(n = c(100,100,100), globalState = c("U", "U", "U"))
+combi_1 <- combiStructureGenerator$new(infoStr = my_str)
+combi_2 <- combiStructureGenerator$new(infoStr = my_str)
+
 

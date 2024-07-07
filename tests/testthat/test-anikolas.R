@@ -13,9 +13,16 @@ test_num <- 100
     new_freqs <- random_vector2
     
     if(all.equal(old_freqs, new_freqs)!=TRUE){
+<<<<<<< HEAD
       #creating a new ssg object to test get_SrMatrix
       ssg <- singleStructureGenerator$new(globalState = "U", n = x,testing=FALSE)
       expect_no_warning(ssg$get_TransMatrix(old_eqFreqs = old_freqs, new_eqFreqs = new_freqs, testing=TRUE))
+=======
+      #expect_equal(sum(old_freqs),1)
+      #creating a new ssg object to test get_SrMatrix
+      ssg <- singleStructureGenerator$new(globalState = "U", n = x,testing=FALSE)
+      out <- ssg$get_SrMatrix(old_eqFreqs = old_freqs, new_eqFreqs = new_freqs, testing=TRUE)
+>>>>>>> 2da95e729eefa07d7e85da041f38f115f91fe39c
     }
     else{
       test_num <- test_num + 1
