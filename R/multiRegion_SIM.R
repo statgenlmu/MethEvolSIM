@@ -963,11 +963,12 @@ singleStructureGenerator <-
                             for (i in changedPos){
                                 private$update_neighbSt(i)
                                         # Update $ratetree
-                                for(j in max(i-1, 1):min(i+1, length(private$seq))) {
-                                    private$update_ratetree(j, abs(private$Q[[private$siteR[j]]][[private$neighbSt[j]]][private$seq[j],private$seq[j]]))
-                                }
+                                #for(j in max(i-1, 1):min(i+1, length(private$seq))) {
+                                #    private$update_ratetree(j, abs(private$Q[[private$siteR[j]]][[private$neighbSt[j]]][private$seq[j],private$seq[j]]))
+                                #}
                             }
                         }
+                        self$initialize_ratetree()
 
                                         #Compute the new_obsFreqs after the IWE event
                         new_obsFreqs <- c(sum(private$seq==1), sum(private$seq==2), sum(private$seq==3))/length(private$seq)
