@@ -1529,7 +1529,188 @@ test_that("singleStructureGenerator update_ratetree()", {
                info = "fails to update rate value in singleStructure instance within combiStructure b) second change")
 })
 
-test_that("singleStructureGenerator()",{
+test_that("singleStructureGenerator() get_Q",{
+  s <- singleStructureGenerator$new("U", n = 100) 
+  obj <- s$get_Q()
+  expect_true(is.list(obj), info = "get_Q with null arguments does not return list")
+  obj <- s$get_Q(siteR = 1, neighbSt = 1, oldSt = 1, newSt = 1)
+  expect_true(is.numeric(obj), info = "get_Q with non-null arguments does not return numeric object")
+  expect_equal(length(obj), 1, info = "get_Q with non-null arguments does not return one rate value")
+})
+
+test_that("singleStructureGenerator() get_siteR",{
+  s <- singleStructureGenerator$new("U", n = 100) 
+  obj <- s$get_siteR()
+  expect_equal(length(obj), 100, info = "get_siteR with null arguments does not return vector")
+  obj <- s$get_siteR(index = 1)
+  expect_equal(length(obj), 1, info = "get_siteR with non-null argument does not return one siteR value")
+})
+
+test_that("singleStructureGenerator() get_neighbSt",{
+  s <- singleStructureGenerator$new("U", n = 100) 
+  obj <- s$get_neighbSt()
+  expect_equal(length(obj), 100, info = "get_neighbSt with null arguments does not return vector")
+  obj <- s$get_neighbSt(index = 1)
+  expect_equal(length(obj), 1, info = "get_neighbSt with non-null argument does not return one get_neighbSt value")
+})
+
+test_that("singleStructureGenerator() update_ratetree_otherStr",{
+  s <- singleStructureGenerator$new("U", n = 100) 
+  old_rate <- get_private(s)$ratetree[[8]][1]
+  old_total_rate <- get_private(s)$ratetree[[1]][1]
+  new_rate <- old_rate + 5
+  new_total_rate <- old_total_rate + 5
+  s$update_ratetree_otherStr(position = 1, rate = new_rate)
+  expect_equal(get_private(s)$ratetree[[8]][1], new_rate,
+               info = "fails updating site rate")
+  expect_equal(get_private(s)$ratetree[[1]][1], new_total_rate, 
+               info = "fails updating total rate")
+})
+
+test_that("singleStructureGenerator() update_ratetree_betweenStr",{
+  if (! "modify_neighbSt"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_neighbSt", function(position, newState) {
+      private$neighbSt[position] <-newState
+    })
+  }
+  ## Case 1: update next Structure
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s2 <- c$get_singleStr(2)
+  siteR <- s2$get_siteR(1)
+  seq <- s2$get_seq()[1]
+  new_neighbSt <- 6
+  s2$modify_neighbSt(position = 1, new_neighbSt)
+  s1 <- c$get_singleStr(1)
+  get_private(s1)$update_ratetree_betweenStr(nextStr = TRUE)
+  exp_new_rate <- abs(s2$get_Q(siteR = siteR, neighbSt = new_neighbSt, oldSt = seq, newSt = seq))
+  site_new_rate <- get_private(s2)$ratetree[[8]][1]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to assign correct rate after change in neighbSt, case 1")
+  
+  ## Case 2: update previous Structure
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s1 <- c$get_singleStr(1)
+  siteR <- s1$get_siteR(100)
+  seq <- s1$get_seq()[100]
+  new_neighbSt <- 2
+  s1$modify_neighbSt(position = 100, new_neighbSt)
+  s2 <- c$get_singleStr(2)
+  get_private(s2)$update_ratetree_betweenStr(prevStr = TRUE)
+  exp_new_rate <- abs(s1$get_Q(siteR = siteR, neighbSt = new_neighbSt, oldSt = seq, newSt = seq))
+  site_new_rate <- get_private(s1)$ratetree[[8]][100]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to assign correct rate after change in neighbSt, case 2")
+  
+  # Check when no argument is given it throws error
+  expect_error(get_private(s2)$update_ratetree_betweenStr(), info = "fails to throw an error when no argument is given")
+  
+  
+})
+
+test_that("singleStructureGenerator() update_ratetree_betweenStr",{
+  if (! "modify_neighbSt"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_neighbSt", function(position, newState) {
+      private$neighbSt[position] <-newState
+    })
+  }
+  ## Case 1: update next Structure
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s2 <- c$get_singleStr(2)
+  siteR <- s2$get_siteR(1)
+  seq <- s2$get_seq()[1]
+  new_neighbSt <- 6
+  s2$modify_neighbSt(position = 1, new_neighbSt)
+  s1 <- c$get_singleStr(1)
+  get_private(s1)$update_ratetree_betweenStr(nextStr = TRUE)
+  exp_new_rate <- abs(s2$get_Q(siteR = siteR, neighbSt = new_neighbSt, oldSt = seq, newSt = seq))
+  site_new_rate <- get_private(s2)$ratetree[[8]][1]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to assign correct rate after change in neighbSt, case 1")
+  
+  ## Case 2: update previous Structure
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s1 <- c$get_singleStr(1)
+  siteR <- s1$get_siteR(100)
+  seq <- s1$get_seq()[100]
+  new_neighbSt <- 2
+  s1$modify_neighbSt(position = 100, new_neighbSt)
+  s2 <- c$get_singleStr(2)
+  get_private(s2)$update_ratetree_betweenStr(prevStr = TRUE)
+  exp_new_rate <- abs(s1$get_Q(siteR = siteR, neighbSt = new_neighbSt, oldSt = seq, newSt = seq))
+  site_new_rate <- get_private(s1)$ratetree[[8]][100]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to assign correct rate after change in neighbSt, case 2")
+  
+  # Check when no argument is given it throws error
+  expect_error(get_private(s2)$update_ratetree_betweenStr(), info = "fails to throw an error when no argument is given")
+  
+  
+})
+
+test_that("singleStructureGenerator() update_ratetree_allCases",{
+  if (! "modify_neighbSt"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_neighbSt", function(position, newState) {
+      private$neighbSt[position] <-newState
+    })
+  }
+  ## Case 1: update positions 5,100 (and 1 of second structure)
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s1 <- c$get_singleStr(1)
+  # change neighbSt position 5
+  siteR_5 <- s1$get_siteR(5)
+  seq_5 <- s1$get_seq()[5]
+  new_neighbSt_5 <- 4
+  s1$modify_neighbSt(position = 5, new_neighbSt_5)
+  # change neighbSt position 100
+  siteR_100 <- s1$get_siteR(100)
+  seq_100 <- s1$get_seq()[100]
+  new_neighbSt_100 <- 5
+  s1$modify_neighbSt(position = 100, new_neighbSt_100)
+  # change neighbState position 1 second structure
+  s2 <- c$get_singleStr(2)
+  siteR_1 <- s2$get_siteR(1)
+  seq_1 <- s2$get_seq()[1]
+  new_neighbSt_1 <- 9
+  s2$modify_neighbSt(position = 1, new_neighbSt_1)
+  get_private(s1)$update_ratetree_allCases(index = c(5,100))
+  # check change position 5
+  exp_new_rate <- abs(s1$get_Q(siteR = siteR_5, neighbSt = new_neighbSt_5, oldSt = seq_5, newSt = seq_5))
+  site_new_rate <- get_private(s1)$ratetree[[8]][5]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to update ratetree, position 5")
+  # check change position 100
+  exp_new_rate <- abs(s1$get_Q(siteR = siteR_100, neighbSt = new_neighbSt_100, oldSt = seq_100, newSt = seq_100))
+  site_new_rate <- get_private(s1)$ratetree[[8]][100]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to update ratetree, position 100")
+  # check change position 1 next structure
+  exp_new_rate <- abs(s2$get_Q(siteR = siteR_1, neighbSt = new_neighbSt_1, oldSt = seq_1, newSt = seq_1))
+  site_new_rate <- get_private(s2)$ratetree[[8]][1]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to update ratetree, position 1 next structure")
+})
+
+test_that("singleStructureGenerator() choose_random_seqpos",{
   obj <- singleStructureGenerator$new("U", 100)
   # Check chosen seqposition is correct
   # with long$seq length

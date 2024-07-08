@@ -462,6 +462,60 @@ singleStructureGenerator <-
                     stop("negative total rate. Rate tree in file rateTreeError and rate matrices in rateMatricesError")
                   }
                   rpois(1, private$ratetree[[1]][1] * dt)
+                },
+                
+                ## @description
+                ## Private Method. To update ratetree from another singleStructure instance
+                ##
+                ## @param nextStr default FALSE. Set to TRUE to update next structure's $ratetree
+                ## @param prevStr default FALSE. Set to TRUE to update previous structure's $ratetree
+                ##
+                ## @return NULL
+                update_ratetree_betweenStr = function(nextStr = FALSE, prevStr = FALSE) {
+                  if(nextStr == FALSE && prevStr == FALSE){
+                    stop("one of the arguments 'nextStr' or 'prevStr' needs to be TRUE")
+                  }
+                  if(nextStr){
+                    if(!is.null(private$get_nextStr())){
+                      siteR <- private$get_nextStr()$get_siteR(index = 1)
+                      neighbSt <- private$get_nextStr()$get_neighbSt(index = 1)
+                      state <- private$get_nextStr()$get_seq()[1]
+                      new_rate <- abs(private$get_nextStr()$get_Q(siteR, neighbSt, state, state))
+                      private$get_nextStr()$update_ratetree_otherStr(position = 1, rate = new_rate)
+                    }
+                  }
+                  if(prevStr){
+                    if(!is.null(private$get_prevStr())){
+                      last_index <- length(private$get_prevStr()$get_seq())
+                      siteR <- private$get_prevStr()$get_siteR(index = last_index)
+                      neighbSt <- private$get_prevStr()$get_neighbSt(index = last_index)
+                      state <- private$get_prevStr()$get_seq()[last_index]
+                      new_rate <- abs(private$get_prevStr()$get_Q(siteR, neighbSt, state, state))
+                      private$get_prevStr()$update_ratetree_otherStr(position = last_index, rate = new_rate)
+                    }
+                  }
+                },
+                
+                ## @description
+                ## Private Method. To update ratetree within and between structures
+                ##
+                ## @param index. Numerical. Positions that change state.
+                ##
+                ## @return NULL
+                update_ratetree_allCases = function(index) {
+                  for (i in index){
+                    for(j in max(i-1, 1):min(i+1, length(private$seq))) {
+                      private$update_ratetree(j, abs(private$Q[[private$siteR[j]]][[private$neighbSt[j]]][private$seq[j],private$seq[j]]))
+                      if (!is.null(private$my_combiStructure)){
+                        if (j == 1){
+                          update_ratetree_betweenStr(prevStr = TRUE)
+                        }
+                        if (j == length(private$seq)){
+                          update_ratetree_betweenStr(nextStr = TRUE)
+                        }
+                      }
+                    }
+                  }
                 }
               ),
               public = list(
@@ -622,7 +676,7 @@ singleStructureGenerator <-
                   private$set_Qi()
                   private$set_Qc()
                   private$set_Q()
-                  #debug(self$init_neighbSt)
+                  #undebug(self$update_ratetree_allCases)
                   if(is.null(private$my_combiStructure)){
                     self$init_neighbSt()
                     #debug(self$initialize_ratetree)
@@ -785,7 +839,7 @@ singleStructureGenerator <-
                               error_info_global <<- error_info
                               
                               # Stop execution
-                              stop("Execution stopped due to an error.")
+                              stop("Execution stopped due to an error (SSE).")
                             }
                             
                             
@@ -797,9 +851,8 @@ singleStructureGenerator <-
                                 SSE_evolInfo <- rbind(SSE_evolInfo, data.frame(position, old_St, new_St))
                             }
                             private$update_neighbSt(i)
-                            for(j in max(i-1, 1):min(i+1, length(private$seq))) {
-                                private$update_ratetree(j, abs(private$Q[[private$siteR[j]]][[private$neighbSt[j]]][private$seq[j],private$seq[j]]))
-                            }
+                            private$update_ratetree_allCases(index = i)
+                            
                         }
                     }
                     if (testing){
@@ -907,6 +960,7 @@ singleStructureGenerator <-
                                            (new_eqFreqs[1]-u)/m, (new_eqFreqs[2]-p)/m, new_eqFreqs[3]/m),
                                          nrow = 3, byrow = TRUE)
                         }
+                        
 
                                         # Change data equilibrium frequencies
                         private$eqFreqs <<- new_eqFreqs
@@ -942,19 +996,47 @@ singleStructureGenerator <-
                             transPropMC_validationResults(validationStates)
                         }
                         
-                        if(!exists("Mk")){
-                          print("new_eqFreqs")
-                          print(new_eqFreqs)
-                          print("old_eqFreqs")
-                          print(old_eqFreqs)
-                        }
-                        #print("in IWE")
-
-                                        # Sample $seq accordint to transition probablities
-                        newseq <- rep(0, length(private$seq))
-                        for(i in 1:length(newseq)) {
+                        
+                        # Try-catch block with error handling
+                        error_info <- tryCatch({
+                          # Attempt to 
+                          # Sample $seq accordint to transition probablities
+                          newseq <- rep(0, length(private$seq))
+                          for(i in 1:length(newseq)) {
                             newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
+                          }
+                          NULL # If no error, return NULL
+                        }, error = function(e) {
+                          # Capture error information in a list
+                          singleStrcloned <- self$clone()
+                          list(
+                            message = conditionMessage(e),
+                            old_eqFreqs = old_eqFreqs,
+                            new_eqFreqs = new_eqFreqs,
+                            Mk = Mk,
+                            singleStrcloned = singleStrcloned
+                          )
+                        })
+                        
+                        # If error_info is not NULL, it means an error occurred
+                        if (!is.null(error_info)) {
+                          print("Error occurred:")
+                          print(error_info$message)
+                          print(paste("old_eqFreqs", error_info$old_eqFreqs))
+                          print(paste("new_eqFreqs", error_info$new_eqFreqs))
+                          print("Mk")
+                          print(error_info$Mk)
+                          print("singleStrcloned")
+                          print(error_info$singleStrcloned)
+                          
+                          # Save the error information to a global variable
+                          error_info_global <<- error_info
+                          
+                          # Stop execution
+                          stop("Execution stopped due to an error (IWE).")
                         }
+
+                                        
 
                                         # Update $seq and $neighbSt
                         if(any(private$seq != newseq)){
@@ -962,10 +1044,13 @@ singleStructureGenerator <-
                             private$seq <<- newseq
                             for (i in changedPos){
                                 private$update_neighbSt(i)
-                                        # Update $ratetree
-                                #for(j in max(i-1, 1):min(i+1, length(private$seq))) {
-                                #    private$update_ratetree(j, abs(private$Q[[private$siteR[j]]][[private$neighbSt[j]]][private$seq[j],private$seq[j]]))
-                                #}
+                                        # Update $ratetree previous or next singleStr
+                              if (i == 1){
+                                private$update_ratetree_betweenStr(prevStr = TRUE)
+                              }
+                              if (i == length(private$seq)){
+                                private$update_ratetree_betweenStr(nextStr = TRUE)
+                              }  
                             }
                         }
                         self$initialize_ratetree()
@@ -1050,7 +1135,56 @@ singleStructureGenerator <-
                 #' @description
                 #' Public Method.
                 #' @return The 3 $Ri_values
-                get_Ri_values = function() private$Ri_values
+                get_Ri_values = function() private$Ri_values,
+                
+                #' @description
+                #' Public Method.
+                #' @return with NULL arguments, the list of rate matrices. non NULL arguments, the corresponding rate of change
+                get_Q = function(siteR = NULL, neighbSt = NULL, oldSt = NULL, newSt = NULL) { 
+                  if(all(is.null(siteR), is.null(neighbSt), is.null(oldSt), is.null(newSt))){
+                    private$Q
+                  } else {
+                    private$Q[[siteR]][[neighbSt]][oldSt,newSt]
+                  }
+                },
+                
+                #' @description
+                #' Public Method.
+                #' @return with NULL arguments, siteR vector. non NULL arguments, the corresponding siteR
+                get_siteR = function(index = NULL){ 
+                  if(is.null(index)){
+                    private$siteR
+                  } else {
+                    private$siteR[index]
+                  }
+                },
+                
+                #' @description
+                #' Public Method.
+                #' @return with NULL arguments, neighbSt vector. non NULL arguments, the corresponding neighbSt
+                get_neighbSt = function(index = NULL) { 
+                  if(is.null(index)){
+                    private$neighbSt
+                  } else {
+                    private$neighbSt[index]
+                  }
+                },
+                
+                #' @description
+                #' Public Method. To update ratetree from another singleStructure instance
+                #' @return NULL
+                update_ratetree_otherStr = function(position, rate) { 
+                  K <- length(private$ratetree)
+                  private$ratetree[[K]][position] <<- rate
+                  if (K > 1){
+                    for(k in (K-1):1) {
+                      position <- floor((position-1)/2)+1
+                      private$ratetree[[k]][position] <<- sum(private$ratetree[[k+1]][c(2*position-1,
+                                                                                        2*position)])
+                    }
+                  }
+                }
+                  
               )
               )
 
