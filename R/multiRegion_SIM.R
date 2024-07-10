@@ -229,6 +229,11 @@ singleStructureGenerator <-
                 ## @return A list with the 3 Ri_values
                 ##
                 init_Ri_values = function(){
+                  # Values under alpha_Ri 1e-3 lead to quantile values so close to 0 that they are rounded to 0
+                  # To prevent that:
+                  private$alpha_Ri <- max(private$alpha_Ri, 1e-1)
+                  #print(private$alpha_Ri)
+                  
                   # Set the values that divide the gamma distribution in 3 equal probability categories
                   qGamma_oneThird <- stats::qgamma(1/3, shape = private$alpha_Ri, scale= private$iota / private$alpha_Ri)
                   qGamma_twoThird <- stats::qgamma(2/3, shape = private$alpha_Ri, scale= private$iota / private$alpha_Ri)
