@@ -231,7 +231,7 @@ singleStructureGenerator <-
                 init_Ri_values = function(){
                   # Values under alpha_Ri 1e-3 lead to quantile values so close to 0 that they are rounded to 0
                   # To prevent that:
-                  private$alpha_Ri <- max(private$alpha_Ri, 1e-1)
+                  private$alpha_Ri <- max(private$alpha_Ri, 1e-2)
                   #print(private$alpha_Ri)
                   
                   # Set the values that divide the gamma distribution in 3 equal probability categories
