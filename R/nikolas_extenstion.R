@@ -1,13 +1,13 @@
 library(R6)
 library(devtools)
 
-singleStructureGenerator$set("public","get_length",function(){
+singleStructureGenerator$set("public","get_seq_length",function(){
   return(length(private$seq))
 })
 
 singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new_eqFreqs, testing=FALSE){
   #set the transition matrix for the equilibrium frequencies
-  Sr <- NULL
+  m <- NULL
   
   u_new <- new_eqFreqs[1]
   p_new <- new_eqFreqs[2]
@@ -22,7 +22,7 @@ singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new
   
   if (u_new > u_old & p_new <= p_old & m_new <= m_old) {
     IWE_case <- "Case 1. u bigger"
-    Sr <- matrix(c(1, 0, 0,
+    m <- matrix(c(1, 0, 0,
                    (p_old-p_new)/p_old, p_new/p_old, 0,
                    (m_old-m_new)/m_old, 0, m_new/m_old),
                  nrow = 3, byrow = TRUE)
@@ -30,14 +30,14 @@ singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new
   }
   if (p_new > p_old & u_new <= u_old & m_new <= m_old) {
     IWE_case <- "Case 1. p bigger"
-    Sr <- matrix(c(u_new/u_old, (u_old-u_new)/u_old, 0,
+    m <- matrix(c(u_new/u_old, (u_old-u_new)/u_old, 0,
                    0, 1, 0,
                    0, (m_old-m_new)/m_old, m_new/m_old),
                  nrow = 3, byrow = TRUE)
   }
   if (m_new > m_old & p_new <= p_old & u_new <= u_old) {
     IWE_case <- "Case 1. m bigger"
-    Sr <- matrix(c(u_new/u_old, 0, (u_old-u_new)/u_old,
+    m <- matrix(c(u_new/u_old, 0, (u_old-u_new)/u_old,
                    0, p_new/p_old, (p_old-p_new)/p_old,
                    0, 0, 1),
                  nrow = 3, byrow = TRUE)
@@ -46,21 +46,21 @@ singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new
   # Check Case 2: 1 new frequency value smaller
   if (u_new < u_old & p_new >= p_old & m_new >= m_old) {
     IWE_case <- "Case 2. u smaller"
-    Sr <- matrix(c(u_new/u_old, (p_new-p_old)/u_old, (m_new-m_old)/u_old,
+    m <- matrix(c(u_new/u_old, (p_new-p_old)/u_old, (m_new-m_old)/u_old,
                    0, 1, 0,
                    0, 0, 1),
                  nrow = 3, byrow = TRUE)
   }
   if (p_new < p_old & u_new >= u_old & m_new >= m_old) {
     IWE_case <- "Case 2. p smaller"
-    Sr <- matrix(c(1, 0, 0,
+    m <- matrix(c(1, 0, 0,
                    (u_new-u_old)/p_old, p_new/p_old, (m_new-m_old)/p_old,
                    0, 0, 1),
                  nrow = 3, byrow = TRUE)
   }
   if (m_new < m_old & p_new >= p_old & u_new >= u_old) {
     IWE_case <- "Case 2. m smaller"
-    Sr <- matrix(c(1, 0, 0,
+    m <- matrix(c(1, 0, 0,
                    0, 1, 0,
                    (u_new-u_old)/m_old, (p_new-p_old)/m_old, m_new/m_old),
                  nrow = 3, byrow = TRUE)
@@ -70,22 +70,20 @@ singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new
   
   if(testing == TRUE){
     # Validate transition matrix
-    validationStates <- listTransitionMatrix_validation(list(Sr), "Sr")
+    validationStates <- listTransitionMatrix_validation(list(m), "m")
     listMatrices_validationResults(validationStates)
     # Validate Markov Chain State Transition Property
-    validationStates <- transPropMC_validation(old_eqFreqs, Sr, new_eqFreqs, listName = "transPropMC get_SrMatrix")
+    validationStates <- transPropMC_validation(old_eqFreqs, m, new_eqFreqs, listName = "transPropMC get_TransMatrix")
     transPropMC_validationResults(validationStates)
   }
   
   
-  return(Sr)
+  return(m)
 })
 
 
 
 singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testing = FALSE){
-  #NEED TO COVER THE CASE WHERE THE YSEQ IS EQUAL OR GREATER THAN THE X SEQ
-  
   new_whole_seq <- NULL
   if (testing){
     # compute previous observed methylation frequencies
@@ -94,12 +92,6 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
     old_Q <- private$Q
     # Initiate changedPos with NULL
     changedPos <- NULL
-    
-    
-    
-    
-    #print("Original sequence:")
-    #print(private$seq)
   }
   #get the length of incoming sequence
   n_Y <- length(Y_seq)
@@ -109,20 +101,33 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
   n_X <- n_T - n_Y
   # choose which are the new eqfreqs
   chosen_eqFreqs <- sample(c("FreqsX", "FreqsY"), size = 1, prob = c(n_X/n_T, n_Y/n_T))
-  # get the X sequence
-  X_seq <- private$seq[1:n_X]
-  
+  # get the X sequence. if recombination happens at position 1, x_seq <- c()
+  X_seq <- if (n_X > 0) private$seq[1:n_X] else c()
+
   #define equilibrium frequencies for X, Y_eqFreqs is given to the function
   X_eqFreqs <- private$eqFreqs
-  
+  X_seq_testing <- NULL
+  Y_seq_testing <- NULL
+  X_eqFreqs_testing <- NULL
   old_eqFreqs <- NULL
   new_eqFreqs <- NULL
   seq_to_update <- NULL
-  
   #if frequencies are identical just concatenate the sequences
   if (identical(X_eqFreqs, Y_eqFreqs)) {
-    eqFreqsChange = F
     new_whole_seq <- c(X_seq, Y_seq)
+  }
+  
+  #if the recombination happens at the first position of the ssg
+  else if(length(X_seq)==0){
+    private$eqFreqs <- Y_eqFreqs
+    new_whole_seq <- Y_seq
+    # Update Qi and Q
+    private$set_Qi()
+    private$set_Q()
+    if(testing){
+      X_seq_testing <- X_seq
+      Y_seq_testing <- Y_seq
+    }
   }
   else{
     # determine which frequencies got chosen
@@ -140,7 +145,6 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       seq_to_update <- X_seq
     }
       
-    eqFreqsChange = T
     #compute the transition matrix for equilibrium frequencies
     Sr <- self$get_TransMatrix(old_eqFreqs = old_eqFreqs, new_eqFreqs=new_eqFreqs)
     # Change data equilibrium frequencies
@@ -150,6 +154,8 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
     private$set_Q()
       
     if(testing){
+      X_seq_testing <- X_seq
+      Y_seq_testing <- Y_seq
       # Validate updated rate matrices
       validationStates <- listRateMatrix_validation(private$Qi, "Qi matrices RE_within")
       listMatrices_validationResults(validationStates)
@@ -163,22 +169,15 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       validationStates <- listRateMatrix_validation(private$Q[[3]], "Q matrices RE_within R3")
       listMatrices_validationResults(validationStates)
 
-      # Validate methylation equilibrium tripple (extra control at RE_within)
+      # Validate methylation equilibrium triple (extra control at RE_within)
       validationStates <- listFreqVector_validation(list(old_eqFreqs, new_eqFreqs), "RE_within control old_eqFreqs and new_eqFreqs")
       listFreqVector_validationResults(validationStates)
       
     }
-    print("1")
-    print(Sr)
-    print(chosen_eqFreqs)
-    print(X_seq)
-    print(Y_seq)
+  
     # Sample Y_seq according to transition probablities
     new_seq <- rep(0, length(seq_to_update))
     for(i in 1:length(new_seq)) {
-      print(seq_to_update)
-      print(seq_to_update[i])
-      print(as.vector(Sr[seq_to_update[i],]))
       new_seq[i] <- sample(1:3, size=1, prob=as.vector(Sr[seq_to_update[i],]))
     }
     if (chosen_eqFreqs=="FreqsX"){
@@ -188,7 +187,7 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       new_whole_seq <- c(new_seq, Y_seq)
     }
   }
-  print("2")
+
   if(any(private$seq != new_whole_seq)){
     changedPos <- which(private$seq != new_whole_seq)
     private$seq <- new_whole_seq
@@ -200,101 +199,79 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       }
     }
   }
-  print("3")
 
   #Compute the new_obsFreqs after the RE event
   new_obsFreqs <- c(sum(private$seq==1), sum(private$seq==2), sum(private$seq==3))/length(private$seq)
   if(testing){
     if(chosen_eqFreqs=="FreqsX"){
-      return(list(chosenEqFreqs = X_eqFreqs, id="FreqsX"))
+      return(list(chosenEqFreqs = X_eqFreqs, id="FreqsX", chosenSeq = X_seq_testing, newSeq = new_whole_seq))
     }
     else{
-      return(list(chosenEqFreqs = Y_eqFreqs,id= "FreqsY"))
+      return(list(chosenEqFreqs = Y_eqFreqs,id= "FreqsY",chosenSeq = Y_seq_testing, newSeq = new_whole_seq))
     }
   }
-  print("3")
 
 
 })
 
-combiStructureGenerator$set("public","RE_complete",function(combi_2, position){
+combiStructureGenerator$set("public","RE_complete",function(combi_2, position,testing=FALSE){
   #initializing variables to keep track of the length and the target single structure
   cumulative_length <- 0
   target_singleStr_index <- NULL
   target_position_in_singleStr <- NULL
-  
-  cumulative_length_2 <- 0
-  target_singleStr_index_2 <- NULL
-  target_position_in_singleStr_2 <- NULL
-  
-  #loop through each stinglestructure in the combistructure
-  for(i in 1:self$get_singleStr_number()){
-    singleStr_length <- private$singleStr[[i]]$get_length()
-    cumulative_length <- cumulative_length + singleStr_length
-    
-    #check if the recombination position falls within the current singlestr
-    if(cumulative_length >= position){
-      target_singleStr_index <- i
-      target_position_in_singleStr <- position-(cumulative_length-singleStr_length)
-      break
-    }
+  testing_info <- list()
+  if(testing){
+    testing_info <- append(testing_info,list(combi_2 = combi_2, combi_1 = self, recomb_point = position))
   }
-  
-  for(i in 1:combi_2$get_singleStr_number()){
-    singleStr_length_2 <- combi_2$get_singleStr(i)$get_length()
-    cumulative_length_2 <- cumulative_length_2 + singleStr_length_2
-    
-    if(cumulative_length_2 >= position){
-      target_singleStr_index_2 <- i
-      target_position_in_singleStr_2 <- position-(cumulative_length_2-singleStr_length_2)
-      break
-    }
-  }
-  
-  combi_2_target_ssg <- combi_2$get_singleStr(target_singleStr_index_2)
-  recomb_Yseq <- combi_2_target_ssg$get_seq()[target_position_in_singleStr_2:length(combi_2_target_ssg$get_seq())]
-  recomb_YeqFreqs <- combi_2_target_ssg$get_eqFreqs()
-  print("Test:")
-  print(recomb_Yseq)
-  private$singleStr[[target_singleStr_index]]$RE_within(Y_seq = recomb_Yseq, Y_eqFreqs = recomb_YeqFreqs)
-  
-  for(j in (target_singleStr_index+1):combi_2$get_singleStr_number()){
-    private$singleStr[[j]]<<- combi_2$get_singleStr(j)$clone()
-  }
-  
-  return(private$singleStr)
 
+  if (self$get_singleStr_number()==1){
+    Y_seq <- combi_2$get_singleStr(1)$get_seq()[position:length(combi_2$get_singleStr(1)$get_seq())]
+    Y_eqFreqs <- combi_2$get_singleStr(1)$get_eqFreqs()
+    private$singleStr[[1]]$RE_within(Y_seq = Y_seq, Y_eqFreqs = Y_eqFreqs)
+    
+  }
+  
+  else{
+    #loop through each stinglestructure in the combistructure
+    for(i in 1:self$get_singleStr_number()){
+      
+      singleStr_length <- private$singleStr[[i]]$get_seq_length()
+      cumulative_length <- cumulative_length + singleStr_length
+      
+      #check if the recombination position falls within the current singlestr
+      if(cumulative_length >= position){
+        target_singleStr_index <- i
+        target_position_in_singleStr <- position-(cumulative_length-singleStr_length)
+        break
+      }
+    }
+  
+    
+    
+    combi_2_target_ssg <- combi_2$get_singleStr(target_singleStr_index)
+    Y_seq <- combi_2_target_ssg$get_seq()[(target_position_in_singleStr):length(combi_2_target_ssg$get_seq())]
+    Y_eqFreqs <- combi_2_target_ssg$get_eqFreqs()
+
+    out <- private$singleStr[[target_singleStr_index]]$RE_within(Y_seq = Y_seq, Y_eqFreqs = Y_eqFreqs,testing=testing)
+    if(testing){
+      testing_info <- append(testing_info, list(ssg_index = target_singleStr_index, ssg_position_within = target_position_in_singleStr,recombEqFreqs = out$chosenEqFreqs))
+    }
+
+    #when the recombination happens in the last ssg then this step is not needed since RE_within did everything
+    if(target_singleStr_index < combi_2$get_singleStr_number()){
+      for(j in (target_singleStr_index+1):combi_2$get_singleStr_number()){
+        private$singleStr[[j]] <- combi_2$get_singleStr(j)$clone()
+      }
+    }
+    
+  }
+  
+  if(testing){
+    testing_info <- append(testing_info,list(new_ssgs=private$singleStr))
+    return(testing_info)
+  }
+  
 })
-
-
-
-
-
-
-
-
-
-#for testing
-#ssg <- singleStructureGenerator$new(globalState = "U", n = 40,eqFreqs = c(1,0,0))
-#print(ssg$RE_within(Y_seq=c(3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3),Y_eqFreqs=c(0.7,0.1,0.2)))
-infoStr <- data.frame(n = c(12, 13, 13),
-                      globalState = c("M", "U", "M"))
-csg <- combiStructureGenerator$new(infoStr = infoStr)
-
-infoStr_2 <- data.frame(n= c(5,5,3),globalState=c("M","M","U"))
-csg_2 <- combiStructureGenerator$new(infoStr = infoStr_2)
-print(csg_2$get_singleStr_number())
-for(i in 1:csg_2$get_singleStr_number()){
-  print(csg_2$get_singleStr(i)$get_seq())
-}
-
-
-csg$RE_complete(combi_2 = csg_2,position = 8)
-
-
-
-
-
 
 
 
