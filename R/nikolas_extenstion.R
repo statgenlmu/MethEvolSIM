@@ -5,6 +5,8 @@ singleStructureGenerator$set("public","get_seq_length",function(){
   return(length(private$seq))
 })
 
+
+# this method should be private
 singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new_eqFreqs, testing=FALSE){
   #set the transition matrix for the equilibrium frequencies
   m <- NULL
@@ -82,7 +84,7 @@ singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new
 })
 
 
-
+# this method should be private
 singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testing = FALSE){
   new_whole_seq <- NULL
   if (testing){
@@ -214,6 +216,7 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
 
 })
 
+# probably this needs to stay as public, if it is gonna be called from the last class
 combiStructureGenerator$set("public","RE_complete",function(combi_2, position,testing=FALSE){
   #initializing variables to keep track of the length and the target single structure
   cumulative_length <- 0

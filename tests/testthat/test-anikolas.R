@@ -19,7 +19,7 @@ test_num <- 100
     
     if(all.equal(old_freqs, new_freqs)!=TRUE){
       #creating a new ssg object to test get_SrMatrix
-      ssg <- singleStructureGenerator$new(globalState = "U", n = x,testing=FALSE)
+      ssg <- singleStructureGenerator$new(globalState = "U", n = x,testing=FALSE) # why is n = x ??
       expect_no_warning(ssg$get_TransMatrix(old_eqFreqs = old_freqs, new_eqFreqs = new_freqs, testing=TRUE))
     }
     else{
@@ -40,7 +40,7 @@ test_that("RE_within property test",{
     random_vector4 <- random_vector4 /sum(random_vector4)
     if(all.equal(random_vector3,random_vector4)!= TRUE){
       #test if RE_within throws any warnings
-      ssg <- singleStructureGenerator$new(globalState = "U", n = i,testing=FALSE)
+      ssg <- singleStructureGenerator$new(globalState = "U", n = i,testing=FALSE) ## why is n = i ?????
       expect_no_warning(ssg$RE_within(Y_seq = vec,Y_eqFreqs = random_vector3,testing=TRUE))
       
       #test whether the chosen frequencies in RE_within are the same as the freqs set in the ssg
