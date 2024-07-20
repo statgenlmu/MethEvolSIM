@@ -955,7 +955,11 @@ singleStructureGenerator <-
                             transPropMC_validationResults(validationStates)
                         }
                         
-                        
+                        # Sample $seq accordint to transition probablities
+                        newseq <- rep(0, length(private$seq))
+                        for(i in 1:length(newseq)) {
+                          newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
+                        }
                         
 
                                         # Update $seq and $neighbSt
