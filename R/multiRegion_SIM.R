@@ -229,10 +229,9 @@ singleStructureGenerator <-
                 ## @return A list with the 3 Ri_values
                 ##
                 init_Ri_values = function(){
-                  # Values under alpha_Ri 1e-3 lead to quantile values so close to 0 that they are rounded to 0
+                  # Values under alpha_Ri 1e-2 lead to quantile values so close to 0 that they are rounded to 0
                   # To prevent that:
                   private$alpha_Ri <- max(private$alpha_Ri, 1e-2)
-                  #print(private$alpha_Ri)
                   
                   # Set the values that divide the gamma distribution in 3 equal probability categories
                   qGamma_oneThird <- stats::qgamma(1/3, shape = private$alpha_Ri, scale= private$iota / private$alpha_Ri)
@@ -800,61 +799,16 @@ singleStructureGenerator <-
                                 position <- i
                                 old_St <- private$seq[i]
                             }
-                                        # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
-                            # Define a global variable to store error information
-                            error_info_global <- NULL
                             
-                            # Try-catch block with error handling
-                            error_info <- tryCatch({
-                              # Attempt to run sample()
-                              private$seq[i] <<- sample(1:3, size = 1, prob = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0))
-                              NULL # If no error, return NULL
-                            }, error = function(e) {
-                              # Capture error information in a list
-                              singleStrcloned <- self$clone()
-                              list(
-                                message = conditionMessage(e),
-                                ratetree = private$ratetree[[1]][1],
-                                M = M,
-                                probabilities = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0),
-                                Q = Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ],
-                                singleStructure_index = private$combiStructure_index,
-                                CpG_position = i,
-                                singleStrcloned = singleStrcloned
-                              )
-                            })
+                            # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
+                            private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
                             
-                            # If error_info is not NULL, it means an error occurred
-                            if (!is.null(error_info)) {
-                              print("Error occurred:")
-                              print(error_info$message)
-                              print(paste("ratetree", error_info$ratetree))
-                              print(paste("M", error_info$M))
-                              print("Probabilities")
-                              print(error_info$probabilities)
-                              print("Q")
-                              print(error_info$Q)
-                              print(paste("my_singleStructure_index", error_info$singleStructure_index))
-                              print(paste("CpG position", error_info$CpG_position))
-                              # Print singleStrcloned information if needed
-                              print("singleStrcloned")
-                              print(error_info$singleStrcloned)
-                              
-                              # Save the error information to a global variable
-                              error_info_global <<- error_info
-                              
-                              # Stop execution
-                              stop("Execution stopped due to an error (SSE).")
-                            }
-                            
-                            
-                            
-                            
-                            #private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
                             if (testing){
                                 new_St <- private$seq[i]
                                 SSE_evolInfo <- rbind(SSE_evolInfo, data.frame(position, old_St, new_St))
                             }
+                            
+                            # update neighbSt and ratetree
                             private$update_neighbSt(i)
                             private$update_ratetree_allCases(index = i)
                             
@@ -1002,46 +956,7 @@ singleStructureGenerator <-
                         }
                         
                         
-                        # Try-catch block with error handling
-                        error_info <- tryCatch({
-                          # Attempt to 
-                          # Sample $seq accordint to transition probablities
-                          newseq <- rep(0, length(private$seq))
-                          for(i in 1:length(newseq)) {
-                            newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
-                          }
-                          NULL # If no error, return NULL
-                        }, error = function(e) {
-                          # Capture error information in a list
-                          singleStrcloned <- self$clone()
-                          list(
-                            message = conditionMessage(e),
-                            old_eqFreqs = old_eqFreqs,
-                            new_eqFreqs = new_eqFreqs,
-                            Mk = Mk,
-                            singleStrcloned = singleStrcloned
-                          )
-                        })
                         
-                        # If error_info is not NULL, it means an error occurred
-                        if (!is.null(error_info)) {
-                          print("Error occurred:")
-                          print(error_info$message)
-                          print(paste("old_eqFreqs", error_info$old_eqFreqs))
-                          print(paste("new_eqFreqs", error_info$new_eqFreqs))
-                          print("Mk")
-                          print(error_info$Mk)
-                          print("singleStrcloned")
-                          print(error_info$singleStrcloned)
-                          
-                          # Save the error information to a global variable
-                          error_info_global <<- error_info
-                          
-                          # Stop execution
-                          stop("Execution stopped due to an error (IWE).")
-                        }
-
-                                        
 
                                         # Update $seq and $neighbSt
                         if(any(private$seq != newseq)){
@@ -1058,6 +973,8 @@ singleStructureGenerator <-
                               }  
                             }
                         }
+                        
+                        # Update $ratetree within singleStr
                         self$initialize_ratetree()
 
                                         #Compute the new_obsFreqs after the IWE event
@@ -1144,7 +1061,13 @@ singleStructureGenerator <-
                 
                 #' @description
                 #' Public Method.
-                #' @return with NULL arguments, the list of rate matrices. non NULL arguments, the corresponding rate of change
+                #' 
+                #' @param siteR default NULL. Numerical value encoding for the sites rate of independent SSE (1, 2 or 3)
+                #' @param neighbSt default NULL. Numerical value encoding for the sites neighbouring state (as in mapNeighbSt_matrix)
+                #' @param oldSt default NULL. Numerical value encoding for the sites old methylation state (1, 2 or 3)
+                #' @param newSt default NULL. Numerical value encoding for the sites new methylation state (1, 2 or 3)
+                #' 
+                #' @return With NULL arguments, the list of rate matrices. With non NULL arguments, the corresponding rate of change.
                 get_Q = function(siteR = NULL, neighbSt = NULL, oldSt = NULL, newSt = NULL) { 
                   if(all(is.null(siteR), is.null(neighbSt), is.null(oldSt), is.null(newSt))){
                     private$Q
@@ -1155,6 +1078,9 @@ singleStructureGenerator <-
                 
                 #' @description
                 #' Public Method.
+                #' 
+                #' @param index default NULL. Numerical value for the index of the CpG position within the singleStr instance
+                #' 
                 #' @return with NULL arguments, siteR vector. non NULL arguments, the corresponding siteR
                 get_siteR = function(index = NULL){ 
                   if(is.null(index)){
@@ -1166,6 +1092,9 @@ singleStructureGenerator <-
                 
                 #' @description
                 #' Public Method.
+                #' 
+                #' @param index default NULL. Numerical value for the index of the CpG position within the singleStr instance
+                #' 
                 #' @return with NULL arguments, neighbSt vector. non NULL arguments, the corresponding neighbSt
                 get_neighbSt = function(index = NULL) { 
                   if(is.null(index)){
@@ -1176,7 +1105,11 @@ singleStructureGenerator <-
                 },
                 
                 #' @description
-                #' Public Method. To update ratetree from another singleStructure instance
+                #' Public Method. Update ratetree from another singleStructure instance
+                #' 
+                #' @param position Numerical value for the index of the CpG position within the singleStr instance
+                #' @param rate Rate of change to asign to that position
+                #' 
                 #' @return NULL
                 update_ratetree_otherStr = function(position, rate) { 
                   K <- length(private$ratetree)
