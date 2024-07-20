@@ -147,7 +147,7 @@ left of right neighbour is equal.
 
 **SSE process parameterization: iota, alpha_Ri**
 **Parameter ranges** 
-The alpha parameter of a Gamma distribution must be greater than 0, that is (0, $\infty$).
+The alpha parameter of a Gamma distribution must be greater than 0, that is (0, $\infty$). Note that due to numerical limitations, the smallest value used by MethEvolSIM is 0.01.
 Iota must be between 0 (non-included) and 1, that is in (0,1].
 
 # Simulation Setup
