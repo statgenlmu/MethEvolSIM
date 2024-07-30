@@ -232,15 +232,18 @@ singleStructureGenerator <-
                   # Values under alpha_Ri 1e-2 lead to quantile values so close to 0 that they are rounded to 0
                   # To prevent that:
                   private$alpha_Ri <- max(private$alpha_Ri, 1e-2)
+                  # Very small values of iota lead to error in integrate for Ri3 due to a very small probability of the tail
+                  # To prevent that:
+                  private$iota <- max(private$iota, 1e-2)
                   
                   # Set the values that divide the gamma distribution in 3 equal probability categories
                   qGamma_oneThird <- stats::qgamma(1/3, shape = private$alpha_Ri, scale= private$iota / private$alpha_Ri)
                   qGamma_twoThird <- stats::qgamma(2/3, shape = private$alpha_Ri, scale= private$iota / private$alpha_Ri)
 
                   # Calculate the center of gravity of each gamma distribution category
-                  Ri1 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  alpha_Ri, scale =  iota / alpha_Ri) * 3, 0, qGamma_oneThird)$value
-                  Ri2 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  alpha_Ri, scale =  iota / alpha_Ri) * 3, qGamma_oneThird, qGamma_twoThird)$value
-                  Ri3 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  alpha_Ri, scale =  iota / alpha_Ri) * 3, qGamma_twoThird, Inf)$value
+                  Ri1 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  private$alpha_Ri, scale =  private$iota / private$alpha_Ri) * 3, 0, qGamma_oneThird)$value
+                  Ri2 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  private$alpha_Ri, scale =  private$iota / private$alpha_Ri) * 3, qGamma_oneThird, qGamma_twoThird)$value
+                  Ri3 <- stats::integrate(function(x) x*stats::dgamma(x, shape =  private$alpha_Ri, scale =  private$iota / private$alpha_Ri) * 3, qGamma_twoThird, Inf)$value
                   return(c(Ri1, Ri2, Ri3))
                 },
                 ## @field Rc_values Private attribute: Vector containing 2 Rc rate values
