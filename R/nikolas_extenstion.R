@@ -2,9 +2,18 @@ library(R6)
 library(devtools)
 
 singleStructureGenerator$set("public","get_seq_length",function(){
+  #function for getting sequence length (not used yet)
   return(length(private$seq))
 })
 
+#' @description
+#' The function creates a transition matrix based on the old and new equilibrium frequencies passed as input parameter
+#'
+#' @param old_eqFreqs Vector containing three old equilibrium frequencies adding up to 1
+#' @param new_eqFreqs Vector containing three new equilibrium frequencies adding up to 1
+#' @param testing Default FALSE. When TRUE warnings are thrown when the output matrix is not fulfilling its mathematical properties
+#'
+#' @return A Transition Matrix calculated from the old and new equilibrium frequencies
 singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new_eqFreqs, testing=FALSE){
   #set the transition matrix for the equilibrium frequencies
   m <- NULL
@@ -17,9 +26,7 @@ singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new
   p_old <- old_eqFreqs[2]
   m_old <- old_eqFreqs[3]
   
-  
   # Check Case 1: 1 new frequency value bigger and 2 smaller
-  
   if (u_new > u_old & p_new <= p_old & m_new <= m_old) {
     IWE_case <- "Case 1. u bigger"
     m <- matrix(c(1, 0, 0,
@@ -65,9 +72,6 @@ singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new
                    (u_new-u_old)/m_old, (p_new-p_old)/m_old, m_new/m_old),
                  nrow = 3, byrow = TRUE)
   }
-  
-  
-  
   if(testing == TRUE){
     # Validate transition matrix
     validationStates <- listTransitionMatrix_validation(list(m), "m")
@@ -76,13 +80,24 @@ singleStructureGenerator$set("public","get_TransMatrix",function(old_eqFreqs,new
     validationStates <- transPropMC_validation(old_eqFreqs, m, new_eqFreqs, listName = "transPropMC get_TransMatrix")
     transPropMC_validationResults(validationStates)
   }
-  
-  
   return(m)
 })
 
-
-
+#' @description
+#' The function simulates a recombination event within a SingleStructureGenerator object
+#'
+#' @param Y_seq A vector containing the sequence of methylation states of the recombining SingleStructureGenerator
+#' @param Y_eqFreqs Vector containing three equilibrium frequencies from the recombining SingleStructureGenerator
+#' @param testing Default FALSE.
+#'
+#' @return If testing = TRUE Returns a list of the sampled equilibrium frequencies and the sequence, their id, and the new sequence after recombination.
+#' Additionally warnings are thrown when rate matrices are not fulfilling their mathematical properties.
+#' \describe{
+#'       \item{\code{chosenEqFreqs}}{Equilibrium frequencies chosen within the RE_within method.}
+#'       \item{\code{id}}{ID of the chosen Sequence. FreqsX denotes that the frequencies of the current singleStructureGenerator were chosen, FreqsY denote they were chosen from the right sequence outside of the singlesStructureGenerator.}
+#'       \item{\code{chosenSeq}}{The chosen sequence corresponding to the id.}
+#'       \item{\code{newSeq}}{The newly generated sequence after the recombination event between the two SingleStructureGenerator objects}
+#'      }
 singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testing = FALSE){
   new_whole_seq <- NULL
   if (testing){
@@ -138,7 +153,6 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       new_eqFreqs <- X_eqFreqs
       seq_to_update <- Y_seq
     }
-      
     else if (chosen_eqFreqs =="FreqsY"){
       old_eqFreqs <- X_eqFreqs
       new_eqFreqs <- Y_eqFreqs
@@ -172,7 +186,6 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       # Validate methylation equilibrium triple (extra control at RE_within)
       validationStates <- listFreqVector_validation(list(old_eqFreqs, new_eqFreqs), "RE_within control old_eqFreqs and new_eqFreqs")
       listFreqVector_validationResults(validationStates)
-      
     }
   
     # Sample Y_seq according to transition probablities
@@ -210,10 +223,25 @@ singleStructureGenerator$set("public","RE_within",function(Y_seq,Y_eqFreqs,testi
       return(list(chosenEqFreqs = Y_eqFreqs,id= "FreqsY",chosenSeq = Y_seq_testing, newSeq = new_whole_seq))
     }
   }
-
-
 })
 
+#' @description
+#' The function simulates a recombination event within a CombiStructureGenerator object
+#'
+#' @param combi_2 A CombiStructureGenerator object that recombines with the current CombiStructureGenerator
+#' @param position Integer of the recombination position inside the CombiStructureGenerator Object
+#' @param testing Default FALSE.
+#'
+#' @return If testing = TRUE Returns a list containing the following items:
+#' \describe{
+#'       \item{\code{combi_2}}{The recombining CombiStructureGenerator object.}
+#'       \item{\code{combi_1}}{The current CombiStructureGenerator object.}
+#'       \item{\code{recomb_point}}{The recombination position also referred as recombination point.}
+#'       \item{\code{ssg_index}}{The index of the SingleStructureGenerator object where the recombination is happening.}
+#'       \item{\code{ssg_position_within}}{The relative recombination position within the SingleStructureGenerator object where the recombination happens.}
+#'       \item{\code{recombEqFreqs}}{Equilibrium frequencies chosen within the SingleStructureGenerator object where the recombination happens.}
+#'       \item{\code{new_ssgs}}{A list of all SingleStructureGenerator objects contained in the current CombiSturctureGenerator object after the recombination event.}
+#'      }
 combiStructureGenerator$set("public","RE_complete",function(combi_2, position,testing=FALSE){
   #initializing variables to keep track of the length and the target single structure
   cumulative_length <- 0
@@ -223,18 +251,17 @@ combiStructureGenerator$set("public","RE_complete",function(combi_2, position,te
   if(testing){
     testing_info <- append(testing_info,list(combi_2 = combi_2, combi_1 = self, recomb_point = position))
   }
-
+  #case1: only one singlestructure in the combistructure
   if (self$get_singleStr_number()==1){
     Y_seq <- combi_2$get_singleStr(1)$get_seq()[position:length(combi_2$get_singleStr(1)$get_seq())]
     Y_eqFreqs <- combi_2$get_singleStr(1)$get_eqFreqs()
     private$singleStr[[1]]$RE_within(Y_seq = Y_seq, Y_eqFreqs = Y_eqFreqs)
     
   }
-  
+  #case2: more than one singlestructure in the combistructure
   else{
     #loop through each stinglestructure in the combistructure
     for(i in 1:self$get_singleStr_number()){
-      
       singleStr_length <- private$singleStr[[i]]$get_seq_length()
       cumulative_length <- cumulative_length + singleStr_length
       
@@ -245,13 +272,13 @@ combiStructureGenerator$set("public","RE_complete",function(combi_2, position,te
         break
       }
     }
-  
     
-    
+    #determine variables needed for applying RE_within
     combi_2_target_ssg <- combi_2$get_singleStr(target_singleStr_index)
     Y_seq <- combi_2_target_ssg$get_seq()[(target_position_in_singleStr):length(combi_2_target_ssg$get_seq())]
     Y_eqFreqs <- combi_2_target_ssg$get_eqFreqs()
-
+    
+    #executre recombination event at position target_position_in_singleStr in ssg at position target_singleStr_index
     out <- private$singleStr[[target_singleStr_index]]$RE_within(Y_seq = Y_seq, Y_eqFreqs = Y_eqFreqs,testing=testing)
     if(testing){
       testing_info <- append(testing_info, list(ssg_index = target_singleStr_index, ssg_position_within = target_position_in_singleStr,recombEqFreqs = out$chosenEqFreqs))
@@ -263,7 +290,6 @@ combiStructureGenerator$set("public","RE_complete",function(combi_2, position,te
         private$singleStr[[j]] <- combi_2$get_singleStr(j)$clone()
       }
     }
-    
   }
   
   if(testing){
@@ -272,6 +298,3 @@ combiStructureGenerator$set("public","RE_complete",function(combi_2, position,te
   }
   
 })
-
-
-
