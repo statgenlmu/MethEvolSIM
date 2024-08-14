@@ -20,12 +20,24 @@
 ## Perhaps later: look for possibilities to improve structure of implementation (refactoring) and efficiency
 
 
-singleStructureGenerator$set("public", "get_Q", function(siteR = NULL, neighbSt = NULL, oldSt = NULL, newSt = NULL){
-  if(is.null(siteR) && is.null(neighbSt) && is.null(oldSt) && is.null(newSt)){
-    private$Q
+singleStructureGenerator$set("public", "get_Qi", function(siteR = NULL, oldSt = NULL, newSt = NULL){
+  if(is.null(siteR) && is.null(oldSt) && is.null(newSt)){
+    private$Qi
   } else{
-    private$Q[[siteR]][[neighbSt]][oldSt,newSt]
+    private$Qi[[siteR]][oldSt,newSt]
   }
+})
+
+##singleStructureGenerator$set("public", "get_iota", function(){
+##  private$iota
+##})
+
+singleStructureGenerator$set("public", "get_leftneighbSt", function(i){
+  floor((self$get_neighbSt(i)-1) / 3) +1
+})
+
+singleStructureGenerator$set("public", "get_rightneighbSt", function(i){
+  (self$get_neighbSt(i)-1) %% 3 +1
 })
 
 ## Make a singleStructure with the same segment lengths and parameters
@@ -42,22 +54,21 @@ singleStructureGenerator$set("public", "cftp_all_equal", function(state, testing
   }
 })
 
-singleStructureGenerator$set("public", "get_siteR", function(index = NULL){
-  if(is.null(index)){
-    private$siteR
-  } else{
-    private$siteR[index]
-  }
-})
+##singleStructureGenerator$set("public", "get_siteR", function(index = NULL){
+##  if(is.null(index)){
+##    private$siteR
+##  } else{
+##    private$siteR[index]
+##  }
+##})
 
-singleStructureGenerator$set("public", "get_neighbSt", function(index = NULL){
-  if(is.null(index)){
-    private$neighbSt
-  } else{
-    private$neighbSt[index]
-  }
-})
-
+##singleStructureGenerator$set("public", "get_neighbSt", function(index = NULL){
+##  if(is.null(index)){
+##    private$neighbSt
+##  } else{
+##    private$neighbSt[index]
+##  }
+##})
 
 
 ## set sequence, update neighbors BUT NOT THE ratetree
@@ -77,11 +88,24 @@ combiStructureGenerator$set("public", "cftp_apply_events", function() {
     siteR <- private$singleStr[[i]]$get_siteR(j)
     neighbSt <- private$singleStr[[i]]$get_neighbSt(j)
     oldSt <- private$singleStr[[i]]$get_seq()[j]
-    newSt <- private$CFTP_event[k]
-    if(oldSt != newSt) {
-      r <- private$singleStr[[i]]$get_Q(siteR = siteR, neighbSt = neighbSt, oldSt = oldSt, newSt = newSt)
+    if(private$CFTP_event[k] < 4) {
+      newSt <- private$CFTP_event[k]      
+      if(oldSt != newSt) {
+        r <- private$singleStr[[i]]$get_Qi(siteR = siteR, oldSt = oldSt, newSt = newSt)
+        if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
+            private$singleStr[[i]]$set_seq(j, newSt)
+        }
+      }
+    } else {
+      r <- (1-private$singleStr[[i]]$get_iota())/2
       if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
-          private$singleStr[[i]]$set_seq(j, newSt)
+         if(private$CFTP_event[k] == 4) {
+           ##copy from left neighbor
+           private$singleStr[[i]]$set_seq(j, private$singleStr[[i]]$get_leftneighbSt())
+         } else {
+           ## copy from right neighbor
+           private$singleStr[[i]]$set_seq(j, private$singleStr[[i]]$get_leftneighbSt())
+         }
       }
     }
   }
@@ -122,8 +146,9 @@ combiStructureGenerator$set("public", "cftp_event_generator", function(steps) {
   private$CFTP_highest_rate <- 0
   singleStr_n <- c()
   for(str in 1:length(private$singleStr)){
-    private$CFTP_highest_rate <- max(private$CFTP_highest_rate, 
-                         max(unlist(private$singleStr[[str]]$get_Q())))
+    private$CFTP_highest_rate <- max(private$CFTP_highest_rate,            
+                         max(c(unlist(private$singleStr[[str]]$get_Qi()), 
+                               (1-private$singleStr[[str]]$get_iota())/2)))
     singleStr_n[str] <- length(private$singleStr[[str]]$get_seq())
   }
   chosen_singleStr <- integer(length=steps)
@@ -135,7 +160,7 @@ combiStructureGenerator$set("public", "cftp_event_generator", function(steps) {
     # Propose 1 site and what may happen to it
     chosen_singleStr[n] <- sample(1:length(private$singleStr), 1, prob=singleStr_n)
     chosen_site[n] <- sample(1:length(private$singleStr[[str]]$get_seq()), 1)
-    event[n] <- sample(1:3, 1)  ## 1, 2, 3: go to u, p, m
+    event[n] <- sample(1:5, 1)  ## 1,..5: go to u, p, m by SSEi or copy left, copy right.                        
   
     random_threshold[n] <- runif(1)
   }
