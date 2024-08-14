@@ -654,7 +654,7 @@ singleStructureGenerator <-
                     private$beta_pI <- params$beta_pI
                     private$alpha_mI <- params$alpha_mI
                     private$beta_mI <- params$beta_mI
-                    private$alpha_pNI <- params$beta_pNI
+                    private$alpha_pNI <- params$alpha_pNI
                     private$beta_pNI <- params$beta_pNI
                     private$alpha_mNI <- params$alpha_mNI
                     private$beta_mNI <- params$beta_mNI
