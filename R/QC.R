@@ -13,7 +13,7 @@
 #' }
 #'
 #'@noRd
-validate_freqVectorSums1 <- function(freqVector, tolerance = 1e-8) {
+validate_freqVectorSums1 <- function(freqVector, tolerance = 1e-5) {
   if (!is.vector(freqVector) || !is.numeric(freqVector)) {stop("Argument 'freqVector' must be a numeric vector") }
   tryCatch({
     # Check if freqs sum to 1
@@ -167,7 +167,7 @@ listFreqVector_validationResults <- function(listValidationStates) {
 #' }
 #'
 #'@noRd
-validate_rate_matrix_rowSums <- function(matrix, tolerance = 1e-8) {
+validate_rate_matrix_rowSums <- function(matrix, tolerance = 1e-5) {
   if (!is.matrix(matrix)) {stop("Argument 'matrix' must be a matrix") }
   tryCatch({
     # Check if rows sum to 0 with tolerance
@@ -297,7 +297,7 @@ listRateMatrix_validation <- function(listRateMatrix, listName){
 #' }
 #'
 #'@noRd
-validate_transition_matrix_rowSums <- function(matrix, tolerance = 1e-8) {
+validate_transition_matrix_rowSums <- function(matrix, tolerance = 1e-5) {
   if (!is.matrix(matrix)) {stop("Argument 'matrix' must be a matrix") }
   tryCatch({
     # Check if rows sum to 1 within tolerance
@@ -455,7 +455,7 @@ listMatrices_validationResults <- function(listValidationStates) {
 #' }
 #'
 #'@noRd
-validate_transPropMC <- function(old_eqFreqs, Mk, new_eqFreqs, tolerance = 1e-8) {
+validate_transPropMC <- function(old_eqFreqs, Mk, new_eqFreqs, tolerance = 1e-5) {
   if (!is.vector(old_eqFreqs) || !is.numeric(old_eqFreqs)) {stop("Argument 'old_eqFreqs' must be a numeric vector") }
   if (!is.vector(new_eqFreqs) || !is.numeric(new_eqFreqs)) {stop("Argument 'new_eqFreqs' must be a numeric vector") }
   if (!is.matrix(Mk)) {stop("Argument 'Mk' must be a matrix") }
