@@ -13,9 +13,9 @@ test_num <- 100
 #iterating through (most likely) different test cases
   for (x in 1:test_num){
     #creating random vectors with length 3 summing to 1
-    random_vector1 <- runif(3) / sum(runif(3))
+    random_vector1 <- runif(3)
     random_vector1 <- random_vector1 /sum(random_vector1)
-    random_vector2 <- runif(3) / sum(runif(3))
+    random_vector2 <- runif(3)
     random_vector2 <- random_vector2 /sum(random_vector2)
     
     old_freqs <- random_vector1
@@ -28,6 +28,7 @@ test_num <- 100
       expect_no_warning(ssg$get_TransMatrix(old_eqFreqs = old_freqs, new_eqFreqs = new_freqs, testing=TRUE))
     }
     else{
+      #increasing total number to ensure 100 total effective tests
       test_num <- test_num + 1
     }
   }
@@ -40,9 +41,9 @@ test_that("RE_within property test",{
   for(i in 5:test_num){
     vec <- sample(c(1, 2, 3), i-3, replace = TRUE)
     #creating random vectors summing to 1
-    random_vector3 <- runif(3) / sum(runif(3))
+    random_vector3 <- runif(3) 
     random_vector3 <- random_vector3 /sum(random_vector3)
-    random_vector4 <- runif(3) / sum(runif(3))
+    random_vector4 <- runif(3) 
     random_vector4 <- random_vector4 /sum(random_vector4)
     if(all.equal(random_vector3,random_vector4)!= TRUE){
       #test if RE_within throws any warnings

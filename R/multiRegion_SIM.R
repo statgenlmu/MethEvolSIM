@@ -810,8 +810,9 @@ singleStructureGenerator <-
 
                     } else{
                         eqFreqsChange = T
+                        # Set the IWE transition matrix according to current case
+                        ##TODO:Nikolas Mk <- get_TransMatrix here. Substitutes Lines 815 t8 861
 
-                                        # Set the IWE transition matrix according to current case
                                         # Check Case 1: 1 new frequency value bigger and 2 smaller
                         if (new_eqFreqs[1] > u & new_eqFreqs[2] <= p & new_eqFreqs[3] <= m) {
                             IWE_case <- "Case 1. u bigger"
