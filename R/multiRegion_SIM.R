@@ -877,7 +877,7 @@ singleStructureGenerator <-
 
                                         # Set the IWE transition matrix according to current case
                                         # Check Case 1: 1 new frequency value bigger and 2 smaller
-                        if (new_eqFreqs[1] > u & new_eqFreqs[2] <= p & new_eqFreqs[3] <= m) {
+                        if (new_eqFreqs[1] >= u & new_eqFreqs[2] <= p & new_eqFreqs[3] <= m) {
                             IWE_case <- "Case 1. u bigger"
                             Mk <- matrix(c(1, 0, 0,
                             (p-new_eqFreqs[2])/p, new_eqFreqs[2]/p, 0,
@@ -885,14 +885,14 @@ singleStructureGenerator <-
                             nrow = 3, byrow = TRUE)
 
                         }
-                        if (new_eqFreqs[2] > p & new_eqFreqs[1] <= u & new_eqFreqs[3] <= m) {
+                        else if (new_eqFreqs[2] >= p & new_eqFreqs[1] <= u & new_eqFreqs[3] <= m) {
                             IWE_case <- "Case 1. p bigger"
                             Mk <- matrix(c(new_eqFreqs[1]/u, (u-new_eqFreqs[1])/u, 0,
                                            0, 1, 0,
                                            0, (m-new_eqFreqs[3])/m, new_eqFreqs[3]/m),
                                          nrow = 3, byrow = TRUE)
                         }
-                        if (new_eqFreqs[3] > m & new_eqFreqs[2] <= p & new_eqFreqs[1] <= u) {
+                        else if (new_eqFreqs[3] >= m & new_eqFreqs[2] <= p & new_eqFreqs[1] <= u) {
                             IWE_case <- "Case 1. m bigger"
                             Mk <- matrix(c(new_eqFreqs[1]/u, 0, (u-new_eqFreqs[1])/u,
                                            0, new_eqFreqs[2]/p, (p-new_eqFreqs[2])/p,
@@ -901,21 +901,21 @@ singleStructureGenerator <-
 
                         }
                                         # Check Case 2: 1 new frequency value smaller
-                        if (new_eqFreqs[1] < u & new_eqFreqs[2] >= p & new_eqFreqs[3] >= m) {
+                        else if (new_eqFreqs[1] <= u & new_eqFreqs[2] >= p & new_eqFreqs[3] >= m) {
                             IWE_case <- "Case 2. u smaller"
                             Mk <- matrix(c(new_eqFreqs[1]/u, (new_eqFreqs[2]-p)/u, (new_eqFreqs[3]-m)/u,
                                            0, 1, 0,
                                            0, 0, 1),
                                          nrow = 3, byrow = TRUE)
                         }
-                        if (new_eqFreqs[2] < p & new_eqFreqs[1] >= u & new_eqFreqs[3] >= m) {
+                        else if (new_eqFreqs[2] <= p & new_eqFreqs[1] >= u & new_eqFreqs[3] >= m) {
                             IWE_case <- "Case 2. p smaller"
                             Mk <- matrix(c(1, 0, 0,
                             (new_eqFreqs[1]-u)/p, new_eqFreqs[2]/p, (new_eqFreqs[3]-m)/p,
                             0, 0, 1),
                             nrow = 3, byrow = TRUE)
                         }
-                        if (new_eqFreqs[3] < m & new_eqFreqs[2] >= p & new_eqFreqs[1] >= u) {
+                        else if (new_eqFreqs[3] <= m & new_eqFreqs[2] >= p & new_eqFreqs[1] >= u) {
                             IWE_case <- "Case 2. m smaller"
                             Mk <- matrix(c(1, 0, 0,
                                            0, 1, 0,
@@ -958,11 +958,10 @@ singleStructureGenerator <-
                             transPropMC_validationResults(validationStates)
                         }
                         
-                        # Sample $seq accordint to transition probablities
                         newseq <- rep(0, length(private$seq))
                         for(i in 1:length(newseq)) {
                           newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
-                        }
+                        } 
                         
 
                                         # Update $seq and $neighbSt
