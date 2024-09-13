@@ -20,6 +20,18 @@
 ## Perhaps later: look for possibilities to improve structure of implementation (refactoring) and efficiency
 
 
+################################################################################
+################################################################################
+
+
+## @description
+## Public Method. 
+## 
+## @param siteR default NULL. Numerical value encoding for the sites rate of independent SSE (1, 2 or 3)
+## @param oldSt default NULL. Numerical value encoding for the sites old methylation state (1, 2 or 3)
+## @param newSt default NULL. Numerical value encoding for the sites new methylation state (1, 2 or 3)
+## 
+## @return With NULL arguments, the list of SSEi rate matrices. With non NULL arguments, the corresponding rate of change.
 singleStructureGenerator$set("public", "get_Qi", function(siteR = NULL, oldSt = NULL, newSt = NULL){
   if(is.null(siteR) && is.null(oldSt) && is.null(newSt)){
     private$Qi
@@ -32,25 +44,47 @@ singleStructureGenerator$set("public", "get_Qi", function(siteR = NULL, oldSt = 
 ##  private$iota
 ##})
 
+## @description
+## Public Method.
+## 
+## @param index. Numerical value for the index of the CpG position within the singleStr instance
+## 
+## @return left neighbSt
 singleStructureGenerator$set("public", "get_leftneighbSt", function(i){
   floor((self$get_neighbSt(i)-1) / 3) +1
 })
 
+## @description
+## Public Method.
+## 
+## @param index. Numerical value for the index of the CpG position within the singleStr instance
+## 
+## @return right neighbSt
 singleStructureGenerator$set("public", "get_rightneighbSt", function(i){
   (self$get_neighbSt(i)-1) %% 3 +1
 })
 
-## Make a singleStructure with the same segment lengths and parameters
-## as the focal one but all states are m
+
+## @description
+## Public Method. Make a singleStructure with the same segment lengths and parameters
+## as the focal one but where all states are m or u
+## 
+## @param state. Character value "U" or "M"
+## 
+## @return right neighbSt
 singleStructureGenerator$set("public", "cftp_all_equal", function(state, testing = FALSE) {
   n <- length(private$seq)
   if (state == "U"){
     private$globalState <- "U"
     private$seq <- rep(1L, n)
-  }
-  if (state == "M"){
+  } else if (state == "M"){
     private$globalState <- "M"
     private$seq <- rep(3L, n)
+  } else {
+    stop("Invalid 'state' value. Must be 'U' for unmethylated or 'M' for methylated")
+  }
+  if (testing){
+    private$seq
   }
 })
 
@@ -72,13 +106,35 @@ singleStructureGenerator$set("public", "cftp_all_equal", function(state, testing
 
 
 ## set sequence, update neighbors BUT NOT THE ratetree
-singleStructureGenerator$set("public", "set_seq", function(index, newSt){
+## @description
+## Public Method. Set the methylation state of a sequence position and update the neighbor's neighbSt. It does NOT update RATETREE 
+## 
+## @param index. Numerical value for the index of the CpG position within the singleStr instance
+## @param newSt. Numerical value encoding for the sites new methylation state (1, 2 or 3)
+## @param testing default FALSE. TRUE for testing output
+## 
+## @return NULL when testing FALSE. Testing output when testing TRUE.
+singleStructureGenerator$set("public", "set_seqSt_update_neighbSt", function(index, newSt, testing = FALSE){
+  if(!(is.numeric(index) && length(index) == 1 && index == floor(index))){
+    stop("'index' must be one number without decimals")
+  }
+  if(!(index >= 1 && index <= length(private$seq))) {
+    stop("'index' not within sequence length")
+  }
+  if(!(newSt %in% c(1, 2, 3))){
+    stop("'newSt' must be 1, 2 or 3 (for unmethylated, partially methylated or methylated)")
+  }
   private$seq[index] <- newSt
   private$update_neighbSt(index)
+  if (testing){
+    list(seq = private$seq,
+         neighbSt = private$neighbSt)
+  }
 })
 
 
-## note that this does not update the ratetrees; needs to be done after the whole CFTP run
+## TODO ?
+## note that this does not update the ratetrees; needs to be done after the whole CFTP run 
 combiStructureGenerator$set("public", "cftp_apply_events", function() {
   
   for(k in length(private$CFTP_event):1) {
@@ -93,7 +149,8 @@ combiStructureGenerator$set("public", "cftp_apply_events", function() {
       if(oldSt != newSt) {
         r <- private$singleStr[[i]]$get_Qi(siteR = siteR, oldSt = oldSt, newSt = newSt)
         if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
-            private$singleStr[[i]]$set_seq(j, newSt)
+            private$singleStr[[i]]$set_seqSt_update_neighbSt(j, newSt)
+            #private$update_neighbSt(j)
         }
       }
     } else {
@@ -101,10 +158,11 @@ combiStructureGenerator$set("public", "cftp_apply_events", function() {
       if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
          if(private$CFTP_event[k] == 4) {
            ##copy from left neighbor
-           private$singleStr[[i]]$set_seq(j, private$singleStr[[i]]$get_leftneighbSt())
+           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_leftneighbSt())
+           #private$singleStr[[i]]$update_neighbSt(index)
          } else {
            ## copy from right neighbor
-           private$singleStr[[i]]$set_seq(j, private$singleStr[[i]]$get_leftneighbSt())
+           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_leftneighbSt())
          }
       }
     }

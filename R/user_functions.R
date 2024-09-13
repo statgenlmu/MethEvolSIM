@@ -28,7 +28,7 @@ get_parameterValues <- function(rootData = NULL){
     combi_obj <- combiStructureGenerator$new(infoStr)
   } else {
     if(class(rootData)[1] != "combiStructureGenerator"){
-      stop("'rootData' needs to be the $data output of simulate_initialData")
+      stop("'rootData' needs to be the $data output of simulate_initialData or simulate_evolData")
     } else {
       obj <- rootData$get_singleStr(1)
       combi_obj <- rootData
