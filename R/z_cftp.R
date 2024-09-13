@@ -198,10 +198,11 @@ combiStructureGenerator$set("public", "cftp", function() {
     return(combi_u)
 })
 
-
-combiStructureGenerator$set("public", "cftp_event_generator", function(steps) {
+## generates events to apply for CFTP
+combiStructureGenerator$set("public", "cftp_event_generator", function(steps, testing = FALSE) {
   
-  private$CFTP_highest_rate <- 0
+  # Set CFTP_highest_rate to be the highest rate across all singleStr withing combiStr instance
+  private$CFTP_highest_rate <- 0 # ensure minimum value of 0
   singleStr_n <- c()
   for(str in 1:length(private$singleStr)){
     private$CFTP_highest_rate <- max(private$CFTP_highest_rate,            
@@ -209,6 +210,8 @@ combiStructureGenerator$set("public", "cftp_event_generator", function(steps) {
                                (1-private$singleStr[[str]]$get_iota())/2)))
     singleStr_n[str] <- length(private$singleStr[[str]]$get_seq())
   }
+  
+  # Generate for each CFTP step the event and location to apply it and a threshold for acceptance/rejection
   chosen_singleStr <- integer(length=steps)
   chosen_site <- integer(length=steps)
   event <- integer(length=steps)
@@ -218,14 +221,21 @@ combiStructureGenerator$set("public", "cftp_event_generator", function(steps) {
     # Propose 1 site and what may happen to it
     chosen_singleStr[n] <- sample(1:length(private$singleStr), 1, prob=singleStr_n)
     chosen_site[n] <- sample(1:length(private$singleStr[[str]]$get_seq()), 1)
-    event[n] <- sample(1:5, 1)  ## 1,..5: go to u, p, m by SSEi or copy left, copy right.                        
-  
-    random_threshold[n] <- runif(1)
+    event[n] <- sample(1:5, 1)  ## 1,2,3: go to u, p, m by SSEi ## 4,5: copy left, copy right.                        
+    # Sample a threshold to accept or reject event
+    random_threshold[n] <- runif(1) # numerical value between 0 and 1
   }
   private$CFTP_chosen_singleStr <- c(private$CFTP_chosen_singleStr, chosen_singleStr)
   private$CFTP_chosen_site <- c(private$CFTP_chosen_site, chosen_site)
   private$CFTP_event <- c(private$CFTP_event, event)
   private$CFTP_random <- c(private$CFTP_random, random_threshold) 
+  
+  if(testing){
+    list(CFTP_chosen_singleStr = private$CFTP_chosen_singleStr,
+         CFTP_chosen_site = private$CFTP_chosen_site,
+         CFTP_event = private$CFTP_event,
+         CFTP_random = private$CFTP_random)
+  }
 })
 
 

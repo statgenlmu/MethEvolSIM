@@ -109,3 +109,19 @@ test_that("singleStructureGenerator $set_seqSt_update_neighbSt",{
   expect_equal(output$neighbSt[5], exp5thsite_neighbSt,
                info = "method fails to update neighbSt to right neighbor")
 })
+
+test_that("combiStructureGenerator $cftp_event_generator()", {
+  
+  # Initialize combiStructureGenerator instance
+  infoStr <- data.frame(n = c(10, 10, 10),
+                        globalState = c("M", "U", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  
+  # Expect error when steps argument is not given
+  
+  # Expect error when steps argument is not an non-decimal numerical value
+  
+  # Expect NULL output when arguments are correct but testing is (as default) FALSE
+  
+  # Test proposed event, singleStr and site, and threshold are generated for each CFTP step
+})
