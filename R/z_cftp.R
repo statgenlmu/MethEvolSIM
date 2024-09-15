@@ -47,21 +47,38 @@ singleStructureGenerator$set("public", "get_Qi", function(siteR = NULL, oldSt = 
 ## @description
 ## Public Method.
 ## 
-## @param index. Numerical value for the index of the CpG position within the singleStr instance
+## @param index. Integer index value for the CpG position within the singleStr instance
 ## 
-## @return left neighbSt
-singleStructureGenerator$set("public", "get_leftneighbSt", function(i){
-  floor((self$get_neighbSt(i)-1) / 3) +1
+## @return decoded methylation state ($seq) of left neighbor (1, 2 or 3 for unmethylated, partially methylated or methylated)
+singleStructureGenerator$set("public", "get_seqSt_leftneighb", function(index){
+  if (is.null(index)) stop("Argument 'index' for CpG position is missing, with no default")
+  if(!(is.numeric(index) && length(index) == 1 && index == floor(index))){
+    stop("Argument 'index' must be one integer index value")
+  }
+  if(!(index >= 1 && index <= length(private$seq))) {
+    stop("Argument 'index' not within sequence length")
+  }
+  # Extract row number (corresponding to $seq state of left neighbor) from the positions neighbSt
+  which(private$mapNeighbSt_matrix == self$get_neighbSt(index), arr.ind = TRUE)[1]
+  #floor((self$get_neighbSt(i)-1) / 3) +1
 })
 
 ## @description
 ## Public Method.
 ## 
-## @param index. Numerical value for the index of the CpG position within the singleStr instance
+## @param index. Integer index value for the CpG position within the singleStr instance
 ## 
-## @return right neighbSt
-singleStructureGenerator$set("public", "get_rightneighbSt", function(i){
-  (self$get_neighbSt(i)-1) %% 3 +1
+## @return decoded methylation state ($seq) of right neighbor (1, 2 or 3 for unmethylated, partially methylated or methylated)
+singleStructureGenerator$set("public", "get_seqSt_rightneighb", function(index){
+  if (is.null(index)) stop("Argument 'index' for CpG position is missing, with no default")
+  if(!(is.numeric(index) && length(index) == 1 && index == floor(index))){
+    stop("Argument 'index' must be one integer index value")
+  }
+  if(!(index >= 1 && index <= length(private$seq))) {
+    stop("Argument 'index' not within sequence length")
+  }
+  which(private$mapNeighbSt_matrix == self$get_neighbSt(index), arr.ind = TRUE)[2]
+  #(self$get_neighbSt(i)-1) %% 3 +1
 })
 
 
@@ -88,24 +105,9 @@ singleStructureGenerator$set("public", "cftp_all_equal", function(state, testing
   }
 })
 
-##singleStructureGenerator$set("public", "get_siteR", function(index = NULL){
-##  if(is.null(index)){
-##    private$siteR
-##  } else{
-##    private$siteR[index]
-##  }
-##})
-
-##singleStructureGenerator$set("public", "get_neighbSt", function(index = NULL){
-##  if(is.null(index)){
-##    private$neighbSt
-##  } else{
-##    private$neighbSt[index]
-##  }
-##})
 
 
-## set sequence, update neighbors BUT NOT THE ratetree
+
 ## @description
 ## Public Method. Set the methylation state of a sequence position and update the neighbor's neighbSt. It does NOT update RATETREE 
 ## 
@@ -132,82 +134,26 @@ singleStructureGenerator$set("public", "set_seqSt_update_neighbSt", function(ind
   }
 })
 
-
-## TODO ?
-## note that this does not update the ratetrees; needs to be done after the whole CFTP run 
-combiStructureGenerator$set("public", "cftp_apply_events", function() {
-  
-  for(k in length(private$CFTP_event):1) {
-    ### applies the CFTP_events from -n to 1 to the combiStructure
-    i <- private$CFTP_chosen_singleStr[k]
-    j <- private$CFTP_chosen_site[k]
-    siteR <- private$singleStr[[i]]$get_siteR(j)
-    neighbSt <- private$singleStr[[i]]$get_neighbSt(j)
-    oldSt <- private$singleStr[[i]]$get_seq()[j]
-    if(private$CFTP_event[k] < 4) {
-      newSt <- private$CFTP_event[k]      
-      if(oldSt != newSt) {
-        r <- private$singleStr[[i]]$get_Qi(siteR = siteR, oldSt = oldSt, newSt = newSt)
-        if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
-            private$singleStr[[i]]$set_seqSt_update_neighbSt(j, newSt)
-            #private$update_neighbSt(j)
-        }
-      }
-    } else {
-      r <- (1-private$singleStr[[i]]$get_iota())/2
-      if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
-         if(private$CFTP_event[k] == 4) {
-           ##copy from left neighbor
-           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_leftneighbSt())
-           #private$singleStr[[i]]$update_neighbSt(index)
-         } else {
-           ## copy from right neighbor
-           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_leftneighbSt())
-         }
-      }
-    }
-  }
-})
-
-combiStructureGenerator$set("public", "cftp", function() {
-    equal <- FALSE
-    steps <- 10000
-    while(!equal) {
-        self$cftp_event_generator(steps)
-        combi_u <- self$clone()
-        combi_m <- self$clone()
-        for(str in 1:length(private$singleStr)){
-            combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
-            combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
-            ### note that rate trees are not updated in combi_u and combi_m
-            combi_u$get_singleStr(str)$init_neighbSt()
-            combi_m$get_singleStr(str)$init_neighbSt()
-        }
-        combi_u$cftp_apply_events()
-        combi_m$cftp_apply_events()
-        equal_str <- c()
-        for(str in 1:length(private$singleStr)){
-          equal_str[str] <- all(combi_u$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())
-        }
-        equal <- all(equal_str)
-        steps <- 2*steps
-    }
-    for(str in 1:length(private$singleStr)){
-      combi_u$get_singleStr(str)$initialize_ratetree()
-    }
-    return(combi_u)
-})
-
-## generates events to apply for CFTP
+## @description
+## Public Method. Generates the events to apply for CFTP.
+## 
+## @param steps. Integer value >=1
+## @param testing default FALSE. TRUE for testing output
+## 
+## @return NULL when testing FALSE. Testing output when testing TRUE.
 combiStructureGenerator$set("public", "cftp_event_generator", function(steps, testing = FALSE) {
+  
+  if(!(is.numeric(steps) && length(steps) == 1 && steps == floor(steps) && steps >= 1)){
+    stop("'index' must be one number >=1 without decimals")
+  }
   
   # Set CFTP_highest_rate to be the highest rate across all singleStr withing combiStr instance
   private$CFTP_highest_rate <- 0 # ensure minimum value of 0
   singleStr_n <- c()
   for(str in 1:length(private$singleStr)){
     private$CFTP_highest_rate <- max(private$CFTP_highest_rate,            
-                         max(c(unlist(private$singleStr[[str]]$get_Qi()), 
-                               (1-private$singleStr[[str]]$get_iota())/2)))
+                                     max(c(unlist(private$singleStr[[str]]$get_Qi()), 
+                                           (1-private$singleStr[[str]]$get_iota())/2)))
     singleStr_n[str] <- length(private$singleStr[[str]]$get_seq())
   }
   
@@ -237,6 +183,93 @@ combiStructureGenerator$set("public", "cftp_event_generator", function(steps, te
          CFTP_random = private$CFTP_random)
   }
 })
+
+## TODO ?
+## note that this does not update the ratetrees; needs to be done after the whole CFTP run 
+combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FALSE) {
+  if(length(private$CFTP_event) < 1) stop("No CFTP events generated yet.")
+  if (testing){
+    # Set vector to save acceptance/rejection as T or F
+    event_acceptance <- logical(length = length(private$CFTP_event))
+    # Set vector to save the rate of the chosen site (j) at each CFTP step (k)
+    r_jk <- rep(A, length(private$CFTP_event))
+  } 
+  ## TODO: Update testing vectors
+  for(k in length(private$CFTP_event):1) {
+    ### applies the CFTP_events from -n to 1 to the combiStructure
+    i <- private$CFTP_chosen_singleStr[k]
+    print(k)
+    print(paste("private$CFTP_chosen_singleStr[k]", private$CFTP_chosen_singleStr[k]))
+    #print(paste("i", i))
+    j <- private$CFTP_chosen_site[k]
+    siteR <- private$singleStr[[i]]$get_siteR(j)
+    #print("here 1")
+    neighbSt <- private$singleStr[[i]]$get_neighbSt(j)
+    #print("here 2")
+    oldSt <- private$singleStr[[i]]$get_seq()[j]
+    if(private$CFTP_event[k] < 4) { # If the event is of type SSEi, set the new St as the sampled event 
+      newSt <- private$CFTP_event[k]      
+      if(oldSt != newSt) {
+        r <- private$singleStr[[i]]$get_Qi(siteR = siteR, oldSt = oldSt, newSt = newSt)
+        if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
+            private$singleStr[[i]]$set_seqSt_update_neighbSt(j, newSt)
+          if (testing) event_acceptance[k] <- TRUE
+        }
+      }
+    } else {
+      r <- (1-private$singleStr[[i]]$get_iota())/2
+      if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
+         if(private$CFTP_event[k] == 4) {
+           ##copy from left neighbor
+           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_leftneighbSt(index = j))
+           if (testing) event_acceptance[k] <- TRUE
+         } else {
+           ## copy from right neighbor
+           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_rightneighbSt(index = j))
+           if (testing) event_acceptance[k] <- TRUE
+         }
+      }
+    }
+  }
+  if(testing){
+    list(CFTP_chosen_singleStr = private$CFTP_chosen_singleStr,
+         CFTP_chosen_site = private$CFTP_chosen_site,
+         CFTP_event = private$CFTP_event,
+         event_acceptance = event_acceptance)
+  }
+})
+
+combiStructureGenerator$set("public", "cftp", function(steps = 10000) {
+    equal <- FALSE
+    #steps <- 10000
+    while(!equal) {
+        self$cftp_event_generator(steps)
+        combi_u <- self$clone()
+        combi_m <- self$clone()
+        for(str in 1:length(private$singleStr)){
+            combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
+            combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
+            ### note that rate trees are not updated in combi_u and combi_m
+            combi_u$get_singleStr(str)$init_neighbSt()
+            combi_m$get_singleStr(str)$init_neighbSt()
+        }
+        combi_u$cftp_apply_events()
+        combi_m$cftp_apply_events()
+        equal_str <- c()
+        for(str in 1:length(private$singleStr)){
+          equal_str[str] <- all(combi_u$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())
+        }
+        equal <- all(equal_str)
+        steps <- 2*steps
+    }
+    for(str in 1:length(private$singleStr)){
+      combi_u$get_singleStr(str)$initialize_ratetree()
+    }
+    return(combi_u)
+})
+
+
+
 
 
 
