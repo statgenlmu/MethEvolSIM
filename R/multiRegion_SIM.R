@@ -803,8 +803,40 @@ singleStructureGenerator <-
                                 old_St <- private$seq[i]
                             }
                             
+                            ############### DEBUGGING CODE #####################
+                            # Define a global variable to store error information
+                            error_info_global <- NULL
+                            
+                            # Try-catch block with error handling
+                            error_info <- tryCatch({
+                              # Attempt to run sample()
+                              private$seq[i] <<- sample(1:3, size = 1, prob = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0))
+                              NULL # If no error, return NULL
+                            }, error = function(e) {
+                              # Capture error information in a list
+                              singleStrcloned <- self$clone()
+                              list(
+                                message = conditionMessage(e),
+                                singleStrcloned = singleStrcloned
+                              )
+                            })
+                            
+                            # If error_info is not NULL, it means an error occurred
+                            if (!is.null(error_info)) {
+                              print("Error occurred:")
+                              print(error_info$message)
+                              
+                              # Save the error information to a global variable
+                              error_info_global <<- error_info
+                              
+                              # Stop execution
+                              stop("Execution stopped due to an error (SSE).")
+                            }
+                            
+                            ################### DEBUGGING CODE #################
+                            
                             # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
-                            private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
+                            #private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
                             
                             if (testing){
                                 new_St <- private$seq[i]
@@ -958,10 +990,50 @@ singleStructureGenerator <-
                             transPropMC_validationResults(validationStates)
                         }
                         
-                        newseq <- rep(0, length(private$seq))
-                        for(i in 1:length(newseq)) {
-                          newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
-                        } 
+                        ################ DEBUGGING CODE ########################
+                        # Define a global variable to store error information
+                        error_info_global <- NULL
+                        
+                        # Try-catch block with error handling
+                        error_info <- tryCatch({
+                          # Sample $seq accordint to transition probablities
+                          # Attempt to run sample()
+                          newseq <- rep(0, length(private$seq))
+                          for(i in 1:length(newseq)) {
+                            newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
+                          }
+                          NULL # If no error, return NULL
+                        }, error = function(e) {
+                          # Capture error information in a list
+                          singleStrcloned <- self$clone()
+                          list(
+                            message = conditionMessage(e),
+                            singleStrcloned = singleStrcloned,
+                            old_eqFreqs = old_eqFreqs,
+                            new_eqFreqs = new_eqFreqs,
+                            Mk = Mk
+                          )
+                        })
+                        
+                        # If error_info is not NULL, it means an error occurred
+                        if (!is.null(error_info)) {
+                          print("Error occurred:")
+                          print(error_info$message)
+                          
+                          # Save the error information to a global variable
+                          error_info_global <<- error_info
+                          
+                          # Stop execution
+                          stop("Execution stopped due to an error (IWE).")
+                        }
+                        
+                        ################ DEBUGGING CODE ########################
+                        
+                        
+                        #newseq <- rep(0, length(private$seq))
+                        #for(i in 1:length(newseq)) {
+                        #  newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
+                        #} 
                         
 
                                         # Update $seq and $neighbSt
