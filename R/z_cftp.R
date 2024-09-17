@@ -192,28 +192,26 @@ combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FA
     # Set vector to save acceptance/rejection as T or F
     event_acceptance <- logical(length = length(private$CFTP_event))
     # Set vector to save the rate of the chosen site (j) at each CFTP step (k)
-    r_jk <- rep(A, length(private$CFTP_event))
+    r_jk <- rep(NA, length(private$CFTP_event))
   } 
   ## TODO: Update testing vectors
   for(k in length(private$CFTP_event):1) {
     ### applies the CFTP_events from -n to 1 to the combiStructure
     i <- private$CFTP_chosen_singleStr[k]
-    print(k)
-    print(paste("private$CFTP_chosen_singleStr[k]", private$CFTP_chosen_singleStr[k]))
-    #print(paste("i", i))
     j <- private$CFTP_chosen_site[k]
-    siteR <- private$singleStr[[i]]$get_siteR(j)
-    #print("here 1")
-    neighbSt <- private$singleStr[[i]]$get_neighbSt(j)
-    #print("here 2")
     oldSt <- private$singleStr[[i]]$get_seq()[j]
     if(private$CFTP_event[k] < 4) { # If the event is of type SSEi, set the new St as the sampled event 
       newSt <- private$CFTP_event[k]      
       if(oldSt != newSt) {
+        siteR <- private$singleStr[[i]]$get_siteR(j)
+        neighbSt <- private$singleStr[[i]]$get_neighbSt(j)
         r <- private$singleStr[[i]]$get_Qi(siteR = siteR, oldSt = oldSt, newSt = newSt)
         if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
             private$singleStr[[i]]$set_seqSt_update_neighbSt(j, newSt)
-          if (testing) event_acceptance[k] <- TRUE
+          if (testing){
+            event_acceptance[k] <- TRUE
+            r_jk[k] <- r
+          } 
         }
       }
     } else {
@@ -221,12 +219,18 @@ combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FA
       if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
          if(private$CFTP_event[k] == 4) {
            ##copy from left neighbor
-           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_leftneighbSt(index = j))
-           if (testing) event_acceptance[k] <- TRUE
+           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_seqSt_leftneighb(index = j))
+           if (testing){
+             event_acceptance[k] <- TRUE
+             r_jk[k] <- r
+           } 
          } else {
            ## copy from right neighbor
-           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_rightneighbSt(index = j))
-           if (testing) event_acceptance[k] <- TRUE
+           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_seqSt_rightneighb(index = j))
+           if (testing){
+             event_acceptance[k] <- TRUE
+             r_jk[k] <- r
+           } 
          }
       }
     }
@@ -235,7 +239,10 @@ combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FA
     list(CFTP_chosen_singleStr = private$CFTP_chosen_singleStr,
          CFTP_chosen_site = private$CFTP_chosen_site,
          CFTP_event = private$CFTP_event,
-         event_acceptance = event_acceptance)
+         CFTP_random = private$CFTP_random,
+         event_acceptance = event_acceptance,
+         r_jk = r_jk,
+         r_m = private$CFTP_highest_rate)
   }
 })
 

@@ -243,6 +243,21 @@ test_that("combiStructureGenerator $cftp_apply_events()", {
   combi_obj$cftp_event_generator(steps = 100)
   output <- combi_obj$cftp_apply_events(testing = TRUE)
   
+  accepted_indeces <- which(output$event_acceptance == TRUE)
+  # if there is at least one accepted index:
+  #expect_true(all(output$r_jk[accepted_indeces]/output$r_m > output$CFTP_random[accepted_indeces]),
+              info = "Not all accepted events fulfill relative rate higher than sampled threshold")
+  #output$CFTP_event[accepted_indeces]
+  #output$CFTP_chosen_singleStr[accepted_indeces]
+  #output$CFTP_chosen_site[accepted_indeces]
+  
+  # For the most recent event (index 1, as they are applied from step 100 to step 1) test correct application.
+  # Not for previous events because another event may be conflicting.
+  #mostRecent_event <- output$CFTP_event[accepted_indeces][1]
+  #if(mostRecent_event == 5){
+  #  exp
+  #}
+  
   # Expect NULL output when arguments are correct but testing is (as default) FALSE
   expect_null(combi_obj$cftp_apply_events(),
               info = "whith testing = FALSE method generates output")
