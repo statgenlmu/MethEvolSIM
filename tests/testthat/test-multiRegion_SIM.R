@@ -1891,6 +1891,634 @@ test_that("combiStructureGenerator interval_evol()",{
   expect_null(output)
 })
 
+
+test_that("singleStructureGenerator $get_transMat() errors/warnings", {
+  
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Expect error when one or both frequency vectors are not given
+  expect_error(obj$get_transMat(info = "test"),
+               info = "method fails to throw error when no frequency vector is given")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when argument 'new_eqFreqs' is not given")
+  expect_error(obj$get_transMat(new_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when argument 'old_eqFreqs' is not given")
+  
+  # Expect error when no info is given or when it is not a character string
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.1, .4, .5)),
+               info = "method fails to throw error when argument 'info' is not given")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.1, .4, .5), info = 2),
+               info = "method fails to throw error when argument 'info' is not a character string")
+  
+  # Expect error when any of the frequency vectors is not a numeric vector of length 3
+  expect_error(obj$get_transMat(old_eqFreqs = "M", new_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when 'old_eqFreqs' is not numeric vector")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = "M", info = "test"),
+               info = "method fails to throw error when 'new_eqFreqs' is not numeric vector")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = 1, info = "test"),
+               info = "method fails to throw error when 'new_eqFreqs' is not vector with 3 values")
+  expect_error(obj$get_transMat(old_eqFreqs = 1, new_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when 'old_eqFreqs' is not numeric vector")
+  
+  # Expect error when any of the frequency vectors has values <0 or >1
+  expect_error(obj$get_transMat(old_eqFreqs = c(-.1, .4, .5), new_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when 'old_eqFreqs' has values <0 or >1")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.1, .4, 1.1), info = "test"),
+               info = "method fails to throw error when 'new_eqFreqs' has values <0 or >1")
+  
+  # Expect warning when the sum of the frequency vectors is not 1
+  expect_warning(obj$get_transMat(old_eqFreqs = c(.005, .4, .5), new_eqFreqs = c(.1, .4, .5), info = "test"),
+                 info = "method fails to throw warning when 'old_eqFreqs' dont sum 1")
+  expect_warning(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.005, .4, .5), info = "test"),
+                 info = "method fails to throw warning when 'new_eqFreqs' dont sum 1")
+  
+  # Expect only matrix output when testing is (as default) FALSE
+  output <- obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.1, .4, .5), info = "test")
+  expect_true(is.matrix(output),
+              info = "with testing FALSE method fails to output matrix")
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. u bigger", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. u bigger or equal"
+  
+  # Case 1. u bigger. p and m smaller
+  info_subcase <- "p and m smaller."
+  o_eqFreqs <- c(.6, .2, .2)
+  n_eqFreqs <- c(.8, .1, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. p smaller and m equal
+  info_subcase <- "p smaller and m equal."
+  o_eqFreqs <- c(.6, .2, .2)
+  n_eqFreqs <- c(.7, .1, .2)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. p equal and m smaller
+  info_subcase <- "p equal and m smaller."
+  o_eqFreqs <- c(.6, .2, .2)
+  n_eqFreqs <- c(.7, .2, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. old u was 0
+  info_subcase <- "old u was 0."
+  o_eqFreqs <- c(0, .5, .5)
+  n_eqFreqs <- c(.2, .4, .4)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. p is 0
+  info_subcase <- "p is 0."
+  o_eqFreqs <- c(.4, 0, .6)
+  n_eqFreqs <- c(.6, 0, .4)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. m is 0
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.4, .6, 0)
+  n_eqFreqs <- c(.6, .4, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. u equal", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. u bigger or equal"
+  
+  # Case 1. u bigger. p and m smaller
+  info_subcase <- "u stays 0. p and m smaller."
+  o_eqFreqs <- c(0, .5, .5)
+  n_eqFreqs <- c(0, .5, .5) - c(0, 1e-10, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "u stays non-0. p and m smaller."
+  o_eqFreqs <- c(.2, .4, .4)
+  n_eqFreqs <- c(.2, .4, .4) - c(0, 1e-10, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case. u equal. p smaller and m equal
+  info_subcase <- "u stays 0. p smaller and m equal."
+  o_eqFreqs <- c(0, .5, .5)
+  n_eqFreqs <- c(0, .5, .5) - c(0, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "u stays non-0. p smaller and m equal."
+  o_eqFreqs <- c(.1, .4, .5)
+  n_eqFreqs <- c(.1, .4, .5) - c(0, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  
+  # Case. u equal. p equal and m smaller
+  info_subcase <- "u stays 0. p equal and m smaller."
+  o_eqFreqs <- c(0, .5, .5)
+  n_eqFreqs <- c(0, .5, .5) - c(0, 0, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "u stays non-0. p equal and m smaller."
+  o_eqFreqs <- c(.1, .4, .5)
+  n_eqFreqs <- c(.1, .4, .5) - c(0, 0,1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case. u equal. p is 0
+  info_subcase <- "p is 0."
+  o_eqFreqs <- c(.5, 0, .5)
+  n_eqFreqs <- c(.5, 0, .5) - c(0, 0, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case. u equal. m is 0
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.5, .5, 0)
+  n_eqFreqs <- c(.5, .5, 0) - c(0, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. p bigger", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. p bigger or equal"
+  
+  # Case 1. p bigger. u and m smaller
+  info_subcase <- "u and m smaller."
+  o_eqFreqs <- c(.2, .6, .2)
+  n_eqFreqs <- c(.1, .8, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. u smaller and m equal
+  info_subcase <- "u smaller and m equal."
+  o_eqFreqs <- c(.2, .6, .2)
+  n_eqFreqs <- c(.1, .7, .2)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. u equal and m smaller
+  info_subcase <- "u equal and m smaller."
+  o_eqFreqs <- c(.2, .6, .2)
+  n_eqFreqs <- c(.2, .7, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. old p was 0
+  info_subcase <- "old p was 0."
+  o_eqFreqs <- c(.5, 0, .5)
+  n_eqFreqs <- c(.4, .2, .4)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. u is 0
+  info_subcase <- "u is 0."
+  o_eqFreqs <- c(0, .4, .6)
+  n_eqFreqs <- c(0, .6, .4)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. m is 0
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.6, .4, 0)
+  n_eqFreqs <- c(.4, .6, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. p equal", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. p bigger or equal"
+  
+  # Case 1. p equal. u and m smaller
+  info_subcase <- "p stays 0. u and m smaller."
+  o_eqFreqs <- c(.5, 0, .5)
+  n_eqFreqs <- c(.5, 0, .5) - c(1e-10, 0, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "p equal but non-0. u and m smaller."
+  o_eqFreqs <- c(.4, .2, .4)
+  n_eqFreqs <- c(.4, .2, .4) - c(1e-10, 0, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 1. p equal. u smaller and m equal
+  info_subcase <- "p stays 0. u smaller and m equal."
+  o_eqFreqs <- c(.5, 0, .5)
+  n_eqFreqs <- c(.5, 0, .5) - c(1e-10, 0, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "p equal but non-0. u smaller and m equal."
+  o_eqFreqs <- c(.4, .2, .4)
+  n_eqFreqs <- c(.4, .2, .4) - c(1e-10, 0, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 1. p equal. u equal and m smaller. Enters first if (u equal)
+  
+  # Case 1. p equal. u is 0. Enters first if (u equal or bigger)
+  
+  # Case. p equal. m is 0. 
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.5, .5, 0)
+  n_eqFreqs <- c(.5, .5, 0) - c(1e-10, 0, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. m bigger", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. m bigger or equal"
+  
+  # Case 1. m bigger. u and p smaller
+  info_subcase <- "u and p smaller."
+  o_eqFreqs <- c(.2, .2, .6)
+  n_eqFreqs <- c(.1, .1, .8)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. u smaller and p equal
+  info_subcase <- "u smaller and p equal."
+  o_eqFreqs <- c(.2, .2, .6)
+  n_eqFreqs <- c(.1, .2, .7)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. u equal and p smaller
+  info_subcase <- "u equal and p smaller."
+  o_eqFreqs <- c(.2, .2, .6)
+  n_eqFreqs <- c(.2, .1, .7)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. old m was 0
+  info_subcase <- "old m was 0."
+  o_eqFreqs <- c(.5, .5, 0)
+  n_eqFreqs <- c(.4, .4, .2)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. u is 0
+  info_subcase <- "u is 0."
+  o_eqFreqs <- c(0, .6, .4)
+  n_eqFreqs <- c(0, .4, .6)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. p is 0
+  info_subcase <- "p is 0."
+  o_eqFreqs <- c(.6, 0, .4)
+  n_eqFreqs <- c(.4, 0, .6)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. m equal", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. m bigger or equal"
+  
+  # Case 1. m equal. u and p smaller
+  info_subcase <- "m stays 0. u and p smaller."
+  o_eqFreqs <- c(.5, .5, 0)
+  n_eqFreqs <- c(.5, .5, 0) - c(1e-10, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "m stays non-0. u and p smaller."
+  o_eqFreqs <- c(.5, .4, .1)
+  n_eqFreqs <- c(.5, .4, .1) - c(1e-10, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 1. m equal. u smaller and p equal: Enters Case 1. p bigger or equal
+  
+  # Case 1. m equal. u equal and p smaller: Enters Case 1. u bigger or equal
+ 
+  # Case 1. m equal. u is 0: Enters Case 1. u bigger or equal
+  
+  # Case 1. m equal. p is 0: Enters Case 1. p bigger or equal
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 2. u smaller", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 2. u smaller"
+  
+  # Case 2. u smaller. p and m bigger
+  info_subcase <- "p and m bigger"
+  o_eqFreqs <- c(.8, .1, .1)
+  n_eqFreqs <- c(.6, .2, .2)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 2. u smaller. p bigger and m equal: Enters Case 1. p bigger or equal
+  
+  # Case 2. u smaller. p equal and m bigger: Enters Case 1. m bigger or equal
+  
+  # Case 2. u smaller. new u is 0
+  info_subcase <- "new u is 0."
+  o_eqFreqs <- c(.2, .4, .4)
+  n_eqFreqs <- c(0, .5, .5)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 2. u smaller. p is 0
+  info_subcase <- "p is 0."
+  o_eqFreqs <- c(.6, 0, .4)
+  n_eqFreqs <- c(.4, .1, .5)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 2. u smaller. m is 0
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.6, .4, 0)
+  n_eqFreqs <- c(.4, .5, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output for debugged errors", {
+  
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  i = "test"
+  
+  # Set test cases that led to producing matrices with NaN values
+  info_subcase <- "subcase id 1."
+  o_eqFreqs <- c(0.0000000000, 0.0001296276, 0.9998703724)
+  n_eqFreqs <- c(0.0000000, 0.3757835, 0.6242165)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "subcase id 2."
+  o_eqFreqs <- c(0.0000000000, 0.0009138619, 0.9990861381)
+  n_eqFreqs <- c(0.0000000, 0.4442138, 0.5557862)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "subcase id 3."
+  o_eqFreqs <- c(0.0000000, 0.3582264, 0.6417736)
+  n_eqFreqs <- c(0.0000000000, 0.0002113157, 0.9997886843)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "subcase id 4."
+  o_eqFreqs <- c(0.000000e+00, 1.742531e-09, 1.000000e+00)
+  n_eqFreqs <- c(0.00000e+00, 1.79338e-13, 1.00000e+00)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "subcase id 5."
+  o_eqFreqs <- c(0.00000e+00, 1.20016e-11, 1.00000e+00)
+  n_eqFreqs <- c(0.00000e+00, 6.33789e-10, 1.00000e+00)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+
 test_that("singleStructureGenerator IWE_evol()", {
   ######## singleStructure instance ##
   ### a) with long $seq length
@@ -1915,14 +2543,14 @@ test_that("singleStructureGenerator IWE_evol()", {
       expect_equal(length(test_info[[i]]), 11,
                    info = "IWE output length does not correspond with $eqFreqsChange TRUE in IWE_evol of isolated singleStructure instance a)")
       # Test case matching
-      if (test_info[[i]]$IWE_case == "Case 1. u bigger"){
-        expect_true(test_info[[i]]$new_eqFreqs[1]>test_info[[i]]$old_eqFreqs[1], info = "fails test case matching u bigger in IWE_evol of isolated singleStructure instance a)")
+      if (test_info[[i]]$IWE_case == "Case 1. u bigger or equal"){
+        expect_true(test_info[[i]]$new_eqFreqs[1]>=test_info[[i]]$old_eqFreqs[1], info = "fails test case matching u bigger in IWE_evol of isolated singleStructure instance a)")
       }
-      if (test_info[[i]]$IWE_case == "Case 1. p bigger"){
-        expect_true(test_info[[i]]$new_eqFreqs[2]>test_info[[i]]$old_eqFreqs[2], info = "fails test case matching p bigger in IWE_evol of isolated singleStructure instance a)")
+      if (test_info[[i]]$IWE_case == "Case 1. p bigger or equal"){
+        expect_true(test_info[[i]]$new_eqFreqs[2]>=test_info[[i]]$old_eqFreqs[2], info = "fails test case matching p bigger in IWE_evol of isolated singleStructure instance a)")
       }
-      if (test_info[[i]]$IWE_case == "Case 1. m bigger"){
-        expect_true(test_info[[i]]$new_eqFreqs[3]>test_info[[i]]$old_eqFreqs[3], info = "fails test case matching m bigger in IWE_evol of isolated singleStructure instance a)")
+      if (test_info[[i]]$IWE_case == "Case 1. m bigger or equal"){
+        expect_true(test_info[[i]]$new_eqFreqs[3]>=test_info[[i]]$old_eqFreqs[3], info = "fails test case matching m bigger in IWE_evol of isolated singleStructure instance a)")
       }
       if (test_info[[i]]$IWE_case == "Case 2. u smaller"){
         expect_true(test_info[[i]]$new_eqFreqs[1]<test_info[[i]]$old_eqFreqs[1], info = "fails test case matching u smaller in IWE_evol of isolated singleStructure instance a)")
@@ -2020,7 +2648,7 @@ test_that("singleStructureGenerator IWE_evol()", {
       expect_equal(length(test_info[[i]]), 11,
                    info = "IWE output length does not correspond with $eqFreqsChange TRUE in IWE_evol of isolated singleStructure instance b)")
       # Test case matching
-      if (test_info[[i]]$IWE_case == "Case 1. u bigger"){
+      if (test_info[[i]]$IWE_case == "Case 1. u bigger or equal"){
         expect_true(test_info[[i]]$new_eqFreqs[1]>test_info[[i]]$old_eqFreqs[1], info = "fails test case matching u bigger in IWE_evol of isolated singleStructure instance b)")
       }
       if (test_info[[i]]$IWE_case == "Case 1. p bigger"){

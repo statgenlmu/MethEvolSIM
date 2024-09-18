@@ -803,40 +803,8 @@ singleStructureGenerator <-
                                 old_St <- private$seq[i]
                             }
                             
-                            ############### DEBUGGING CODE #####################
-                            # Define a global variable to store error information
-                            error_info_global <- NULL
-                            
-                            # Try-catch block with error handling
-                            error_info <- tryCatch({
-                              # Attempt to run sample()
-                              private$seq[i] <<- sample(1:3, size = 1, prob = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0))
-                              NULL # If no error, return NULL
-                            }, error = function(e) {
-                              # Capture error information in a list
-                              singleStrcloned <- self$clone()
-                              list(
-                                message = conditionMessage(e),
-                                singleStrcloned = singleStrcloned
-                              )
-                            })
-                            
-                            # If error_info is not NULL, it means an error occurred
-                            if (!is.null(error_info)) {
-                              print("Error occurred:")
-                              print(error_info$message)
-                              
-                              # Save the error information to a global variable
-                              error_info_global <<- error_info
-                              
-                              # Stop execution
-                              stop("Execution stopped due to an error (SSE).")
-                            }
-                            
-                            ################### DEBUGGING CODE #################
-                            
                             # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
-                            #private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
+                            private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
                             
                             if (testing){
                                 new_St <- private$seq[i]
@@ -853,6 +821,121 @@ singleStructureGenerator <-
                         return(list(event_number = event_number,
                                     SSE_evolInfo = SSE_evolInfo))
                     }
+                },
+                
+                #' @description
+                #' Public Method. Get a transition matrix
+                #'
+                #' @param old_eqFreqs numeric vector with 3 frequency values (for old u, p and m)
+                #' @param new_eqFreqs numeric vector with 3 frequency values (for new u, p and m)
+                #' @param info character string to indicate where the method is being called
+                #' @param testing logical value for testing purposes. Default FALSE.
+                #'
+                #' @return transMat. The transition matrix. If testing = TRUE it returns a list.
+                #' If there was a change in the equilibrium frequencies the list contains the following 7 elements, if not it contains the first 3 elements:
+                #' \describe{
+                #'       \item{\code{transMat}}{transition matrix}
+                #'       \item{\code{case}}{The applied case.}
+                #' }
+                #'
+                #'
+                #' @details Given a tripple of old equilibrium frequencies and new equilibrium frequencies, generates the corresponding transition matrix.
+                #'
+                get_transMat = function(old_eqFreqs, new_eqFreqs, info, testing = FALSE) {
+                  if(!is.character(info)) stop("Argument 'info' needs to be a character string")
+                  if (!is.numeric(old_eqFreqs) || !is.numeric(new_eqFreqs) || length(old_eqFreqs) != 3 || length(new_eqFreqs) != 3) {
+                    stop(paste("Arguments 'old_eqFreqs' and 'new_eqFreqs'  must be numeric vectors of length 3. Method called from:", info))
+                  }
+                  if (any(old_eqFreqs < 0 | old_eqFreqs > 1) || any(new_eqFreqs < 0 | new_eqFreqs > 1)) {
+                    stop("All elements of 'old_eqFreqs' and 'new_eqFreqs' must be between 0 and 1.")
+                  }
+                  if (abs(sum(old_eqFreqs) -1) > 1e-8){
+                    msg <- paste("Given vector of frequencies does not sum 1.",
+                                 "\n sum(old_eqFreqs):", sum(old_eqFreqs), "\n",
+                                 "freq u:", old_eqFreqs[1], "\n",
+                                 "freq p:", old_eqFreqs[2], "\n",
+                                 "freq m:", old_eqFreqs[3], "\n",
+                                 "Method called from:", info)
+                    warning(msg)
+                  }
+                  if (abs(sum(new_eqFreqs) -1) > 1e-8){
+                    msg <- paste("Given vector of frequencies does not sum 1.",
+                                 "\n sum(new_eqFreqs):", sum(new_eqFreqs), "\n",
+                                 "freq u:", new_eqFreqs[1], "\n",
+                                 "freq p:", new_eqFreqs[2], "\n",
+                                 "freq m:", new_eqFreqs[3], "\n",
+                                 "Method called from:", info)
+                    warning(msg)
+                  }
+                  
+                  u <- old_eqFreqs[1]
+                  p <- old_eqFreqs[2]
+                  m <- old_eqFreqs[3]
+                  if (new_eqFreqs[1] >= u & new_eqFreqs[2] <= p & new_eqFreqs[3] <= m) {
+                    case <- "Case 1. u bigger or equal"
+                    transMat <- matrix(c(1, 0, 0,
+                                         (p-new_eqFreqs[2])/p, new_eqFreqs[2]/p, 0,
+                                         (m-new_eqFreqs[3])/m, 0, new_eqFreqs[3]/m),
+                                       nrow = 3, byrow = TRUE)
+                    if (p == 0){
+                      transMat[2,] <- c(1,0,0)
+                    }
+                    if (m == 0){
+                      transMat[3,] <- c(1,0,0)
+                    }
+                    
+                  } else if (new_eqFreqs[2] >= p & new_eqFreqs[1] <= u & new_eqFreqs[3] <= m) {
+                    case <- "Case 1. p bigger or equal"
+                    transMat <- matrix(c(new_eqFreqs[1]/u, (u-new_eqFreqs[1])/u, 0,
+                                         0, 1, 0,
+                                         0, (m-new_eqFreqs[3])/m, new_eqFreqs[3]/m),
+                                       nrow = 3, byrow = TRUE)
+                    if (u == 0){
+                      transMat[1,] <- c(0,1,0)
+                    }
+                    if (m == 0){
+                      transMat[3,] <- c(0,1,0)
+                    }
+                    
+                  } else if (new_eqFreqs[3] >= m & new_eqFreqs[2] <= p & new_eqFreqs[1] <= u) {
+                    case <- "Case 1. m bigger or equal"
+                    transMat <- matrix(c(new_eqFreqs[1]/u, 0, (u-new_eqFreqs[1])/u,
+                                         0, new_eqFreqs[2]/p, (p-new_eqFreqs[2])/p,
+                                         0, 0, 1),
+                                       nrow = 3, byrow = TRUE)
+                    if (u == 0){
+                      transMat[1,] <- c(0,0,1)
+                    }
+                    if (p == 0){
+                      transMat[2,] <- c(0,0,1)
+                    }
+                    
+                  } else if (new_eqFreqs[1] < u & new_eqFreqs[2] >= p & new_eqFreqs[3] >= m) { # Check Case 2: 1 new frequency value smaller
+                    case <- "Case 2. u smaller"
+                    transMat <- matrix(c(new_eqFreqs[1]/u, (new_eqFreqs[2]-p)/u, (new_eqFreqs[3]-m)/u,
+                                         0, 1, 0,
+                                         0, 0, 1),
+                                       nrow = 3, byrow = TRUE)
+                  } else if (new_eqFreqs[2] < p & new_eqFreqs[1] >= u & new_eqFreqs[3] >= m) {
+                    case <- "Case 2. p smaller"
+                    transMat <- matrix(c(1, 0, 0,
+                                         (new_eqFreqs[1]-u)/p, new_eqFreqs[2]/p, (new_eqFreqs[3]-m)/p,
+                                         0, 0, 1),
+                                       nrow = 3, byrow = TRUE)
+                  } else if (new_eqFreqs[3] < m & new_eqFreqs[2] >= p & new_eqFreqs[1] >= u) {
+                    case <- "Case 2. m smaller"
+                    transMat <- matrix(c(1, 0, 0,
+                                         0, 1, 0,
+                                         (new_eqFreqs[1]-u)/m, (new_eqFreqs[2]-p)/m, new_eqFreqs[3]/m),
+                                       nrow = 3, byrow = TRUE)
+                  }
+                  
+                  if (testing){
+                    list(case = case,
+                         transMat = transMat)
+                  } else {
+                    transMat
+                  }
                 },
 
                 #' @description
@@ -878,7 +961,7 @@ singleStructureGenerator <-
                 #'
                 #' @details The function checks if the methylation equilibrium frequencies (\code{eqFreqs}) and sequence observed
                 #' frequencies (\code{obsFreqs}) change after the IWE event. If there is a change in either
-                #' frequencies, the corresponding change flags(\code{eqFreqsChange}
+                #' frequencies, the corresponding change flag \code{eqFreqsChange}
                 #' in the \code{infoIWE} list will be set to \code{TRUE}.
                 #'
                 IWE_evol = function(testing = FALSE) {
@@ -906,64 +989,24 @@ singleStructureGenerator <-
 
                     } else{
                         eqFreqsChange = T
-
-                                        # Set the IWE transition matrix according to current case
-                                        # Check Case 1: 1 new frequency value bigger and 2 smaller
-                        if (new_eqFreqs[1] >= u & new_eqFreqs[2] <= p & new_eqFreqs[3] <= m) {
-                            IWE_case <- "Case 1. u bigger"
-                            Mk <- matrix(c(1, 0, 0,
-                            (p-new_eqFreqs[2])/p, new_eqFreqs[2]/p, 0,
-                            (m-new_eqFreqs[3])/m, 0, new_eqFreqs[3]/m),
-                            nrow = 3, byrow = TRUE)
-
-                        }
-                        else if (new_eqFreqs[2] >= p & new_eqFreqs[1] <= u & new_eqFreqs[3] <= m) {
-                            IWE_case <- "Case 1. p bigger"
-                            Mk <- matrix(c(new_eqFreqs[1]/u, (u-new_eqFreqs[1])/u, 0,
-                                           0, 1, 0,
-                                           0, (m-new_eqFreqs[3])/m, new_eqFreqs[3]/m),
-                                         nrow = 3, byrow = TRUE)
-                        }
-                        else if (new_eqFreqs[3] >= m & new_eqFreqs[2] <= p & new_eqFreqs[1] <= u) {
-                            IWE_case <- "Case 1. m bigger"
-                            Mk <- matrix(c(new_eqFreqs[1]/u, 0, (u-new_eqFreqs[1])/u,
-                                           0, new_eqFreqs[2]/p, (p-new_eqFreqs[2])/p,
-                                           0, 0, 1),
-                                         nrow = 3, byrow = TRUE)
-
-                        }
-                                        # Check Case 2: 1 new frequency value smaller
-                        else if (new_eqFreqs[1] <= u & new_eqFreqs[2] >= p & new_eqFreqs[3] >= m) {
-                            IWE_case <- "Case 2. u smaller"
-                            Mk <- matrix(c(new_eqFreqs[1]/u, (new_eqFreqs[2]-p)/u, (new_eqFreqs[3]-m)/u,
-                                           0, 1, 0,
-                                           0, 0, 1),
-                                         nrow = 3, byrow = TRUE)
-                        }
-                        else if (new_eqFreqs[2] <= p & new_eqFreqs[1] >= u & new_eqFreqs[3] >= m) {
-                            IWE_case <- "Case 2. p smaller"
-                            Mk <- matrix(c(1, 0, 0,
-                            (new_eqFreqs[1]-u)/p, new_eqFreqs[2]/p, (new_eqFreqs[3]-m)/p,
-                            0, 0, 1),
-                            nrow = 3, byrow = TRUE)
-                        }
-                        else if (new_eqFreqs[3] <= m & new_eqFreqs[2] >= p & new_eqFreqs[1] >= u) {
-                            IWE_case <- "Case 2. m smaller"
-                            Mk <- matrix(c(1, 0, 0,
-                                           0, 1, 0,
-                                           (new_eqFreqs[1]-u)/m, (new_eqFreqs[2]-p)/m, new_eqFreqs[3]/m),
-                                         nrow = 3, byrow = TRUE)
+                        
+                        # Set the IWE transition matrix
+                        if (testing){
+                          test <- self$get_transMat(old_eqFreqs, new_eqFreqs, info = "test within IWE_evol", testing = testing)
+                          Mk <- test$transMat
+                          IWE_case <- test$case
+                        } else {
+                          Mk <- self$get_transMat(old_eqFreqs, new_eqFreqs, info = "IWE_evol")
                         }
                         
-
-                                        # Change data equilibrium frequencies
+                        
+                        # Change data equilibrium frequencies
                         private$eqFreqs <<- new_eqFreqs
-                                        # Update Qi and Q
+                        # Update Qi and Q
                         private$set_Qi()
                         private$set_Q()
 
                         if(testing){
-
                                         # Validate updated rate matrices
                             validationStates <- listRateMatrix_validation(private$Qi, "Qi matrices IWE")
                             listMatrices_validationResults(validationStates)
@@ -990,59 +1033,21 @@ singleStructureGenerator <-
                             transPropMC_validationResults(validationStates)
                         }
                         
-                        ################ DEBUGGING CODE ########################
-                        # Define a global variable to store error information
-                        error_info_global <- NULL
                         
-                        # Try-catch block with error handling
-                        error_info <- tryCatch({
-                          # Sample $seq accordint to transition probablities
-                          # Attempt to run sample()
-                          newseq <- rep(0, length(private$seq))
-                          for(i in 1:length(newseq)) {
-                            newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
-                          }
-                          NULL # If no error, return NULL
-                        }, error = function(e) {
-                          # Capture error information in a list
-                          singleStrcloned <- self$clone()
-                          list(
-                            message = conditionMessage(e),
-                            singleStrcloned = singleStrcloned,
-                            old_eqFreqs = old_eqFreqs,
-                            new_eqFreqs = new_eqFreqs,
-                            Mk = Mk
-                          )
-                        })
-                        
-                        # If error_info is not NULL, it means an error occurred
-                        if (!is.null(error_info)) {
-                          print("Error occurred:")
-                          print(error_info$message)
-                          
-                          # Save the error information to a global variable
-                          error_info_global <<- error_info
-                          
-                          # Stop execution
-                          stop("Execution stopped due to an error (IWE).")
-                        }
-                        
-                        ################ DEBUGGING CODE ########################
-                        
-                        
-                        #newseq <- rep(0, length(private$seq))
-                        #for(i in 1:length(newseq)) {
-                        #  newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
-                        #} 
+                        # Sample the new sequence
+                        newseq <- rep(0, length(private$seq))
+                        for(i in 1:length(newseq)) {
+                          newseq[i] <- sample(1:3, size=1, prob=as.vector(Mk[private$seq[i],]))
+                        } 
                         
 
-                                        # Update $seq and $neighbSt
+                        # Update $seq and $neighbSt
                         if(any(private$seq != newseq)){
                             changedPos <- which(private$seq !=newseq)
                             private$seq <<- newseq
                             for (i in changedPos){
-                                private$update_neighbSt(i)
-                                        # Update $ratetree previous or next singleStr
+                                private$update_neighbSt(i) # method updates neighbSt between singleStr too
+                              # Update $ratetree previous or next singleStr
                               if (i == 1){
                                 private$update_ratetree_betweenStr(prevStr = TRUE)
                               }
@@ -1079,7 +1084,7 @@ singleStructureGenerator <-
                         }
                     }
                 },
-                                        # Island equilibrium frequencies sampling strategia
+                                        
                 #' @description
                 #' Public Method.
                 #' @return Model parameter alpha_pI for sampling island equilibrium frequencies
@@ -1203,6 +1208,8 @@ singleStructureGenerator <-
                   
               )
               )
+
+
 
 #' @title combiStructureGenerator
 #' @importFrom R6 R6Class
