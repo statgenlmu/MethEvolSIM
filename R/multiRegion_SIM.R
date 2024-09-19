@@ -1299,7 +1299,8 @@ combiStructureGenerator <-
                           private$mu <- params$mu
                       }
                       private$set_IWE_rate()
-                      undebug(self$cftp_apply_events)
+                      #undebug(self$cftp_apply_events)
+                      #debug(self$cftp)
 
                   },
                   #' @description

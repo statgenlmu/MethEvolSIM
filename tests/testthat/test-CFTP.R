@@ -178,10 +178,12 @@ test_that("combiStructureGenerator $cftp_event_generator()", {
                info = "length of CFTP_event not equal to number of steps after first event generation")
   expect_equal(length(output$CFTP_random), example_steps,
                info = "length of CFTP_random not equal to number of steps after first event generation")
+  # Expect error if called again with smaller number of steps
+  expect_error(combi_obj$cftp_event_generator(steps = 50),
+               info = "method fails to stop when given steps have already been generated")
   
-  example_steps_2 <- 50
-  output <- combi_obj$cftp_event_generator(steps = example_steps_2, testing = TRUE)
-  total_steps <- example_steps + example_steps_2
+  total_steps <- 2000
+  output <- combi_obj$cftp_event_generator(steps = total_steps, testing = TRUE)
   expect_equal(length(output$CFTP_chosen_singleStr), total_steps,
                info = "length of CFTP_chosen_singleStr not equal to number of steps after second event generation")
   expect_equal(length(output$CFTP_chosen_site), total_steps,
@@ -240,27 +242,65 @@ test_that("combiStructureGenerator $cftp_apply_events()", {
                info = "method fails to throw error when called before generating CFTP events")
   
   # Test output
+  
+  # Set correspondence of event number and applied case
+  encoding_case <- data.frame(n = 1:5,
+                              case = c("SSEi_1", "SSEi_2", "SSEi_3", "SSEc_left", "SSEc_right"))
+  
   combi_obj$cftp_event_generator(steps = 100)
   output <- combi_obj$cftp_apply_events(testing = TRUE)
   
   accepted_indeces <- which(output$event_acceptance == TRUE)
-  # if there is at least one accepted index:
-  #expect_true(all(output$r_jk[accepted_indeces]/output$r_m > output$CFTP_random[accepted_indeces]),
-              info = "Not all accepted events fulfill relative rate higher than sampled threshold")
-  #output$CFTP_event[accepted_indeces]
-  #output$CFTP_chosen_singleStr[accepted_indeces]
-  #output$CFTP_chosen_site[accepted_indeces]
-  
-  # For the most recent event (index 1, as they are applied from step 100 to step 1) test correct application.
-  # Not for previous events because another event may be conflicting.
-  #mostRecent_event <- output$CFTP_event[accepted_indeces][1]
-  #if(mostRecent_event == 5){
-  #  exp
-  #}
+  if (length(accepted_indeces) > 0){
+    expect_true(all(output$r_jk[accepted_indeces]/output$r_m > output$CFTP_random[accepted_indeces]),
+                info = "Not all accepted events fulfill relative rate higher than sampled threshold")
+    expect_false(any(is.na(output$CFTP_event[accepted_indeces])),
+                 info = "Not all cases of accepted events return non-NA value in testing output applied_event")
+    for(e in 1:length(accepted_indeces)){
+      expect_equal(encoding_case[output$CFTP_event[accepted_indeces][e], "case"], output$applied_event[accepted_indeces][e],
+                   info = "Error in correspondence between CFTP_event encoding and applied event")
+    }
+    
+  }
+  non_accepted_indeces <- which(output$event_acceptance == FALSE)
+  if (length(non_accepted_indeces) > 0){
+    expect_true(all(output$CFTP_event[non_accepted_indeces][is.na(output$r_jk[non_accepted_indeces])] %in% c(1, 2, 3)),
+                info = "Not all cases in which a rate was not sampled because of SSEi newSt and oldSt being equal correspond to SSEi events")
+    expect_true(all(output$r_jk[non_accepted_indeces][!is.na(output$r_jk[non_accepted_indeces])]/output$r_m <= output$CFTP_random[non_accepted_indeces][!is.na(output$r_jk[non_accepted_indeces])]),
+                info = "Not all non_accepted_events with rate fulfill relative rate smaller or equal than sampled threshold")
+    expect_true(all(is.na(output$applied_event[non_accepted_indeces])),
+                info = "Not all cases of non-accepted events return NA in testing output applied_event")
+    
+  }
   
   # Expect NULL output when arguments are correct but testing is (as default) FALSE
   expect_null(combi_obj$cftp_apply_events(),
               info = "whith testing = FALSE method generates output")
 })
 
+test_that("combiStructureGenerator $cftp", {
+  
+  # Initialize combiStructureGenerator instance
+  infoStr <- data.frame(n = c(10, 10, 10),
+                        globalState = c("M", "U", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  
+  # Test total CFTP step number is minimum the given number
+  test_steps <- 100
+  output<- combi_obj$cftp(steps = test_steps, testing = TRUE)
+  expect_true(output$total_steps >= test_steps,
+              info = "method testing output total_steps is smaller than given one")
+  
+  # Extract sequences of combi instances to test they are equal
+  m_seq <- c(output$combi_m$get_singleStr(1)$get_seq(), output$combi_m$get_singleStr(2)$get_seq(), output$combi_m$get_singleStr(3)$get_seq())
+  u_seq <- c(output$combi_u$get_singleStr(1)$get_seq(), output$combi_u$get_singleStr(2)$get_seq(), output$combi_u$get_singleStr(3)$get_seq())
+  expect_true(all(m_seq == u_seq),
+              info = "method testing output with different $seq in combi_u and combi_m")
+  
+  # Expect object of class combiStructureGenerator when testing is (as default) FALSE
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  output<- combi_obj$cftp(steps = test_steps)
+  expect_equal(class(output)[1], "combiStructureGenerator",
+               info = "method fails to return combiStructureGenerator class when testing is FALSE")
+})
 

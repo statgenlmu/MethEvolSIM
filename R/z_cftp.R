@@ -141,6 +141,10 @@ singleStructureGenerator$set("public", "set_seqSt_update_neighbSt", function(ind
 ## @param testing default FALSE. TRUE for testing output
 ## 
 ## @return NULL when testing FALSE. Testing output when testing TRUE.
+##
+## @details
+## The function add steps to the existing ones. 
+## If called several times the given steps need to be higher than the sum of steps generated before.
 combiStructureGenerator$set("public", "cftp_event_generator", function(steps, testing = FALSE) {
   
   if(!(is.numeric(steps) && length(steps) == 1 && steps == floor(steps) && steps >= 1)){
@@ -158,11 +162,14 @@ combiStructureGenerator$set("public", "cftp_event_generator", function(steps, te
   }
   
   # Generate for each CFTP step the event and location to apply it and a threshold for acceptance/rejection
-  chosen_singleStr <- integer(length=steps)
-  chosen_site <- integer(length=steps)
-  event <- integer(length=steps)
-  random_threshold <- numeric(length=steps)
-  for(n in steps:1) {
+  old_steps <- length(private$CFTP_event)
+  if (steps <= old_steps){stop("The given number of steps has already been generated")}
+  new_steps <- steps - old_steps
+  chosen_singleStr <- integer(length=new_steps)
+  chosen_site <- integer(length=new_steps)
+  event <- integer(length=new_steps)
+  random_threshold <- numeric(length=new_steps)
+  for(n in new_steps:1) {
     # For generation -n
     # Propose 1 site and what may happen to it
     chosen_singleStr[n] <- sample(1:length(private$singleStr), 1, prob=singleStr_n)
@@ -184,8 +191,12 @@ combiStructureGenerator$set("public", "cftp_event_generator", function(steps, te
   }
 })
 
-## TODO ?
-## note that this does not update the ratetrees; needs to be done after the whole CFTP run 
+## @description
+## Public Method. Applies the CFTP events.
+## 
+## @param testing default FALSE. TRUE for testing output
+## 
+## @return NULL when testing FALSE. Testing output when testing TRUE.
 combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FALSE) {
   if(length(private$CFTP_event) < 1) stop("No CFTP events generated yet.")
   if (testing){
@@ -193,6 +204,8 @@ combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FA
     event_acceptance <- logical(length = length(private$CFTP_event))
     # Set vector to save the rate of the chosen site (j) at each CFTP step (k)
     r_jk <- rep(NA, length(private$CFTP_event))
+    # Set vector to save the applied case 
+    applied_event <- rep(NA, length(private$CFTP_event))
   } 
   ## TODO: Update testing vectors
   for(k in length(private$CFTP_event):1) {
@@ -207,15 +220,18 @@ combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FA
         neighbSt <- private$singleStr[[i]]$get_neighbSt(j)
         r <- private$singleStr[[i]]$get_Qi(siteR = siteR, oldSt = oldSt, newSt = newSt)
         if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
-            private$singleStr[[i]]$set_seqSt_update_neighbSt(j, newSt)
+          private$singleStr[[i]]$set_seqSt_update_neighbSt(j, newSt)
           if (testing){
             event_acceptance[k] <- TRUE
             r_jk[k] <- r
+            applied_event[k] <- paste("SSEi", newSt, sep = "_")
           } 
+        } else if (testing){
+          r_jk[k] <- r
         }
-      }
+      } 
     } else {
-      r <- (1-private$singleStr[[i]]$get_iota())/2
+      r <- (1-private$singleStr[[i]]$get_iota())/2 # Rc/2 for each event copy left or copy right
       if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
          if(private$CFTP_event[k] == 4) {
            ##copy from left neighbor
@@ -223,6 +239,7 @@ combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FA
            if (testing){
              event_acceptance[k] <- TRUE
              r_jk[k] <- r
+             applied_event[k] <- paste("SSEc", "left", sep = "_")
            } 
          } else {
            ## copy from right neighbor
@@ -230,8 +247,11 @@ combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FA
            if (testing){
              event_acceptance[k] <- TRUE
              r_jk[k] <- r
+             applied_event[k] <- paste("SSEc", "right", sep = "_")
            } 
          }
+      } else if (testing) {
+        r_jk[k] <- r
       }
     }
   }
@@ -241,27 +261,39 @@ combiStructureGenerator$set("public", "cftp_apply_events", function(testing = FA
          CFTP_event = private$CFTP_event,
          CFTP_random = private$CFTP_random,
          event_acceptance = event_acceptance,
+         applied_event = applied_event,
          r_jk = r_jk,
          r_m = private$CFTP_highest_rate)
   }
 })
 
-combiStructureGenerator$set("public", "cftp", function(steps = 10000) {
+## @description
+## Public Method. Applies the CFTP algorithm.
+## 
+## @param steps minimum number of steps to apply (default 10000)
+## @param testing default FALSE. TRUE for testing output
+## 
+## @return combiStructureGenerator instance when testing FALSE. Testing output when testing TRUE.
+combiStructureGenerator$set("public", "cftp", function(steps = 10000, testing = FALSE) {
+    # Set a variable to track when the $seq of the 2 combi instances become equal
     equal <- FALSE
-    #steps <- 10000
     while(!equal) {
-        self$cftp_event_generator(steps)
-        combi_u <- self$clone()
-        combi_m <- self$clone()
-        for(str in 1:length(private$singleStr)){
-            combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
-            combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
-            ### note that rate trees are not updated in combi_u and combi_m
-            combi_u$get_singleStr(str)$init_neighbSt()
-            combi_m$get_singleStr(str)$init_neighbSt()
-        }
-        combi_u$cftp_apply_events()
-        combi_m$cftp_apply_events()
+      # Sample the CFTP steps 
+      self$cftp_event_generator(steps)
+      # Copy (deep clone) the combiStructure instance to generate 2 instances
+      combi_u <- self$copy()
+      combi_m <- self$copy()
+      for(str in 1:length(private$singleStr)){
+        # Set the sequences for each as all m states and all u states
+        combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
+        combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
+        # Update the neighbSt according to the new sequence
+        combi_u$get_singleStr(str)$init_neighbSt()
+        combi_m$get_singleStr(str)$init_neighbSt()
+        ### note that rate trees are not updated in combi_u and combi_m 
+      }
+        combi_u$cftp_apply_events() 
+        combi_m$cftp_apply_events() 
         equal_str <- c()
         for(str in 1:length(private$singleStr)){
           equal_str[str] <- all(combi_u$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())
@@ -270,9 +302,17 @@ combiStructureGenerator$set("public", "cftp", function(steps = 10000) {
         steps <- 2*steps
     }
     for(str in 1:length(private$singleStr)){
+      # update converged combiStructure ratetree
       combi_u$get_singleStr(str)$initialize_ratetree()
     }
-    return(combi_u)
+    if(testing){
+      return(list(combi_u = combi_u,
+                  combi_m = combi_m,
+                  total_steps = length(private$CFTP_event)))
+    } else {
+      return(combi_u)
+    }
+    
 })
 
 
