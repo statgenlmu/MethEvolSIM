@@ -34,7 +34,6 @@ simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end,
       # The last time, save also the combiStructureGenerator instance, to be able to start new simulations from last state
       save(data, combi, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
     } else {
-      ## TODO: change relative output directory extensive_tests/
       save(data, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, "_", padded_sim_n, ".RData" ))
     }
   }
@@ -47,8 +46,7 @@ simul_CFTP_tests <- function(index_params){
   b_length <- 10
   # Set start and end for the number of times to conduct simulations along the branch
   start <- 1
-  ## TODO: Change to a higher number: 50
-  end <- 2
+  end <- 50
   out_digit_n <- 4
   # Load the combinations of sampled parameters and spatial structure
   load("/scratch/saracv/abc_designSIM.RData")
@@ -68,9 +66,8 @@ simul_CFTP_tests <- function(index_params){
 }
 
 # Run in parallel using mclapply
-paramComb_n <- 2
-## TODO: change number of cores
-mclapply(1:paramComb_n, function(index_params) simul_CFTP_tests(index_params), mc.cores = 2)
+paramComb_n <- 10
+mclapply(1:paramComb_n, function(index_params) simul_CFTP_tests(index_params), mc.cores = 10)
 
 
 
