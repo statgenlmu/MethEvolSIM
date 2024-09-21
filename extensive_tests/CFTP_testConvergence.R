@@ -1,0 +1,88 @@
+library(devtools)
+load_all()
+library(parallel)
+
+
+
+simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end, out_digit_n, spatial_str){
+  # Set the name for the output file with the padded parameter index
+  padded_index_params <- formatC(index_params, width = 2, format = "d", flag = "0")
+  out_file <- paste0("/home/sara/methylation/MethEvolSIM/extensive_tests/CFTP_testConvergence_paramsID_", padded_index_params, ".out")
+  # Redirect both the stout and stderr to the same file
+  sink(out_file, type = c("output", "message"), append = TRUE)
+  print(paste("Running CFTP_testConvergence_paramsID", padded_index_params))
+  print("Given customized parameter values:")
+  print(custom_params)
+  if(start == 1){
+    print("Generating combiStructureGenerator instance")
+    combi <- combiStructureGenerator$new(infoStr = spatial_str, params = custom_params)
+  }
+  # Simulate evolution along branch n times
+  print(paste("Simulating evolution along branch of length", b_length, end - start + 1, "times."))
+  for (i in start:end){
+    print(paste("Running simulation number:", i))
+    # Simulate data
+    combi$branch_evol(branch_length = b_length, dt = 0.01)
+    # Save methylation data
+    data <- list()
+    for (str in 1:combi$get_singleStr_number()){
+      data[[str]]<- transform_methStateEncoding(combi$get_singleStr(str)$get_seq())
+    }
+    # Save simulated data
+    padded_sim_n <- formatC(i, width = out_digit_n, format = "d", flag = "0")
+    if (i == end){
+      # The last time, save also the combiStructureGenerator instance, to be able to start new simulations from last state
+      save(data, combi, file = paste0("/home/sara/methylation/MethEvolSIM/extensive_tests/CFTP_testConvergence_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
+    } else {
+      ## TODO: change relative output directory extensive_tests/
+      save(data, file = paste0("/home/sara/methylation/MethEvolSIM/extensive_tests/CFTP_testConvergence_paramsID_", padded_index_params, "_", padded_sim_n, ".RData" ))
+    }
+  }
+  # Stop redirecting output and messages
+  sink()
+}
+
+simul_CFTP_tests <- function(index_params){
+  # Set branch length
+  b_length <- 10
+  # Set start and end for the number of times to conduct simulations along the branch
+  start <- 1
+  ## TODO: Change to a higher number: 50
+  end <- 2
+  out_digit_n <- 4
+  # Load the combinations of sampled parameters and spatial structure
+  load("/home/sara/methylation/phd_project_saracv/simulation_studies/abc_designSIM.RData")
+  ## TODO: Commet previous, uncomment next
+  #load("abc_designSIM.RData")
+  # Set parameter combination case
+  custom_params <- sampled_params[index_params,]
+  # Set IWE rate to 0
+  custom_params$mu <- 0
+  # Call function to simulate data
+  simul_CFTP_branch(custom_params = custom_params,
+                    index_params = index_params,
+                    b_length = b_length,
+                    start = start,
+                    end = end,
+                    out_digit_n = out_digit_n,
+                    spatial_str = spatial_str)
+  
+}
+
+# Run in parallel using mclapply
+paramComb_n <- 2
+## TODO: change number of cores
+mclapply(1:paramComb_n, function(index_params) simul_CFTP_tests(index_params), mc.cores = 2)
+
+
+
+
+
+# Merge develop into main and submit package to CRAN
+# Merge develop into Cftp ant test()
+# Use a subset of sampled parameter combinations
+# I think the package with this functions needs to be built before running the simulations or alternatively 
+# I would have to clone MethEvolSIM in australias /scratch/saracv/CFTP_tests and check that extensive_tests
+# is ignored by devtools
+
+
