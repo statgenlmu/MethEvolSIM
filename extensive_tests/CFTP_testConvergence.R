@@ -7,7 +7,7 @@ library(parallel)
 simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end, out_digit_n, spatial_str){
   # Set the name for the output file with the padded parameter index
   padded_index_params <- formatC(index_params, width = 2, format = "d", flag = "0")
-  out_file <- paste0("/home/sara/methylation/MethEvolSIM/extensive_tests/CFTP_testConvergence_paramsID_", padded_index_params, ".out")
+  out_file <- paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, ".out")
   # Redirect both the stout and stderr to the same file
   sink(out_file, type = c("output", "message"), append = TRUE)
   print(paste("Running CFTP_testConvergence_paramsID", padded_index_params))
@@ -32,10 +32,10 @@ simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end,
     padded_sim_n <- formatC(i, width = out_digit_n, format = "d", flag = "0")
     if (i == end){
       # The last time, save also the combiStructureGenerator instance, to be able to start new simulations from last state
-      save(data, combi, file = paste0("/home/sara/methylation/MethEvolSIM/extensive_tests/CFTP_testConvergence_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
+      save(data, combi, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
     } else {
       ## TODO: change relative output directory extensive_tests/
-      save(data, file = paste0("/home/sara/methylation/MethEvolSIM/extensive_tests/CFTP_testConvergence_paramsID_", padded_index_params, "_", padded_sim_n, ".RData" ))
+      save(data, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, "_", padded_sim_n, ".RData" ))
     }
   }
   # Stop redirecting output and messages
@@ -51,9 +51,7 @@ simul_CFTP_tests <- function(index_params){
   end <- 2
   out_digit_n <- 4
   # Load the combinations of sampled parameters and spatial structure
-  load("/home/sara/methylation/phd_project_saracv/simulation_studies/abc_designSIM.RData")
-  ## TODO: Commet previous, uncomment next
-  #load("abc_designSIM.RData")
+  load("/scratch/saracv/abc_designSIM.RData")
   # Set parameter combination case
   custom_params <- sampled_params[index_params,]
   # Set IWE rate to 0
@@ -75,14 +73,5 @@ paramComb_n <- 2
 mclapply(1:paramComb_n, function(index_params) simul_CFTP_tests(index_params), mc.cores = 2)
 
 
-
-
-
-# Merge develop into main and submit package to CRAN
-# Merge develop into Cftp ant test()
-# Use a subset of sampled parameter combinations
-# I think the package with this functions needs to be built before running the simulations or alternatively 
-# I would have to clone MethEvolSIM in australias /scratch/saracv/CFTP_tests and check that extensive_tests
-# is ignored by devtools
 
 
