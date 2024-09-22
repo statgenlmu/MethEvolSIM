@@ -34,7 +34,7 @@ simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end,
       # The last time, save also the combiStructureGenerator instance, to be able to start new simulations from last state
       save(data, combi, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
     } else {
-      save(data, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, "_", padded_sim_n, ".RData" ))
+      save(data, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
     }
   }
   # Stop redirecting output and messages
