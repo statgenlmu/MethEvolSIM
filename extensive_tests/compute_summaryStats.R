@@ -11,7 +11,9 @@ option_list <- list(
   make_option(c("-s", "--stats"), type = "character", default = "all",
               help = "Comma-separated list of summary statistics to compute (default: all). Options: meanFreqP_i, meanFreqP_ni, sdFreqP_i, sdFreqP_ni, meanFreqM_i, meanFreqM_ni, sdFreqM_i, sdFreqM_ni, FChangeCherry_i, FChangeCherry_ni, Fitch, Steepness, meanCor", metavar = "character"),
   make_option(c("-n", "--sample-n"), type = "integer", default = NULL,
-              help = "Number of samples per file", metavar = "integer")
+              help = "Number of samples per file", metavar = "integer"),
+  make_option(c("-p", "--pattern"), type = "character", default = NULL,
+              help = ".RData files start name pattern", metavar = "character")
 )
 
 
@@ -20,16 +22,17 @@ opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
 # Check if the required arguments are provided
-if (is.null(opt[["data-dir"]]) || is.null(opt[["design-file"]]) || is.null(opt[["sample-n"]])) {
+if (is.null(opt[["data-dir"]]) || is.null(opt[["design-file"]]) || is.null(opt[["sample-n"]]) || is.null(opt[["pattern"]])) {
   print_help(opt_parser)
-  stop("All following arguments need to be provided: data-dir, design-file, sample-n")
+  stop("All following arguments need to be provided: data-dir, design-file, sample-n, pattern")
 }
 
 # Convert the stats argument to a list
 stats_to_compute <- strsplit(opt$stats, ",")[[1]]
 stats_to_compute <- trimws(stats_to_compute)  # Remove any extra spaces
+print("Computing summary statistics:")
 print(stats_to_compute)
-## TODO: Add a print informing of which summary statistics are being computed
+
 
 
 
@@ -53,8 +56,7 @@ if(length(unique(spatial_str$n)) == 1){
 ##### IMPORT DATA AND EXTRACT SUMMARY STATISTICS ###############################
 
 # List simulation output files
-## TODO: Pattern has the params ID number given. The script then is run 10 times
-RData_files <- list.files(opt[["data-dir"]], pattern = "CFTP_testConvergence_paramsID_01.*\\.RData$", full.names = TRUE)
+RData_files <- list.files(opt[["data-dir"]], pattern = paste0("^", opt[["pattern"]], ".*\\", ".RData$"), full.names = TRUE)
 
 
 
@@ -206,7 +208,9 @@ for(sim in 1:n_sim){
                              meanCor_i = meanCor_i,
                              meanCor_ni = meanCor_ni)
   
-  save(summaryStats, file = "summaryStats.RData")
+  # Set output name and save
+  out_name <- paste0("summaryStats_",opt[["pattern"]], ".RData")
+  save(summaryStats, file = out_name)
   
   
   # Save the error log if there are any errors
@@ -215,7 +219,7 @@ for(sim in 1:n_sim){
     writeLines(unlist(error_log), "error_log.txt")
   }
   
-print(paste("Finished processing. Generated summaryStats.RData file under", getwd()))
+print(paste("Finished processing. Generated file:", out_name, "under directory:", getwd()))
 
 
 
