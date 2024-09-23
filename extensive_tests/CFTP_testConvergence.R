@@ -1,3 +1,6 @@
+# First test run: b_length set to 10, start to 1, end to 50
+# Second test run: b_length set to 1, start to 1, end to 500
+
 library(devtools)
 load_all()
 library(parallel)
@@ -7,10 +10,10 @@ library(parallel)
 simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end, out_digit_n, spatial_str){
   # Set the name for the output file with the padded parameter index
   padded_index_params <- formatC(index_params, width = 2, format = "d", flag = "0")
-  out_file <- paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, ".out")
+  out_file <- paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence2_paramsID_", padded_index_params, ".out")
   # Redirect both the stout and stderr to the same file
   sink(out_file, type = c("output", "message"), append = TRUE)
-  print(paste("Running CFTP_testConvergence_paramsID", padded_index_params))
+  print(paste("Running CFTP_testConvergence2_paramsID", padded_index_params))
   print("Given customized parameter values:")
   print(custom_params)
   if(start == 1){
@@ -32,9 +35,9 @@ simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end,
     padded_sim_n <- formatC(i, width = out_digit_n, format = "d", flag = "0")
     if (i == end){
       # The last time, save also the combiStructureGenerator instance, to be able to start new simulations from last state
-      save(data, combi, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
+      save(data, combi, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence2_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
     } else {
-      save(data, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
+      save(data, file = paste0("/scratch/saracv/CFTP_test/CFTP_testConvergence2_paramsID_", padded_index_params, "_n_", padded_sim_n, ".RData" ))
     }
   }
   # Stop redirecting output and messages
@@ -43,10 +46,10 @@ simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end,
 
 simul_CFTP_tests <- function(index_params){
   # Set branch length
-  b_length <- 10
+  b_length <- 1
   # Set start and end for the number of times to conduct simulations along the branch
   start <- 1
-  end <- 50
+  end <- 500
   out_digit_n <- 4
   # Load the combinations of sampled parameters and spatial structure
   load("/scratch/saracv/abc_designSIM.RData")
