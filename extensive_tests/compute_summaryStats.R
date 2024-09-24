@@ -178,8 +178,8 @@ for(sim in 1:n_sim){
   
   ## Correlation/Covariance within structure type
   if ( "all" %in% stats_to_compute || "meanCor" %in% stats_to_compute) {
-    meanCor_i[sim] <- compute_meanCor_i(index_islands = index_islands, subset_CpG_n = 80, data = data, sample_n = opt[["sample-n"]])
-    meanCor_ni[sim] <- compute_meanCor_ni(index_nonislands = index_nonislands, subset_CpG_n = 80, data = data, sample_n = opt[["sample-n"]])
+    meanCor_i[sim] <- compute_meanCor_i(index_islands = index_islands, minN_CpG = 80, shore_length = 10, data = data, sample_n = opt[["sample-n"]])
+    meanCor_ni[sim] <- compute_meanCor_ni(index_nonislands = index_nonislands, minN_CpG = 80, shore_length = 10, data = data, sample_n = opt[["sample-n"]])
   }
   #if ( "all" %in% stats_to_compute || "meanCov" %in% stats_to_compute) {
   #  meanCov_i[sim] <- compute_meanCov_i(index_islands = index_islands, subset_CpG_n = 80, data = data, sample_n = opt[["sample-n"]])
