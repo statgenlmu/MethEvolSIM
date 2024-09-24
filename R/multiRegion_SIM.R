@@ -665,7 +665,7 @@ singleStructureGenerator <-
                   if(is.null(eqFreqs)){
                     private$eqFreqs <- private$sample_eqFreqs()
                   } else {
-                    if(!is.numeric(eqFreqs) || !length(eqFreqs) == 3 || !sum(eqFreqs)==1){
+                    if(!(is.numeric(eqFreqs) && length(eqFreqs) == 3 && abs(sum(eqFreqs) -1) > 1e-8)){
                       stop("if 'eqFreqs' is not NULL, provide a numeric vector of 3 frequencies ")
                     }
                     private$eqFreqs <- eqFreqs

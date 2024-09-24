@@ -11,7 +11,8 @@
                                  -e 3 \
                                  -p 10 \
                                  -t 2 \
-                                 -n CFTP_testConvergence 
+                                 -n CFTP_testConvergence \
+                                 -r 3
                                  
                                  
 
