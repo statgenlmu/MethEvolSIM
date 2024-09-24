@@ -14,17 +14,17 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
-  mean_sample <- c() 
-  for (s in 1:sample_n) {
-    mean_island <- c()
-    str_counter <- 1
-    for (i in index_islands){
-      mean_island[str_counter] <- mean(data[[s]][[i]]==0.5)
-      str_counter <- str_counter + 1
+  mean_island <- c()
+  island_counter <- 1
+  for (i in index_islands){
+    mean_tip <- c()
+    for(s in sample_n){
+      mean_tip[s] <- mean(data[[s]][[i]]==0.5)
     }
-    mean_sample[s] <- mean(mean_island)
+    mean_island[island_counter] <- mean(mean_tip)
+    island_counter <- island_counter + 1
   }
-  return(mean(mean_sample))
+  return(mean(mean_island))
 }
 
 ##### Mean frequency of partially methylated sites in non-islands
@@ -40,17 +40,17 @@ get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
-  mean_sample <- c() 
-  for (s in 1:sample_n){
-    mean_nonisland <- c()
-    str_counter <- 1
-    for (i in index_nonislands){
-      mean_nonisland[str_counter] <- mean(data[[s]][[i]] == 0.5)
-      str_counter <- str_counter + 1
+  mean_nonisland <- c()
+  nonisland_counter <- 1
+  for (i in index_nonislands){
+    mean_tip <- c()
+    for(s in sample_n){
+      mean_tip[s] <- mean(data[[s]][[i]]==0.5)
     }
-    mean_sample[s] <- mean(mean_nonisland)
+    mean_nonisland[nonisland_counter] <- mean(mean_tip)
+    nonisland_counter <- nonisland_counter + 1
   }
-  return(mean(mean_sample))
+  return(mean(mean_nonisland))
 }
 
 ##### Standard deviation of the mean frequency of partially methylated sites in islands
@@ -66,18 +66,18 @@ get_islandSDFreqP <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
-  mean_sample <- list() 
+  sd_tip <- c() 
   for (s in 1:sample_n){
-    mean_island <- c()
-    str_counter <- 1
+    freq_island <- c()
+    island_counter <- 1
     for (i in index_islands){
       # Compute proportion of partially methylated sites at each island
-      mean_island[str_counter] <- mean(data[[s]][[i]] == 0.5)
-      str_counter <- str_counter + 1
+      freq_island[island_counter] <- mean(data[[s]][[i]] == 0.5)
+      island_counter <- island_counter + 1
     }
-    mean_sample[[s]] <- mean_island
+    sd_tip[s] <- sd(freq_island)
   }
-  return(sd(unlist(mean_sample)))
+  return(mean(sd_tip))
 }
 
 ##### Standard deviation frequency of partially methylated sites in non-islands
@@ -93,18 +93,18 @@ get_nonislandSDFreqP <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
-  mean_sample <- list() 
+  sd_tip <- c() 
   for (s in 1:sample_n){
-    mean_nonisland <- c()
-    str_counter <- 1
-    for (str in index_nonislands){
+    freq_nonisland <- c()
+    nonisland_counter <- 1
+    for (i in index_nonislands){
       # Compute proportion of partially methylated sites at each island
-      mean_nonisland[str_counter] <- mean(data[[s]][[str]] == 0.5)
-      str_counter <- str_counter + 1
+      freq_nonisland[nonisland_counter] <- mean(data[[s]][[i]] == 0.5)
+      nonisland_counter <- nonisland_counter + 1
     }
-    mean_sample[[s]] <- mean_nonisland
+    sd_tip[s] <- sd(freq_nonisland)
   }
-  return(sd(unlist(mean_sample)))
+  return(mean(sd_tip))
 }
 
 #### #### #### Frequency of methylated sites #### #### ####
@@ -122,17 +122,17 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
-  mean_sample <- c() 
-  for (s in 1:sample_n){
-    mean_island <- c()
-    str_counter <- 1
-    for (i in index_islands){
-      mean_island[str_counter] <- mean(data[[s]][[i]]==1)
-      str_counter <- str_counter + 1
+  mean_island <- c()
+  island_counter <- 1
+  for (i in index_islands){
+    mean_tip <- c()
+    for(s in sample_n){
+      mean_tip[s] <- mean(data[[s]][[i]]==1)
     }
-    mean_sample[s] <- mean(mean_island)
+    mean_island[island_counter] <- mean(mean_tip)
+    island_counter <- island_counter + 1
   }
-  return(mean(mean_sample))
+  return(mean(mean_island))
 }
 
 ##### Mean frequency of methylated sites in non-islands
@@ -148,17 +148,17 @@ get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
-  mean_sample <- c() 
-  for (s in 1:sample_n){
-    mean_nonisland <- c()
-    str_counter <- 1
-    for (i in index_nonislands){
-      mean_nonisland[str_counter] <- mean(data[[s]][[i]] == 1)
-      str_counter <- str_counter + 1
+  mean_nonisland <- c()
+  nonisland_counter <- 1
+  for (i in index_nonislands){
+    mean_tip <- c()
+    for(s in sample_n){
+      mean_tip[s] <- mean(data[[s]][[i]]==1)
     }
-    mean_sample[s] <- mean(mean_nonisland)
+    mean_nonisland[nonisland_counter] <- mean(mean_tip)
+    nonisland_counter <- nonisland_counter + 1
   }
-  return(mean(mean_sample))
+  return(mean(mean_nonisland))
 }
 
 ##### Standard deviation frequency of methylated sites in islands
@@ -174,18 +174,18 @@ get_islandSDFreqM <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
-  mean_sample <- list() 
+  sd_tip <- c() 
   for (s in 1:sample_n){
-    mean_island <- c()
-    str_counter <- 1
+    freq_island <- c()
+    island_counter <- 1
     for (i in index_islands){
       # Compute proportion of partially methylated sites at each island
-      mean_island[str_counter] <- mean(data[[s]][[i]] == 1)
-      str_counter <- str_counter + 1
+      freq_island[island_counter] <- mean(data[[s]][[i]] == 1)
+      island_counter <- island_counter + 1
     }
-    mean_sample[[s]] <- mean_island
+    sd_tip[s] <- sd(freq_island)
   }
-  return(sd(unlist(mean_sample)))
+  return(mean(sd_tip))
 }
 
 
@@ -202,18 +202,18 @@ get_nonislandSDFreqM <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
-  mean_sample <- list() 
+  sd_tip <- c() 
   for (s in 1:sample_n){
-    mean_nonisland <- c()
-    str_counter <- 1
+    freq_nonisland <- c()
+    nonisland_counter <- 1
     for (i in index_nonislands){
       # Compute proportion of partially methylated sites at each island
-      mean_nonisland[str_counter] <- mean(data[[s]][[i]] == 1)
-      str_counter <- str_counter + 1
+      freq_nonisland[nonisland_counter] <- mean(data[[s]][[i]] == 1)
+      nonisland_counter <- nonisland_counter + 1
     }
-    mean_sample[[s]] <- mean_nonisland
+    sd_tip[s] <- sd(freq_nonisland)
   }
-  return(sd(unlist(mean_sample)))
+  return(mean(sd_tip))
 }
 
 
@@ -506,14 +506,17 @@ fit_MethTrans <- function(data, threshold, minRepresentation, subset_CpG_n){
 
 #### #### #### Correlations within structure #### #### ####
 
-## TODO: Update comment with info about subset_CpG_n if kept after discussion
+
 ##### Compute the mean correlation in methylation state in islands
 ## index_islands: vector with structural indices for islands
 ## data: list with methylation states at tree tips for each structure 
 ## data[[tip]][[structure]] when the number of tips is >1, 
 ## or data[[structure]] when there is only one tip. Methylation states are vectors
+## minN_CpG: minimum number of central CpGs to use
+## shore_length: number of CpGs at each island side to not use
 ## sample_n: number of given tips/samples
-compute_meanCor_i <- function(index_islands, subset_CpG_n, data, sample_n){
+## Note: function only uses islands with a minimum length equal to 2*shore_length+minN_CpG
+compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sample_n){
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -521,42 +524,40 @@ compute_meanCor_i <- function(index_islands, subset_CpG_n, data, sample_n){
     data <- data_list
   }
   str_counter <- 1
-  cor_i <- c() 
-  for (tip in 1:length(data)) {
-    for (i in index_islands) {
-      segment <- data[[tip]][[i]]
-      segment_length <- length(segment)
-      
-      # Define the start and end points of the segments to compare
-      start1 <- segment_length - subset_CpG_n
-      end1 <- segment_length - 1
-      start2 <- segment_length - subset_CpG_n + 1
-      end2 <- segment_length
-      
-      # Check if the segment lengths are valid
-      if (start1 > 0 && start2 > 0) {
-        segment1 <- segment[start1:end1]
-        segment2 <- segment[start2:end2]
-        
-        # Check standard deviation of the segments
+  cor <- c() 
+  for (tip in 1:sample_n){
+    for (i in index_islands){
+      if(length(data[[tip]][[i]] >= 2*shore_length + minN_CpG)){
+        # Define start and end indices to extract the middle segment
+        start1 <- shore_length + 1
+        start2 <- shore_length + 2
+        end1 <- length(data[[tip]][[i]]) - shore_length
+        end2 <- length(data[[tip]][[i]]) - shore_length + 1
+        # Extract the sequence info
+        segment1 <- data[[tip]][[i]][start1:end1]
+        segment2 <- data[[tip]][[i]][start2:end2]
+        # Compute the correlation of those segments with methylation state variation
         if (sd(segment1) != 0 && sd(segment2) != 0) {
-          cor_i[str_counter] <- cor(segment1, segment2)
+          cor[str_counter] <- cor(segment1, segment2)
           str_counter <- str_counter + 1
         }
       }
+      
     }
   }
-  return(mean(cor_i))
+  return(mean(cor))
 }
 
-## TODO: Update comment with info about subset_CpG_n if kept after discussion
 ##### Compute the mean correlation in methylation state in non-islands
 ## index_islands: vector with structural indices for islands
 ## data: list with methylation states at tree tips for each structure 
 ## data[[tip]][[structure]] when the number of tips is >1, 
 ## or data[[structure]] when there is only one tip. Methylation states are vectors
+## minN_CpG: minimum number of central CpGs to use
+## shore_length: number of CpGs at each island side to not use
 ## sample_n: number of given tips/samples
-compute_meanCor_ni <- function(index_nonislands, subset_CpG_n, data, sample_n){
+## Note: function only uses islands with a minimum length equal to 2*shore_length+minN_CpG
+compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, sample_n){
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -564,41 +565,36 @@ compute_meanCor_ni <- function(index_nonislands, subset_CpG_n, data, sample_n){
     data <- data_list
   }
   str_counter <- 1
-  cor_ni <- c() 
-  for (tip in 1:sample_n) {
-    for (i in index_nonislands) {
-      segment <- data[[tip]][[i]]
-      segment_length <- length(segment)
-      
-      # Define the start and end points of the segments to compare
-      start1 <- segment_length - subset_CpG_n
-      end1 <- segment_length - 1
-      start2 <- segment_length - subset_CpG_n + 1
-      end2 <- segment_length
-      
-      # Check if the segment lengths are valid
-      if (start1 > 0 && start2 > 0) {
-        segment1 <- segment[start1:end1]
-        segment2 <- segment[start2:end2]
-        
-        # Check standard deviation of the segments
+  cor <- c() 
+  for (tip in 1:sample_n){
+    for (i in index_nonislands){
+      if(length(data[[tip]][[i]] >= 2*shore_length + minN_CpG)){
+        # Define start and end indices to extract the middle segment
+        start1 <- shore_length + 1
+        start2 <- shore_length + 2
+        end1 <- length(data[[tip]][[i]]) - shore_length
+        end2 <- length(data[[tip]][[i]]) - shore_length + 1
+        # Extract the sequence info
+        segment1 <- data[[tip]][[i]][start1:end1]
+        segment2 <- data[[tip]][[i]][start2:end2]
+        # Compute the correlation of those segments with methylation state variation
         if (sd(segment1) != 0 && sd(segment2) != 0) {
-          cor_ni[str_counter] <- cor(segment1, segment2)
+          cor[str_counter] <- cor(segment1, segment2)
           str_counter <- str_counter + 1
         }
       }
+      
     }
   }
-  return(mean(cor_ni))
+  return(mean(cor))
 }
 
-## TODO: Update comment with info about subset_CpG_n if kept after discussion
-##### Compute the mean covariance in methylation state in islands
-## index_islands: vector with structural indices for islands
-## data: list with methylation states at tree tips for each structure 
-## data[[tip]][[structure]] when the number of tips is >1, 
-## or data[[structure]] when there is only one tip. Methylation states are vectors
-## sample_n: number of given tips/samples
+
+
+
+### OLD EXPLORED SUMMARY STATISTICS. FUNCTIONS NOT UPDATED ###
+
+
 compute_meanCov_i <- function(index_islands, subset_CpG_n, data, sample_n){
   # Restructure data as nested list
   if (sample_n == 1){
@@ -617,13 +613,7 @@ compute_meanCov_i <- function(index_islands, subset_CpG_n, data, sample_n){
   return(mean(cov_i, na.rm = TRUE))
 }
 
-## TODO: Update comment with info about subset_CpG_n if kept after discussion
-##### Compute the mean covariance in methylation state in non-islands
-## index_islands: vector with structural indices for islands
-## data: list with methylation states at tree tips for each structure 
-## data[[tip]][[structure]] when the number of tips is >1, 
-## or data[[structure]] when there is only one tip. Methylation states are vectors
-## sample_n: number of given tips/samples
+
 compute_meanCov_ni <- function(index_nonislands, subset_CpG_n, data, sample_n){
   # Restructure data as nested list
   if (sample_n == 1){
@@ -642,8 +632,6 @@ compute_meanCov_ni <- function(index_nonislands, subset_CpG_n, data, sample_n){
   return(mean(cov_ni, na.rm = TRUE))
 }
 
-
-### OLD EXPLORED SUMMARY STATISTICS. FUNCTIONS NOT UPDATED ###
 
 #### #### #### Tip pairwise comparisons #### #### ####
 library(ape)
