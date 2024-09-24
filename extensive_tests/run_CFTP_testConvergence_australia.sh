@@ -8,10 +8,11 @@
                                  -f /scratch/saracv/abc_designSIM.RData \
                                  -b 1 \
                                  -s 1 \
-                                 -e 500 \
+                                 -e 250 \
                                  -p 10 \
                                  -t 2 \
-                                 -n CFTP_testConvergence 
+                                 -n CFTP_testConvergence \
+                                 -r 10
                                  
                                  
 
