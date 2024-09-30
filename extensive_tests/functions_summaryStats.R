@@ -126,7 +126,7 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n){
   island_counter <- 1
   for (i in index_islands){
     mean_tip <- c()
-    for(s in sample_n){
+    for(s in 1:sample_n){
       mean_tip[s] <- mean(data[[s]][[i]]==1)
     }
     mean_island[island_counter] <- mean(mean_tip)
@@ -152,7 +152,7 @@ get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n){
   nonisland_counter <- 1
   for (i in index_nonislands){
     mean_tip <- c()
-    for(s in sample_n){
+    for(s in 1:sample_n){
       mean_tip[s] <- mean(data[[s]][[i]]==1)
     }
     mean_nonisland[nonisland_counter] <- mean(mean_tip)

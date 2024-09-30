@@ -119,7 +119,6 @@ simul_CFTP_tests <- function(index_params){
       spatial_str[str,c("u_eqFreq", "p_eqFreq", "m_eqFreq")] <- get_private(samplereqFreqsNI)$sample_eqFreqs()
     }
   }
-  print(spatial_str)
   # Call function to simulate data for each replicate
   for(r in 1:opt[["replicate-n"]]){
     simul_CFTP_branch(custom_params = custom_params,

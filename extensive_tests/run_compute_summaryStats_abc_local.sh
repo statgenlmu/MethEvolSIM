@@ -7,6 +7,7 @@ Rscript /home/sara/methylation/MethEvolSIM/extensive_tests/compute_summaryStats.
 										   -p abc_dataSIM_0 \
                                                                                    -f /home/sara/methylation/phd_project_saracv/simulation_studies/abc_designSIM.RData \
                                                                                    -n 100 \
-                                                                                   -s meanFreqP_i,meanFreqP_ni,sdFreqP_i,sdFreqP_ni,meanFreqM_i,meanFreqM_ni,sdFreqM_i,sdFreqM_ni,meanCor
+                                                                                   -s meanFreqM_i,meanFreqM_ni \
+                                                                                   -u /home/sara/methylation/MethEvolSIM/extensive_tests/summaryStats_abc_dataSIM_0.RData
 
 
