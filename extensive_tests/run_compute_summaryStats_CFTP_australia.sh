@@ -5,12 +5,12 @@ for i in {1..10}
 do
   if [ $i -lt 10 ]
   then
-    param_id="CFTP_testConvergence_paramsID_0$i"
+    param_id="CFTP_testConvergence2_paramsID_0$i"
   else
-    param_id="CFTP_testConvergence_paramsID_$i"
+    param_id="CFTP_testConvergence2_paramsID_$i"
   fi
 
-  Rscript compute_summaryStats.R -d /scratch/saracv/CFTP_test \
+  Rscript compute_summaryStats.R -d /scratch/saracv/CFTP_test/test2 \
                                  -p $param_id \
                                  -f /scratch/saracv/abc_designSIM.RData \
                                  -n 1 \
