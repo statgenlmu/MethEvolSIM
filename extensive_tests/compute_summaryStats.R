@@ -108,6 +108,7 @@ error_log <- list()  # To store error messages
 print(paste("Computing summary statistics for", n_sim, "simulations."))
 print("Files to process:")
 print(RData_files)
+stop("Checkpoint")
 for(sim in 1:n_sim){
   print(paste("processing simulation:", sim))
   load(RData_files[sim])
@@ -297,7 +298,7 @@ if (!is.null(opt[["update-file"]])){
 } 
 
 # Set output name and save
-out_name <- paste0("summaryStatsNew_",opt[["pattern"]], ".RData")
+out_name <- paste0("summaryStats_",opt[["pattern"]], ".RData")
 save(summaryStats, file = out_name)
 print(paste("Finished processing. Generated file:", out_name, "under directory:", getwd()))  
   
