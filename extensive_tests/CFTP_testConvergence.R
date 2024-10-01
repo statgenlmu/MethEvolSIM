@@ -78,7 +78,8 @@ simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end,
     }
     # Save simulated data
     padded_sim_n <- formatC(i, width = out_digit_n, format = "d", flag = "0")
-    RData_file <- paste0(opt[["output-dir"]], "/", opt[["name-pattern"]], test_n, "_paramsID_", padded_index_params, "_rep_", replicate_n, "_", padded_sim_n, ".RData")
+    padded_replicate_n <- formatC(replicate_n, width = 2, format = "d", flag = "0")
+    RData_file <- paste0(opt[["output-dir"]], "/", opt[["name-pattern"]], test_n, "_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_", padded_sim_n, ".RData")
     if (i == end){
       # The last time, save also the combiStructureGenerator instance, to be able to start new simulations from last state
       save(data, combi, file = RData_file)
