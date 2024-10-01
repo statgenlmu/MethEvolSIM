@@ -108,7 +108,6 @@ error_log <- list()  # To store error messages
 print(paste("Computing summary statistics for", n_sim, "simulations."))
 print("Files to process:")
 print(RData_files)
-stop("Checkpoint")
 for(sim in 1:n_sim){
   print(paste("processing simulation:", sim))
   load(RData_files[sim])
