@@ -22,11 +22,8 @@ for (case in 1:n_cases) {
     # Loop over each replicate
     for (rep in 1:n_reps) {
       
-      # Format the file name with the case, rep (no leading zeros), and step
+      # Format the file name with the case, rep, and step
       file_name <- sprintf("/scratch/saracv/CFTP_test/test2/CFTP_testConvergence2_paramsID_%02d_rep_%02d_%s.RData", case, rep, step_formatted)
-      
-      # Print the file name (for verification)
-      print(file_name)
       
       # Load the .RData file
       load(file_name)
@@ -38,5 +35,23 @@ for (case in 1:n_cases) {
     data <- rep_data
     save(data, file = out_file)
   }
+  
+  # Initialize an empty list to store the data for each case 
+  rep_data <- list()
+  
+  # Loop over $cftp() output files
+  for(rep in 1:n_reps){
+    # Format the file name with the case, rep, and step
+    file_name <- sprintf("/scratch/saracv/CFTP_test/test2/CFTP_testConvergence2_paramsID_%02d_rep_%02d_cftp.RData", case, rep)
+    
+    # Load the .RData file
+    load(file_name)
+    
+    # Append the data to rep_data list
+    rep_data[[rep]] <- data 
+  }
+  out_file <- sprintf("/scratch/saracv/CFTP_test/test2/nestedReps_CFTP_testConvergence2_paramsID_%02d_cftp.RData", case)
+  data <- rep_data
+  save(data, file = out_file)
 }
 
