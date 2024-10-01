@@ -16,7 +16,6 @@ do
                                    -f /scratch/saracv/abc_designSIM.RData \
                                    -n 10 \
                                    -s meanFreqP_i,meanFreqP_ni,sdFreqP_i,sdFreqP_ni,meanFreqM_i,meanFreqM_ni,sdFreqM_i,sdFreqM_ni,meanCor
-  done
 done
 
 
