@@ -23,7 +23,7 @@ for (case in 1:n_cases) {
     for (rep in 1:n_reps) {
       
       # Format the file name with the case, rep (no leading zeros), and step
-      file_name <- sprintf("/scratch/saracv/CFTP_test/test2/CFTP_testConvergence2_paramsID_%02d_rep_%d_%s.RData", case, rep, step_formatted)
+      file_name <- sprintf("/scratch/saracv/CFTP_test/test2/CFTP_testConvergence2_paramsID_%02d_rep_%02d_%s.RData", case, rep, step_formatted)
       
       # Print the file name (for verification)
       print(file_name)
