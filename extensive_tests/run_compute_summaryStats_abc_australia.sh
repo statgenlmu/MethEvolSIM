@@ -7,6 +7,6 @@ Rscript /home/saracv/MasterThesis/MethEvolSIM/extensive_tests/compute_summarySta
 										     -p abc_dataSIM_0 \
                                                                                      -f /scratch/saracv/abc_designSIM.RData \
                                                                                      -n 100 \
-                                                                                     -s meanFreqM_i,meanFreqM_ni \
+                                                                                     -s meanFracMoverMU_i,meanFracMoverMU_ni,sdFracMoverMU_i,sdFracMoverMU_ni \
                                                                                      -u /home/saracv/MasterThesis/MethEvolSIM/extensive_tests/summaryStats_abc_dataSIM_0.RData
 
