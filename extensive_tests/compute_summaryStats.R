@@ -145,16 +145,14 @@ for(sim in 1:n_sim){
   # Compute summary statistics for the frequency of M
   if ( "all" %in% stats_to_compute || "meanFreqM_i" %in% stats_to_compute) {
     if (!is.null(opt[["update-file"]])){
-      #summaryStats[sim,"meanFreqM_i"] <- get_islandMeanFreqM(index_islands = index_islands, data = data, sample_n = opt[["sample-n"]])
-      summaryStats[sim,"meanFreqM_i"] <- sim
+      summaryStats[sim,"meanFreqM_i"] <- get_islandMeanFreqM(index_islands = index_islands, data = data, sample_n = opt[["sample-n"]])
     } else {
       meanFreqM_i[sim] <- get_islandMeanFreqM(index_islands = index_islands, data = data, sample_n = opt[["sample-n"]])
     }
   }
   if ( "all" %in% stats_to_compute || "meanFreqM_ni" %in% stats_to_compute) {
     if (!is.null(opt[["update-file"]])){
-      #summaryStats[sim,"meanFreqM_ni"] <- get_nonislandMeanFreqM(index_nonislands = index_nonislands, data = data, sample_n = opt[["sample-n"]])
-      summaryStats[sim,"meanFreqM_ni"] <- sim-1
+      summaryStats[sim,"meanFreqM_ni"] <- get_nonislandMeanFreqM(index_nonislands = index_nonislands, data = data, sample_n = opt[["sample-n"]])
     } else {
       meanFreqM_ni[sim] <- get_nonislandMeanFreqM(index_nonislands = index_nonislands, data = data, sample_n = opt[["sample-n"]])
     }

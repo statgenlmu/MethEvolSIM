@@ -47,10 +47,11 @@ if (length(missing_options) > 0) {
 simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end, out_digit_n, spatial_str, test_n, replicate_n){
   # Set the name for the output file with the padded parameter index
   padded_index_params <- formatC(index_params, width = 2, format = "d", flag = "0")
+  padded_replicate_n <- formatC(replicate_n, width = 2, format = "d", flag = "0")
   out_file <- paste0(opt[["output-dir"]], "/", opt[["name-pattern"]], test_n, "_paramsID_", padded_index_params, "_rep_", replicate_n, ".out")
   # Redirect both the stout and stderr to the same file
   sink(out_file, type = c("output", "message"), append = TRUE)
-  print(paste("Running CFTP_testConvergence: ", test_n, ". paramsID:", padded_index_params, ". Replicate:", replicate_n))
+  print(paste("Running CFTP_testConvergence: ", test_n, ". paramsID:", padded_index_params, ". Replicate:", padded_replicate_n))
   print("Given customized parameter values:")
   print(custom_params)
   if(start == 1){
