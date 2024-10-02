@@ -240,7 +240,7 @@ get_islandMeanFracMoverMU <- function(index_islands, data, sample_n){
     for(s in 1:sample_n){
       mean_tip[s] <- mean(data[[s]][[i]]==1)/(1-mean(data[[s]][[i]]==0.5))
     }
-    mean_island[island_counter] <- mean(mean_tip)
+    mean_island[island_counter] <- mean(mean_tip, na.rm = TRUE)
     island_counter <- island_counter + 1
   }
   return(mean(mean_island))
@@ -266,7 +266,7 @@ get_nonislandMeanFracMoverMU <- function(index_nonislands, data, sample_n){
     for(s in 1:sample_n){
       mean_tip[s] <- mean(data[[s]][[i]]==1)/(1-mean(data[[s]][[i]]==0.5))
     }
-    mean_nonisland[nonisland_counter] <- mean(mean_tip)
+    mean_nonisland[nonisland_counter] <- mean(mean_tip, na.rm = TRUE)
     nonisland_counter <- nonisland_counter + 1
   }
   return(mean(mean_nonisland))
@@ -294,7 +294,7 @@ get_islandSDFracMoverMU <- function(index_islands, data, sample_n){
       frac_island[island_counter] <- mean(data[[s]][[i]] == 1)/(1-mean(data[[s]][[i]]==0.5))
       island_counter <- island_counter + 1
     }
-    sd_tip[s] <- sd(frac_island)
+    sd_tip[s] <- sd(frac_island, na.rm = TRUE)
   }
   return(mean(sd_tip))
 }
@@ -322,7 +322,7 @@ get_nonislandSDFracMoverMU <- function(index_nonislands, data, sample_n){
       frac_nonisland[nonisland_counter] <- mean(data[[s]][[i]] == 1)/(1-mean(data[[s]][[i]]==0.5))
       nonisland_counter <- nonisland_counter + 1
     }
-    sd_tip[s] <- sd(frac_nonisland)
+    sd_tip[s] <- sd(frac_nonisland, na.rm = TRUE)
   }
   return(mean(sd_tip))
 }
