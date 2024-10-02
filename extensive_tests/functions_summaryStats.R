@@ -243,7 +243,7 @@ get_islandMeanFracMoverMU <- function(index_islands, data, sample_n){
     mean_island[island_counter] <- mean(mean_tip, na.rm = TRUE)
     island_counter <- island_counter + 1
   }
-  return(mean(mean_island))
+  return(mean(mean_island, na.rm = TRUE))
 }
 
 ##### Mean fraction of methylated sites over methylated and unmethylated sites in non-islands
@@ -269,7 +269,7 @@ get_nonislandMeanFracMoverMU <- function(index_nonislands, data, sample_n){
     mean_nonisland[nonisland_counter] <- mean(mean_tip, na.rm = TRUE)
     nonisland_counter <- nonisland_counter + 1
   }
-  return(mean(mean_nonisland))
+  return(mean(mean_nonisland, na.rm = TRUE))
 }
 
 ##### Standard deviation fraction of methylated sites over methylated and unmethylated sites in islands
@@ -327,7 +327,6 @@ get_nonislandSDFracMoverMU <- function(index_nonislands, data, sample_n){
   return(mean(sd_tip))
 }
 
-############################################################################### until here
 
 
 #### #### #### Tree cherries comparisons #### #### ####
