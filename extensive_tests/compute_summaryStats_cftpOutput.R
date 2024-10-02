@@ -62,7 +62,7 @@ if(length(unique(spatial_str$n)) == 1){
 ##### IMPORT DATA AND EXTRACT SUMMARY STATISTICS ###############################
 
 # List simulation output files
-RData_files <- list.files(opt[["data-dir"]], pattern = pattern = paste0("^", opt[["pattern"]], "_rep_\\d{2}_\\d{4}\\.RData$"), full.names = TRUE)
+RData_files <- list.files(opt[["data-dir"]], pattern = paste0("^", opt[["pattern"]], "_rep_\\d{2}_cftp\\.RData$"), full.names = TRUE)
 
 
 
@@ -333,7 +333,7 @@ if (!is.null(opt[["update-file"]])){
 } 
 
 # Set output name and save
-out_name <- paste0("summaryStats_",opt[["pattern"]], ".RData")
+out_name <- paste0("summaryStats_",opt[["pattern"]], "_cftp.RData")
 save(summaryStats, file = out_name)
 print(paste("Finished processing. Generated file:", out_name, "under directory:", getwd()))  
   
