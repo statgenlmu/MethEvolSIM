@@ -217,6 +217,119 @@ get_nonislandSDFreqM <- function(index_nonislands, data, sample_n){
 }
 
 
+
+#### #### #### Fraction of methylated sites over methylated and unmethylated #### #### ####
+
+##### Mean fraction of methylated sites over methylated and unmethylated sites in islands
+## index_islands: vector with structural indeces for islands
+## data: list with methylation states at tree tips for each structure 
+## data[[tip]][[structure]] when the number of tips is >1, 
+## or data[[structure]] when there is only one tip. Methylation states are vectors
+## sample_n: number of given tips/samples
+get_islandMeanFracMoverMU <- function(index_islands, data, sample_n){
+  # Restructure data as nested list
+  if (sample_n == 1){
+    data_list <- list()
+    data_list[[1]] <- data
+    data <- data_list
+  }
+  mean_island <- c()
+  island_counter <- 1
+  for (i in index_islands){
+    mean_tip <- c()
+    for(s in 1:sample_n){
+      mean_tip[s] <- mean(data[[s]][[i]]==1)/(1-mean(data[[s]][[i]]==0.5))
+    }
+    mean_island[island_counter] <- mean(mean_tip)
+    island_counter <- island_counter + 1
+  }
+  return(mean(mean_island))
+}
+
+##### Mean fraction of methylated sites over methylated and unmethylated sites in non-islands
+## index_nonislands: vector with structural indeces for non-islands
+## data: list with methylation states at tree tips for each structure 
+## data[[tip]][[structure]] when the number of tips is >1, 
+## or data[[structure]] when there is only one tip. Methylation states are vectors
+## sample_n: number of given tips/samples
+get_nonislandMeanFracMoverMU <- function(index_nonislands, data, sample_n){
+  # Restructure data as nested list
+  if (sample_n == 1){
+    data_list <- list()
+    data_list[[1]] <- data
+    data <- data_list
+  }
+  mean_nonisland <- c()
+  nonisland_counter <- 1
+  for (i in index_nonislands){
+    mean_tip <- c()
+    for(s in 1:sample_n){
+      mean_tip[s] <- mean(data[[s]][[i]]==1)/(1-mean(data[[s]][[i]]==0.5))
+    }
+    mean_nonisland[nonisland_counter] <- mean(mean_tip)
+    nonisland_counter <- nonisland_counter + 1
+  }
+  return(mean(mean_nonisland))
+}
+
+##### Standard deviation fraction of methylated sites over methylated and unmethylated sites in islands
+## index_islands: vector with structural indeces for islands
+## data: list with methylation states at tree tips for each structure 
+## data[[tip]][[structure]] when the number of tips is >1, 
+## or data[[structure]] when there is only one tip. Methylation states are vectors
+## sample_n: number of given tips/samples
+get_islandSDFracMoverMU <- function(index_islands, data, sample_n){
+  # Restructure data as nested list
+  if (sample_n == 1){
+    data_list <- list()
+    data_list[[1]] <- data
+    data <- data_list
+  }
+  sd_tip <- c() 
+  for (s in 1:sample_n){
+    frac_island <- c()
+    island_counter <- 1
+    for (i in index_islands){
+      # Compute proportion of partially methylated sites at each island
+      frac_island[island_counter] <- mean(data[[s]][[i]] == 1)/(1-mean(data[[s]][[i]]==0.5))
+      island_counter <- island_counter + 1
+    }
+    sd_tip[s] <- sd(frac_island)
+  }
+  return(mean(sd_tip))
+}
+
+
+##### Standard deviation fraction of methylated sites over methylated and unmethylated sites in non-islands
+## index_nonislands: vector with structural indeces for non-islands
+## data: list with methylation states at tree tips for each structure 
+## data[[tip]][[structure]] when the number of tips is >1, 
+## or data[[structure]] when there is only one tip. Methylation states are vectors
+## sample_n: number of given tips/samples
+get_nonislandSDFracMoverMU <- function(index_nonislands, data, sample_n){
+  # Restructure data as nested list
+  if (sample_n == 1){
+    data_list <- list()
+    data_list[[1]] <- data
+    data <- data_list
+  }
+  sd_tip <- c() 
+  for (s in 1:sample_n){
+    frac_nonisland <- c()
+    nonisland_counter <- 1
+    for (i in index_nonislands){
+      # Compute proportion of partially methylated sites at each island
+      frac_nonisland[nonisland_counter] <- mean(data[[s]][[i]] == 1)/(1-mean(data[[s]][[i]]==0.5))
+      nonisland_counter <- nonisland_counter + 1
+    }
+    sd_tip[s] <- sd(frac_nonisland)
+  }
+  return(mean(sd_tip))
+}
+
+############################################################################### until here
+
+
 #### #### #### Tree cherries comparisons #### #### ####
 
 find_cherries <- function(tree) {

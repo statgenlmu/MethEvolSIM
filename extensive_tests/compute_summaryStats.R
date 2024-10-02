@@ -9,7 +9,7 @@ option_list <- list(
   make_option(c("-f", "--design-file"), type = "character", default = NULL,
               help = "Full path to the simulation design file", metavar = "character"),
   make_option(c("-s", "--stats"), type = "character", default = "all",
-              help = "Comma-separated list of summary statistics to compute (default: all). Options: meanFreqP_i, meanFreqP_ni, sdFreqP_i, sdFreqP_ni, meanFreqM_i, meanFreqM_ni, sdFreqM_i, sdFreqM_ni, FChangeCherry_i, FChangeCherry_ni, Fitch, Steepness, meanCor", metavar = "character"),
+              help = "Comma-separated list of summary statistics to compute (default: all). Options: meanFreqP_i, meanFreqP_ni, sdFreqP_i, sdFreqP_ni, meanFreqM_i, meanFreqM_ni, sdFreqM_i, sdFreqM_ni, meanFracMoverMU_i, meanFracMoverMU_ni, sdFracMoverMU_i, sdFracMoverMU_ni, FChangeCherry_i, FChangeCherry_ni, Fitch, Steepness, meanCor", metavar = "character"),
   make_option(c("-n", "--sample-n"), type = "integer", default = NULL,
               help = "Number of samples per file", metavar = "integer"),
   make_option(c("-p", "--pattern"), type = "character", default = NULL,
@@ -83,6 +83,10 @@ if (!is.null(opt[["update-file"]])){
   meanFreqM_ni <- rep(NA, n_sim)
   sdFreqM_i <- rep(NA, n_sim)
   sdFreqM_ni <- rep(NA, n_sim)
+  meanFracMoverMU_i <- rep(NA, n_sim)
+  meanFracMoverMU_ni <- rep(NA, n_sim)
+  sdFracMoverMU_i <- rep(NA, n_sim)
+  sdFracMoverMU_ni <- rep(NA, n_sim)
   
   meanFChangeCherry_rate_i <- rep(NA, n_sim)
   meanFChangeCherry_scale_i <- rep(NA, n_sim)
@@ -169,6 +173,36 @@ for(sim in 1:n_sim){
       summaryStats[sim,"sdFreqM_ni"] <- get_nonislandSDFreqM(index_nonislands = index_nonislands, data = data, sample_n = opt[["sample-n"]])
     } else {
       sdFreqM_ni[sim] <- get_nonislandSDFreqM(index_nonislands = index_nonislands, data = data, sample_n = opt[["sample-n"]])
+    }
+  }
+  
+  # Compute summary statistics for the fraction of M over MU
+  if ( "all" %in% stats_to_compute || "meanFracMoverMU_i" %in% stats_to_compute) {
+    if (!is.null(opt[["update-file"]])){
+      summaryStats[sim,"meanFracMoverMU_i"] <- get_islandMeanFracMoverMU(index_islands = index_islands, data = data, sample_n = opt[["sample-n"]])
+    } else {
+      meanFracMoverMU_i[sim] <- get_islandMeanFracMoverMU(index_islands = index_islands, data = data, sample_n = opt[["sample-n"]])
+    }
+  }
+  if ( "all" %in% stats_to_compute || "meanFracMoverMU_ni" %in% stats_to_compute) {
+    if (!is.null(opt[["update-file"]])){
+      summaryStats[sim,"meanFracMoverMU_ni"] <- get_nonislandMeanFracMoverMU(index_nonislands = index_nonislands, data = data, sample_n = opt[["sample-n"]])
+    } else {
+      meanFracMoverMU_ni[sim] <- get_nonislandMeanFracMoverMU(index_nonislands = index_nonislands, data = data, sample_n = opt[["sample-n"]])
+    }
+  }
+  if ( "all" %in% stats_to_compute || "sdFracMoverMU_i" %in% stats_to_compute) {
+    if (!is.null(opt[["update-file"]])){
+      summaryStats[sim,"sdFracMoverMU_i"] <- get_islandSDFracMoverMU(index_islands = index_islands, data = data, sample_n = opt[["sample-n"]])
+    } else {
+      sdFracMoverMU_i[sim] <- get_islandSDFracMoverMU(index_islands = index_islands, data = data, sample_n = opt[["sample-n"]])
+    }
+  }
+  if ( "all" %in% stats_to_compute || "sdFracMoverMU_ni" %in% stats_to_compute) {
+    if (!is.null(opt[["update-file"]])){
+      summaryStats[sim,"sdFracMoverMU_ni"] <- get_nonislandSDFracMoverMU(index_nonislands = index_nonislands, data = data, sample_n = opt[["sample-n"]])
+    } else {
+      sdFracMoverMU_ni[sim] <- get_nonislandSDFracMoverMU(index_nonislands = index_nonislands, data = data, sample_n = opt[["sample-n"]])
     }
   }
 
@@ -281,6 +315,10 @@ if (!is.null(opt[["update-file"]])){
                              meanFreqM_ni = meanFreqM_ni,
                              sdFreqM_i = sdFreqM_i,
                              sdFreqM_ni = sdFreqM_ni,
+                             meanFracMoverMU_i = meanFracMoverMU_i,
+                             meanFracMoverMU_ni = meanFracMoverMU_ni,
+                             sdFracMoverMU_i = sdFracMoverMU_i,
+                             sdFracMoverMU_ni = sdFracMoverMU_ni,
                              meanFChangeCherry_rate_i = meanFChangeCherry_rate_i,
                              meanFChangeCherry_scale_i = meanFChangeCherry_scale_i,
                              meanFChangeCherry_rate_ni = meanFChangeCherry_rate_ni,
