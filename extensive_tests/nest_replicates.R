@@ -7,7 +7,7 @@ n_steps <- 501  # Number of steps (from 0000 to 0250, inclusive)
 
 # Loop over each case
 for (case in 1:n_cases) {
-  print(paste("Processing $branch_evol data. Parameter combination case:", case))
+  print(paste("Processing $branch_evol() data. Parameter combination case:", case))
   
   # Loop over each time step
   for (step in 0:(n_steps - 1)) {
@@ -38,7 +38,7 @@ for (case in 1:n_cases) {
 }
 
 for(case in 1:n_cases){
-  print(paste("Processing $branch_evol data. Parameter combination case:", case))
+  print(paste("Processing $cftp() data. Parameter combination case:", case))
   # Initialize an empty list to store the data for each case 
   rep_data <- list()
   
