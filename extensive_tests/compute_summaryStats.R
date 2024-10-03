@@ -62,7 +62,8 @@ if(length(unique(spatial_str$n)) == 1){
 ##### IMPORT DATA AND EXTRACT SUMMARY STATISTICS ###############################
 
 # List simulation output files
-RData_files <- list.files(opt[["data-dir"]], pattern = paste0("^", opt[["pattern"]], "_rep_\\d{2}_\\d{4}\\.RData$"), full.names = TRUE)
+## TODO: the pattern should be given complete, because sometimes it is followed by only evol number, sometimes by reps, sometimes by nothing
+RData_files <- list.files(opt[["data-dir"]], pattern = paste0("^", opt[["pattern"]], "_\\d{4}\\.RData$"), full.names = TRUE)
 
 
 
