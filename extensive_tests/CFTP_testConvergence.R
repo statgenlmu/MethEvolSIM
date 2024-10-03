@@ -45,38 +45,45 @@ if (length(missing_options) > 0) {
 
 
 simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end, out_digit_n, spatial_str, test_n, replicate_n){
+  
   # Set the name for the output file with the padded parameter index
   padded_index_params <- formatC(index_params, width = 2, format = "d", flag = "0")
   padded_replicate_n <- formatC(replicate_n, width = 2, format = "d", flag = "0")
   out_file <- paste0(opt[["output-dir"]], "/", opt[["name-pattern"]], test_n, "_paramsID_", padded_index_params, "_rep_", replicate_n, ".out")
+  
   # Redirect both the stout and stderr to the same file
   sink(out_file, type = c("output", "message"), append = TRUE)
   print(paste("Running CFTP_testConvergence: ", test_n, ". paramsID:", padded_index_params, ". Replicate:", padded_replicate_n))
   print("Given customized parameter values:")
   print(custom_params)
+  
   if(start == 1){
+    
     print("Generating combiStructureGenerator instance")
     combi <- combiStructureGenerator$new(infoStr = spatial_str, params = custom_params)
+    
     # Save initial instance state and methylation data
     data <- list()
     for (str in 1:combi$get_singleStr_number()){
       data[[str]]<- transform_methStateEncoding(combi$get_singleStr(str)$get_seq())
     }
     padded_sim_n <- formatC(0, width = out_digit_n, format = "d", flag = "0")
-    padded_replicate_n <- formatC(replicate_n, width = 2, format = "d", flag = "0")
+    #padded_replicate_n <- formatC(replicate_n, width = 2, format = "d", flag = "0")
     RData_file <- paste0(opt[["output-dir"]], "/", opt[["name-pattern"]], test_n, "_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_", padded_sim_n, ".RData")
     save(data, combi, file = RData_file)
+    
     # Call cftp method from copy of initial instance, save instance state and methylation data
-    print("Cloning and calling $cftp() method")
-    cftp_combi <- combi$copy()
-    cftp_combi$cftp()
-    data <- list()
-    for (str in 1:combi$get_singleStr_number()){
-      data[[str]]<- transform_methStateEncoding(combi$get_singleStr(str)$get_seq())
-    }
-    RData_file <- paste0(opt[["output-dir"]], "/", opt[["name-pattern"]], test_n, "_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_cftp.RData")
-    save(data, cftp_combi, file = RData_file)
+    #print("Cloning and calling $cftp() method")
+    #cftp_combi <- combi$copy()
+    #cftp_combi$cftp()
+    #data <- list()
+    #for (str in 1:cftp_combi$get_singleStr_number()){
+    #  data[[str]]<- transform_methStateEncoding(cftp_combi$get_singleStr(str)$get_seq())
+    #}
+    #RData_file <- paste0(opt[["output-dir"]], "/", opt[["name-pattern"]], test_n, "_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_cftp.RData")
+    #save(data, cftp_combi, file = RData_file)
   }
+  
   # Simulate evolution along branch n times
   print(paste("Simulating evolution along branch of length", b_length, end - start + 1, "times."))
   for (i in start:end){

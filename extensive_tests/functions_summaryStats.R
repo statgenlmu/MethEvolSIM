@@ -499,7 +499,7 @@ select_minDiffMethTrans <- function(threshold, data) {
                                  type = factor(levels = c(0, 1), labels = c("i", "d")))
   # Set the number of borders
   border_n <- length(data[[1]]) - 1
-  print(paste("border_n", border_n))
+  #print(paste("border_n", border_n))
   for (border in 1:border_n) {
     diff_mean <- numeric(length(data)) # vector to store differences in mean structural methylation
     
