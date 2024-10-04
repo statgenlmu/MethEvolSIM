@@ -1,7 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=CFTP_compute_summaryStats
 
-for i in $(seq 1 10)
+#for i in $(seq 1 10)
+for i in 2 3 4 5 6 7 9 10
 do
   if [ $i -lt 10 ]
   then
