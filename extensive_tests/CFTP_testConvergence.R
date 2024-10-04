@@ -73,9 +73,10 @@ simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end,
     save(data, combi, file = RData_file)
     
     # Call cftp method from copy of initial instance, save instance state and methylation data
-    print("Cloning and calling $cftp() method")
-    cftp_combi <- combi$copy()
-    cftp_combi$cftp()
+    #print("Cloning and calling $cftp() method")
+    #cftp_combi <- combi$copy()
+    print("Calling $cftp() method")
+    cftp_combi <- combi$cftp()
     data <- list()
     for (str in 1:cftp_combi$get_singleStr_number()){
       data[[str]]<- transform_methStateEncoding(cftp_combi$get_singleStr(str)$get_seq())
