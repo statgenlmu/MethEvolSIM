@@ -5,6 +5,7 @@
 id_cases <- c(2,3,4,5,6,7,9,10)
 n_reps <- 10    # Number of replicates (e.g., rep1, rep2, ..., rep10)
 n_steps <- 501  # Number of steps (from 0000 to 0250, inclusive)
+test_n <- 5
 
 # Loop over each case
 #for (case in 1:n_cases) {
@@ -25,7 +26,7 @@ for (case in id_cases) {
     for (rep in 1:n_reps) {
       
       # Format the file name with the case, rep, and step
-      file_name <- sprintf("/scratch/saracv/CFTP_test/test2/CFTP_testConvergence2_paramsID_%02d_rep_%02d_%s.RData", case, rep, step_formatted)
+      file_name <- sprintf("/scratch/saracv/CFTP_test/test%d/CFTP_testConvergence%d_paramsID_%02d_rep_%02d_%s.RData",test_n ,test_n ,case, rep, step_formatted)
       
       # Load the .RData file
       load(file_name)
@@ -33,7 +34,7 @@ for (case in id_cases) {
       # Append the data to rep_data list
       rep_data[[rep]] <- data  
     }
-    out_file <- sprintf("/scratch/saracv/CFTP_test/test2/nestedReps_CFTP_testConvergence2_paramsID_%02d_%s.RData", case, step_formatted)
+    out_file <- sprintf("/scratch/saracv/CFTP_test/test%d/nestedReps_CFTP_testConvergence%d_paramsID_%02d_%s.RData",test_n ,test_n , case, step_formatted)
     data <- rep_data
     save(data, file = out_file)
   }
@@ -48,7 +49,7 @@ for (case in id_cases) {
   # Loop over $cftp() output files
   for(rep in 1:n_reps){
     # Format the file name with the case, rep, and step
-    file_name <- sprintf("/scratch/saracv/CFTP_test/test2/CFTP_testConvergence2_paramsID_%02d_rep_%02d_cftp.RData", case, rep)
+    file_name <- sprintf("/scratch/saracv/CFTP_test/test%d/CFTP_testConvergence%d_paramsID_%02d_rep_%02d_cftp.RData",test_n ,test_n , case, rep)
     
     # Load the .RData file
     load(file_name)
@@ -56,7 +57,7 @@ for (case in id_cases) {
     # Append the data to rep_data list
     rep_data[[rep]] <- data 
   }
-  out_file <- sprintf("/scratch/saracv/CFTP_test/test2/nestedReps_CFTP_testConvergence2_paramsID_%02d_cftp.RData", case)
+  out_file <- sprintf("/scratch/saracv/CFTP_test/test%d/nestedReps_CFTP_testConvergence%d_paramsID_%02d_cftp.RData",test_n ,test_n , case)
   data <- rep_data
   save(data, file = out_file)
 }
