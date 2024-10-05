@@ -548,12 +548,14 @@ select_minRepresentation <- function(minDiffMethTrans, minRepresentation){
 } 
 
 compute_kTrans <- function(border, tips, subset_CpG_n){
+  # Set vectors sum the methylation states at each side of the border for the selected tips
   sum_leftStr <- rep(0, subset_CpG_n)
   sum_rightStr <- rep(0, subset_CpG_n)
   for(tip in tips){
     sum_leftStr <- sum_leftStr + data[[tip]][[border]][(length(data[[tip]][[border]])-(subset_CpG_n-1)):length(data[[tip]][[border]])]
     sum_rightStr <- sum_rightStr + data[[tip]][[border+1]][1:subset_CpG_n]
   }
+  # Transform methylation values (0,0.5 or 1) to count values (double strand: 0, 1 or 2)
   k <- 2*c(sum_leftStr, sum_rightStr)
   return(k)
 }
@@ -600,17 +602,34 @@ fit_logistic <- function(k, n, subset_CpG_n){
               steepness = fitted_params[4]))
 }
 
+##### Get the mean and sd of the steepness of fitted logistic transition between DMR
+## data: list with methylation states at tree tips for each structure 
+## data[[tip]][[structure]] when the number of tips is >1
+## threshold: minimum difference of average methylation frequencies between regions to select the border. Needs to be smaller than the number of tips.
+## minRepresentation: minimum number of samples/replicates with a selected border of equal type (decreasing or increasing methylation)
+## subset_CpG_n: number of CpG sites at each side of the border to consider.
 fit_MethTrans <- function(data, threshold, minRepresentation, subset_CpG_n){
+  if(!is.list(data[[1]])){
+    stop("To fit the methylation transitions data at several tips/samples/replicates needs to be provided (e.g: data[[tip]][[structure]])")
+  }
+  if(minRepresentation > length(data[[1]])){
+    stop("The minimum number of tips/samples/replicates set to select transitions 'minRepresentation' is higher than the number of tips/samples/replicates in the data")
+  }
   minDiffMethTrans <- select_minDiffMethTrans(threshold, data)
   selectedTrans <- select_minRepresentation(minDiffMethTrans = minDiffMethTrans, minRepresentation = minRepresentation)
   steepness <- c()
   midpoint <- c()
   for (i in 1:length(selectedTrans$border)){
-    k <- compute_kTrans(border = selectedTrans$border[i], tips = selectedTrans$tips[[i]], subset_CpG_n = subset_CpG_n)
-    n <- 2*length(selectedTrans$tips[[i]])
-    fitted_params <- fit_logistic(k = k, n = n, subset_CpG_n = subset_CpG_n)
-    steepness[i] <- fitted_params$steepness
-    midpoint[i] <- fitted_params$midpoint
+    border <- selectedTrans$border[i]
+    if(length(data[[1]][[border]])<2*subset_CpG_n || length(data[[1]][[border+1]])<2*subset_CpG_n){
+      print(paste("Structures at the side of each border should have at least twice the number of CpGs than given 'subset_CpG_n'. Neglecting border:", border))
+    } else {
+      k <- compute_kTrans(border = border, tips = selectedTrans$tips[[i]], subset_CpG_n = subset_CpG_n)
+      n <- 2*length(selectedTrans$tips[[i]])
+      fitted_params <- fit_logistic(k = k, n = n, subset_CpG_n = subset_CpG_n)
+      steepness[i] <- fitted_params$steepness
+      midpoint[i] <- fitted_params$midpoint
+    }
   }
   return(list(meanSteepness = mean(steepness),
               sdSteepness = sd(steepness)))
