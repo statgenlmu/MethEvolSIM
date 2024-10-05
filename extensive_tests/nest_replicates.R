@@ -5,7 +5,7 @@
 id_cases <- c(2)
 n_reps <- 10    # Number of replicates (e.g., rep1, rep2, ..., rep10)
 n_steps <- 251  # Number of steps (from 0000 to 0250, inclusive)
-test_n <- 5
+test_n <- 2
 
 # Loop over each case
 #for (case in 1:n_cases) {
