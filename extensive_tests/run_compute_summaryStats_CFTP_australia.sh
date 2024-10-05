@@ -2,13 +2,13 @@
 #SBATCH --job-name=CFTP_compute_summaryStats
 
 # Define the test number variable
-test_n=5
+test_n=1
 
 # Define the base directory path
 base_dir="/scratch/saracv/CFTP_test/test${test_n}"
 
 #for i in $(seq 1 10)
-for i in 2 3 4 5 6 7 9 10
+for i in 2 3 4 5 7 9 10
 do
   if [ $i -lt 10 ]
   then
