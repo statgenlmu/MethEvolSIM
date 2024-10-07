@@ -130,8 +130,8 @@ singleStructureGenerator <-
                 ## @return NULL
                 ##
                 update_intraStr_neighbSt = function(position){
-                  if (!is.numeric(position) || length(position) != 1) {
-                    stop("'position' must be one number")
+                  if (!is.numeric(position) || length(position) != 1 || position != floor(position)) {
+                    stop("'position' must be one integer index value")
                   }
                   if( position < 1 || position > length(private$seq)){
                     stop("'position' value must be within $seq length")

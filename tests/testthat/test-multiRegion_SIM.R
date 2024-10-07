@@ -611,7 +611,6 @@ test_that("singleStructureGenerator update_interStr_firstNeighbSt()", {
                info = "method fails to correctly update neighbSt given 2 correct arguments")
 })
 
-####################################### DEVELOP
 
 test_that("singleStructureGenerator update_interStr_lastNeighbSt()", {
   single_obj <- singleStructureGenerator$new("U",10)
@@ -625,8 +624,7 @@ test_that("singleStructureGenerator update_interStr_lastNeighbSt()", {
                info = "method fails to trow error with NA 'leftNeighb_seqSt' argument")
   expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 0, rightNeighb_seqSt = 1),
                info = "method fails to trow error with 0 'leftNeighb_seqSt' argument")
-  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = NULL, rightNeighb_seqSt = 1),
-               info = "method fails to trow error with NULL 'leftNeighb_seqSt' argument")
+  
   
   # Test cases: incorrect rightNeighb_seqSt argument
   expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = "i"),
@@ -637,34 +635,38 @@ test_that("singleStructureGenerator update_interStr_lastNeighbSt()", {
                info = "method fails to trow error with NA 'rightNeighb_seqSt' argument")
   expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 0),
                info = "method fails to trow error with 0 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NULL),
+               info = "method fails to trow error with NULL 'leftNeighb_seqSt' argument")
+  
   # Expect no error when both are correct
-  expect_no_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NULL))
+  expect_no_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = NULL, rightNeighb_seqSt = 1))
   expect_no_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 1))
   
   # Test cases: update neighbSt first position
   single_obj <- singleStructureGenerator$new("U",10)
-  single_obj$update_interStr_lastNeighbSt(3,2)
-  expect_equal(get_private(single_obj)$neighbSt[1], 8,
+  single_obj$update_interStr_lastNeighbSt(3,3)
+  expect_equal(get_private(single_obj)$neighbSt[10], 9,
                info = "method fails to correctly update neighbSt given 2 correct non NULL arguments")
-  single_obj$update_interStr_lastNeighbSt(2, NULL)
-  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+  single_obj$update_interStr_lastNeighbSt(NULL, 1)
+  expect_equal(get_private(single_obj)$neighbSt[10], 1,
                info = "method fails to correctly update neighbSt given 2 correct arguments")
 })
 
-###################################### DEVELOP
 
 test_that("singleStructureGenerator update_intraStr_neighbSt()", {
   single_obj <- singleStructureGenerator$new("U",13, testing = TRUE)
 
   # Test cases: incorrect input
   expect_error(get_private(single_obj)$update_intraStr_neighbSt("i"),
-               info = "method fails to trow error with non-numeric argument")
+               info = "method fails to trow error with non-numeric 'position' argument")
   expect_error(get_private(single_obj)$update_intraStr_neighbSt(c(1,2)),
-               info = "method fails to trow error with non-numeric argument")
+               info = "method fails to trow error with non-numeric 'position' argument")
   expect_error(get_private(single_obj)$update_intraStr_neighbSt(14),
-               info = "method fails to trow error with index argument bigger than sequence length")
+               info = "method fails to trow error with 'position' argument bigger than sequence length")
   expect_error(get_private(single_obj)$update_intraStr_neighbSt(0),
-               info = "method fails to trow error with index argument 0")
+               info = "method fails to trow error with 'position' argument 0")
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt(1.5),
+               info = "method fails to trow error with 'position' argument non-index (integer)")
 
   # Test cases: change of methylation state in different positions within singleStructure instances
   if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
