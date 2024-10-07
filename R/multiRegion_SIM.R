@@ -123,7 +123,6 @@ singleStructureGenerator <-
                 ## @description
                 ## Private method: Update $neighbSt of a CpG position's neighbors within singleStructureGenerator object
                 ##
-                ## This fuction takes in the position index of a CpG site that
                 ## changed $seq state and updates $neighbSt for the neighbors of the changed position
                 ##
                 ## @param position position index of the $seq change
@@ -149,12 +148,23 @@ singleStructureGenerator <-
                         private$neighbSt[position + 1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position + 2]]
                       }
                     } else if (position == 2){
-                      #1st counts the only neighbor as both neighbors
+                      # position 1 has only one neighbor: position 2
                       private$neighbSt[position-1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
-                      private$neighbSt[position+1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                      if (position != length(private$seq)){
+                        if (length(private$seq) < position + 2){
+                          # position 3 has only one neighbor: position 2
+                          private$neighbSt[position+1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                        } else {
+                          private$neighbSt[position+1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                        }
+                      }
                     } else if (position == length(private$seq)){
-                      # position n has only one neighbor
-                      private$neighbSt[position-1] <<- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                      if (length(private$seq) < 3){
+                        # position n-1 has only one neighbor: position n
+                        private$neighbSt[position-1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                      } else {
+                        private$neighbSt[position-1] <<- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                      }
                     } else if (position == length(private$seq)-1){
                       #last counts the only neighbor as both neighbors
                       private$neighbSt[position+1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
@@ -688,7 +698,7 @@ singleStructureGenerator <-
                   private$set_Qi()
                   private$set_Qc()
                   private$set_Q()
-                  #undebug(self$update_ratetree_allCases)
+                  #undebug(private$update_intraStr_neighbSt)
                   if(is.null(private$my_combiStructure)){
                     self$init_neighbSt()
                     #debug(self$initialize_ratetree)
@@ -712,10 +722,10 @@ singleStructureGenerator <-
                 #'
                 #' @return numerical encoding of second position's methylation state. NULL if position does not exist
                 get_seq2ndPos = function () {
-                  if (length(private$seq)==1){
-                    if (is.null(private$get_nextStr())) NULL
-                    else private$get_nextStr()$get_seqFirstPos()
-                  } else {
+                  if (length(private$seq)==1){ # if singleStr contains only one position
+                    if (is.null(private$get_nextStr())) NULL # and if there is no other singleStr to the the right, return NULL
+                    else private$get_nextStr()$get_seqFirstPos() # if there is other singleStr to the right, return seq state first position
+                  } else { # if singleStr contains more then one position, return the seq state of second position
                     private$seq[2]
                   }
                 },
@@ -729,10 +739,10 @@ singleStructureGenerator <-
                 #'
                 #' @return numerical encoding of second but last position's methylation state. NULL if position does not exist
                 get_seq2ndButLastPos = function () {
-                  if (length(private$seq)==1){
-                    if (is.null(private$get_prevStr())) NULL
-                    else private$get_prevStr()$get_seqLastPos()
-                  } else {
+                  if (length(private$seq)==1){ # if singleStr contains only one position
+                    if (is.null(private$get_prevStr())) NULL # and there is no other singleStr to the left, return NULL
+                    else private$get_prevStr()$get_seqLastPos() # if there is other singleStr to the left, return seq state of last position
+                  } else { # if singleStr contains more than one position, return the seq state of position previous to last
                     private$seq[length(private$seq)-1]
                   }
                 },
@@ -747,29 +757,61 @@ singleStructureGenerator <-
                 #' This function is used when the last $seq position of a singleStructureGenerator object
                 #' changes methylation state to update the neighbSt position
                 #'
-                #' @param leftNeighbSt $seq state of left neighbor (left neighbor is in previous singleStructureGenerator object)
-                #' @param rightNeighbSt $seq state of right neighbor
+                #' @param leftNeighb_seqSt $seq state of left neighbor (left neighbor is in previous singleStructureGenerator object)
+                #' @param rightNeighb_seqSt $seq state of right neighbor
                 #'
                 #' @return NULL
-                update_interStr_firstNeighbSt = function(leftNeighbSt, rightNeighbSt) {
-                  if(!is.null(rightNeighbSt)){
-                    private$neighbSt[1] <<- private$mapNeighbSt_matrix[leftNeighbSt, rightNeighbSt]
-                  } else { # if there is no right neighbour
-                    private$neighbSt[1] <<- private$mapNeighbSt_matrix[leftNeighbSt, leftNeighbSt]
+                update_interStr_firstNeighbSt = function(leftNeighb_seqSt, rightNeighb_seqSt) {
+                  
+                  # Check if leftNeighb_seqSt is NULL
+                  if (is.null(leftNeighb_seqSt)) {
+                    stop("Error: argument 'leftNeighb_seqSt' cannot be NULL")
+                  }
+                  
+                  # Check if leftNeighb_seqSt is 1, 2, or 3
+                  if (!leftNeighb_seqSt %in% c(1, 2, 3)) {
+                    stop("Error: argument 'leftNeighb_seqSt' must be 1, 2, or 3")
+                  }
+                  
+                  # Check if rightNeighb_seqSt is NULL or 1, 2, or 3
+                  if (!is.null(rightNeighb_seqSt) && !rightNeighb_seqSt %in% c(1, 2, 3)) {
+                    stop("Error: argument 'rightNeighb_seqSt' must be NULL, 1, 2, or 3")
+                  }
+                  
+                  if(!is.null(rightNeighb_seqSt)){
+                    private$neighbSt[1] <<- private$mapNeighbSt_matrix[leftNeighb_seqSt, rightNeighb_seqSt]
+                  } else { # if there is no right neighbour use left neighb as both neighbors
+                    private$neighbSt[1] <<- private$mapNeighbSt_matrix[leftNeighb_seqSt, leftNeighb_seqSt]
                   }
                 },
                 #' @description
                 #' Public method: Update neighbSt of previous singleStructureGenerator object within combiStructureGenerator object
                 #'
-                #' @param leftNeighbSt $seq state of right neighbor (left neighbor is in next singleStructureGenerator object)
-                #' @param rightNeighbSt $seq state of right neighbor
+                #' @param leftNeighb_seqSt $seq state of right neighbor (left neighbor is in next singleStructureGenerator object)
+                #' @param rightNeighb_seqSt $seq state of right neighbor
                 #'
                 #' @return NULL
-                update_interStr_lastNeighbSt = function(leftNeighbSt, rightNeighbSt){
-                  if(!is.null(leftNeighbSt)){
-                    private$neighbSt[length(private$neighbSt)] <<- private$mapNeighbSt_matrix[leftNeighbSt, rightNeighbSt]
-                  } else { # if there is no left neighbour
-                    private$neighbSt[length(private$neighbSt)] <<- private$mapNeighbSt_matrix[rightNeighbSt, rightNeighbSt]
+                update_interStr_lastNeighbSt = function(leftNeighb_seqSt, rightNeighb_seqSt){
+                  
+                  # Check if rightNeighb_seqSt is NULL
+                  if (is.null(rightNeighb_seqSt)) {
+                    stop("Error: argument 'rightNeighb_seqSt' cannot be NULL")
+                  }
+                  
+                  # Check if rightNeighb_seqSt is 1, 2, or 3
+                  if (!rightNeighb_seqSt %in% c(1, 2, 3)) {
+                    stop("Error: argument 'rightNeighb_seqSt' must be 1, 2, or 3")
+                  }
+                  
+                  # Check if leftNeighb_seqSt is NULL or 1, 2, or 3
+                  if (!is.null(leftNeighb_seqSt) && !leftNeighb_seqSt %in% c(1, 2, 3)) {
+                    stop("Error: argument 'leftNeighb_seqSt' must be NULL, 1, 2, or 3")
+                  }
+                  
+                  if(!is.null(leftNeighb_seqSt)){
+                    private$neighbSt[length(private$neighbSt)] <<- private$mapNeighbSt_matrix[leftNeighb_seqSt, rightNeighb_seqSt]
+                  } else { # if there is no left neighbour use right neighb as both neighbors
+                    private$neighbSt[length(private$neighbSt)] <<- private$mapNeighbSt_matrix[rightNeighb_seqSt, rightNeighb_seqSt]
                   }
                 },
                 #' @description
@@ -808,8 +850,47 @@ singleStructureGenerator <-
                                 old_St <- private$seq[i]
                             }
                             
+                            ########################################## DEBUGGING ############################
+                            # Define a global variable to store error information
+                            error_info_global <- NULL
+                            
+                            # Try-catch block with error handling
+                            error_info <- tryCatch({
+                              # Attempt to run sample()
+                              private$seq[i] <<- sample(1:3, size = 1, prob = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0))
+                              NULL # If no error, return NULL
+                            }, error = function(e) {
+                              # Capture error information in a list
+                              singleStrcloned <- self$clone()
+                              list(
+                                message = conditionMessage(e),
+                                singleStrcloned = singleStrcloned,
+                                combiStrcloned = private$my_combiStructure,
+                                singleStr_n = private$combiStructure_index,
+                                i = i,
+                                seq_i = private$seq[i],
+                                siteR_i = private$siteR[i],
+                                neighbSt_i = private$neighbSt[i],
+                                prob = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0)
+                              )
+                            })
+                            
+                            # If error_info is not NULL, it means an error occurred
+                            if (!is.null(error_info)) {
+                              print("Error occurred:")
+                              print(error_info$message)
+                              
+                              # Save the error information to a global variable
+                              error_info_global <<- error_info
+                              
+                              # Stop execution
+                              stop("Execution stopped due to an error (SSE).")
+                            }
+                            ############################################ DEBUGGING ############################
+                            
+                            ## TODO: Uncomment when debugging is finished
                             # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
-                            private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
+                            #private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
                             
                             if (testing){
                                 new_St <- private$seq[i]

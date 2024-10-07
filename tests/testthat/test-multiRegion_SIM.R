@@ -572,32 +572,99 @@ test_that("singleStructureGenerator get_seq2ndButLastPos() from combiStructureGe
   expect_null(combi_obj$get_singleStr(1)$get_seq2ndButLastPos())
 })
 
+
 test_that("singleStructureGenerator update_interStr_firstNeighbSt()", {
-  single_obj <- singleStructureGenerator$new("U",13, testing = TRUE)
-  expect_equal(get_private(single_obj)$neighbSt[1], 1)
+  single_obj <- singleStructureGenerator$new("U",10)
+  
+  # Test cases: incorrect leftNeighb_seqSt argument
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = "i", rightNeighb_seqSt = 1),
+               info = "method fails to trow error with non-numeric 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = NaN, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NaN 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = NA, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NA 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 0, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with 0 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = NULL, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NULL 'leftNeighb_seqSt' argument")
+  
+  # Test cases: incorrect rightNeighb_seqSt argument
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = "i"),
+               info = "method fails to trow error with non-numeric 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NaN),
+               info = "method fails to trow error with NaN 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NA),
+               info = "method fails to trow error with NA 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 0),
+               info = "method fails to trow error with 0 'rightNeighb_seqSt' argument")
+  # Expect no error when both are correct
+  expect_no_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NULL))
+  expect_no_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 1))
+  
+  # Test cases: update neighbSt first position
+  single_obj <- singleStructureGenerator$new("U",10)
   single_obj$update_interStr_firstNeighbSt(3,2)
-  expect_equal(get_private(single_obj)$neighbSt[1], 8)
+  expect_equal(get_private(single_obj)$neighbSt[1], 8,
+               info = "method fails to correctly update neighbSt given 2 correct non NULL arguments")
   single_obj$update_interStr_firstNeighbSt(2, NULL)
-  expect_equal(get_private(single_obj)$neighbSt[1], 5)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "method fails to correctly update neighbSt given 2 correct arguments")
 })
 
+####################################### DEVELOP
+
 test_that("singleStructureGenerator update_interStr_lastNeighbSt()", {
-  single_obj <- singleStructureGenerator$new("U",13, testing = TRUE)
-  expect_equal(get_private(single_obj)$neighbSt[length(get_private(single_obj)$neighbSt)], 5)
-  single_obj$update_interStr_lastNeighbSt(1,3)
-  expect_equal(get_private(single_obj)$neighbSt[length(get_private(single_obj)$neighbSt)], 3)
-  single_obj$update_interStr_lastNeighbSt(NULL,3)
-  expect_equal(get_private(single_obj)$neighbSt[length(get_private(single_obj)$neighbSt)], 9)
+  single_obj <- singleStructureGenerator$new("U",10)
+  
+  # Test cases: incorrect leftNeighb_seqSt argument
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = "i", rightNeighb_seqSt = 1),
+               info = "method fails to trow error with non-numeric 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = NaN, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NaN 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = NA, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NA 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 0, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with 0 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = NULL, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NULL 'leftNeighb_seqSt' argument")
+  
+  # Test cases: incorrect rightNeighb_seqSt argument
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = "i"),
+               info = "method fails to trow error with non-numeric 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NaN),
+               info = "method fails to trow error with NaN 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NA),
+               info = "method fails to trow error with NA 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 0),
+               info = "method fails to trow error with 0 'rightNeighb_seqSt' argument")
+  # Expect no error when both are correct
+  expect_no_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NULL))
+  expect_no_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 1))
+  
+  # Test cases: update neighbSt first position
+  single_obj <- singleStructureGenerator$new("U",10)
+  single_obj$update_interStr_lastNeighbSt(3,2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 8,
+               info = "method fails to correctly update neighbSt given 2 correct non NULL arguments")
+  single_obj$update_interStr_lastNeighbSt(2, NULL)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "method fails to correctly update neighbSt given 2 correct arguments")
 })
+
+###################################### DEVELOP
 
 test_that("singleStructureGenerator update_intraStr_neighbSt()", {
   single_obj <- singleStructureGenerator$new("U",13, testing = TRUE)
 
   # Test cases: incorrect input
-  expect_error(get_private(single_obj)$update_intraStr_neighbSt("i"))
-  expect_error(get_private(single_obj)$update_intraStr_neighbSt(c(1,2)))
-  expect_error(get_private(single_obj)$update_intraStr_neighbSt(14))
-  expect_error(get_private(single_obj)$update_intraStr_neighbSt(0))
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt("i"),
+               info = "method fails to trow error with non-numeric argument")
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt(c(1,2)),
+               info = "method fails to trow error with non-numeric argument")
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt(14),
+               info = "method fails to trow error with index argument bigger than sequence length")
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt(0),
+               info = "method fails to trow error with index argument 0")
 
   # Test cases: change of methylation state in different positions within singleStructure instances
   if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
@@ -605,6 +672,7 @@ test_that("singleStructureGenerator update_intraStr_neighbSt()", {
       private$seq[position] <-newState
     })
   }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
 
   ## Structure of length 1
   single_obj <- singleStructureGenerator$new("U", 1)
@@ -620,6 +688,292 @@ test_that("singleStructureGenerator update_intraStr_neighbSt()", {
   get_private(single_obj)$update_intraStr_neighbSt(1)
   expect_equal(get_private(single_obj)$neighbSt, 9,
                info = "singleStr of length 1 assigns wrong neighbSt for newState 3")
+  
+  ## Structure of length 2: change seq state position 1, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 2)
+  single_obj$modify_seqPos(position = 1, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  expect_equal(get_private(single_obj)$neighbSt[2], 1,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 2 for newState 1")
+  single_obj$modify_seqPos(position = 1, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  expect_equal(get_private(single_obj)$neighbSt[2], 5,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 2 for newState 2")
+  single_obj$modify_seqPos(position = 1, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  expect_equal(get_private(single_obj)$neighbSt[2], 9,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 2 for newState 3")
+  
+  ## Structure of length 2: change seq state position 2, update neighbSt position 1
+  single_obj <- singleStructureGenerator$new("U", 2)
+  single_obj$modify_seqPos(position = 2, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 1,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 1 for newState 1")
+  single_obj$modify_seqPos(position = 2, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 1 for newState 2")
+  single_obj$modify_seqPos(position = 2, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 9,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 1 for newState 3")
+ 
+  ## Structure of length 3: change seq state position 1, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 3)
+  single_obj$modify_seqPos(position = 1, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 1 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 2 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 3 position 1")
+  
+  ## Structure of length 3: change seq state position 2, update neighbSt position 1 and 3
+  single_obj <- singleStructureGenerator$new("U", 3)
+  single_obj$modify_seqPos(position = 2, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 1,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 1 for newState 1 position 2")
+  expect_equal(get_private(single_obj)$neighbSt[3], 1,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 3 for newState 1 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 1 for newState 2 position 2")
+  expect_equal(get_private(single_obj)$neighbSt[3], 5,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 3 for newState 2 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 9,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 1 for newState 3 position 2")
+  expect_equal(get_private(single_obj)$neighbSt[3], 9,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 3 for newState 3 position 2")
+  
+  ## Structure of length 3: change seq state position 3, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 3)
+  single_obj$modify_seqPos(position = 3, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 1]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 1 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 2]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 2 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 3]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 3 position 3")
+  
+  
+  ## Structure of length 4: change seq state position 1, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 4)
+  single_obj$modify_seqPos(position = 1, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 1 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 2 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 3 position 1")
+  
+  
+  ## Structure of length 4: change seq state position 2, update neighbSt position 1 and 3
+  single_obj <- singleStructureGenerator$new("U", 4)
+  single_obj$modify_seqPos(position = 2, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 1,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 1 for newState 1 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 1 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 1 for newState 2 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 2 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 9,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 1 for newState 3 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 3 position 2")
+  
+  ## Structure of length 4: change seq state position 3, update neighbSt position 2 and 4
+  single_obj <- singleStructureGenerator$new("U", 4)
+  single_obj$modify_seqPos(position = 3, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 1]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 1 position 3")
+  expect_equal(get_private(single_obj)$neighbSt[4], 1,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 4 for newState 1 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 2]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 2 position 3")
+  expect_equal(get_private(single_obj)$neighbSt[4], 5,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 4 for newState 2 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 3]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 3 position 3")
+  expect_equal(get_private(single_obj)$neighbSt[4], 9,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 4 for newState 3 position 3")
+  
+  ## Structure of length 4: change seq state position 4, update neighbSt position 3
+  single_obj <- singleStructureGenerator$new("U", 4)
+  single_obj$modify_seqPos(position = 4, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 1]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 1 position 4")
+  single_obj$modify_seqPos(position = 4, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 2]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 2 position 4")
+  single_obj$modify_seqPos(position = 4, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 3]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 3 position 4")
+  
+  
+  ## Structure of length 5: change seq state position 1, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 1, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 1 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 2 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 3 position 1")
+  
+  ## Structure of length 5: change seq state position 2, update neighbSt position 1 and 3
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 2, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 1,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 1 for newState 1 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 1 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 1 for newState 2 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 2 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 9,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 1 for newState 3 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 3 position 2")
+  
+  ## Structure of length 5: change seq state position 3, update neighbSt position 2 and 4
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 3, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 1]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 1 position 3")
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[5]]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 1 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 2]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 2 position 3")
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[5]]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 2 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 3]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 3 position 3")
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[5]]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 3 position 3")
+  
+  ## Structure of length 5: change seq state position 4, update neighbSt positions 3 and 5
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 4, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 1]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 1 position 4")
+  expect_equal(get_private(single_obj)$neighbSt[5], 1,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 5 for newState 1 position 4")
+  single_obj$modify_seqPos(position = 4, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 2]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 2 position 4")
+  expect_equal(get_private(single_obj)$neighbSt[5], 5,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 5 for newState 2 position 4")
+  single_obj$modify_seqPos(position = 4, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 3]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 3 position 4")
+  expect_equal(get_private(single_obj)$neighbSt[5], 9,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 5 for newState 3 position 4")
+  
+  ## Structure of length 5: change seq state position 5, update neighbSt position 4
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 5, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(5)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[3], 1]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 1 position 5")
+  single_obj$modify_seqPos(position = 5, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(5)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[3], 2]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 2 position 5")
+  single_obj$modify_seqPos(position = 5, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(5)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[3], 3]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 3 position 5")
+  
 
 
   ## Position 1
