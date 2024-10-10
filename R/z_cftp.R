@@ -92,6 +92,7 @@ singleStructureGenerator$set("public", "get_seqSt_rightneighb", function(index){
 singleStructureGenerator$set("public", "cftp_all_equal", function(state, testing = FALSE) {
   n <- length(private$seq)
   if (state == "U"){
+    ### TODO: If cftp at some point accounts for IWEs, then this assigning "U" or "M" to globalState should not be done.
     private$globalState <- "U"
     private$seq <- rep(1L, n)
   } else if (state == "M"){
@@ -283,17 +284,61 @@ combiStructureGenerator$set("public", "cftp", function(steps = 10000, testing = 
       # Copy (deep clone) the combiStructure instance to generate 2 instances
       combi_u <- self$copy()
       combi_m <- self$copy()
+      print("before $init_neighbSt seq")
+      print("self")
+      print(c(private$singleStr[[20]]$get_seq()[99:100], private$singleStr[[21]]$get_seq()[1]))
+      print("combi_u")
+      print(c(combi_u$get_singleStr(20)$get_seq()[99:100], combi_u$get_singleStr(21)$get_seq()[1]))
+      print("combi_m")
+      print(c(combi_m$get_singleStr(20)$get_seq()[99:100], combi_m$get_singleStr(21)$get_seq()[1]))
+      print("before $init_neighbSt neighbSt")
+      print("self")
+      print(private$singleStr[[20]]$get_neighbSt()[100])
+      print("combi_u")
+      print(combi_u$get_singleStr(20)$get_neighbSt()[100])
+      print("combi_m")
+      print(combi_m$get_singleStr(20)$get_neighbSt()[100])
       for(str in 1:length(private$singleStr)){
         # Set the sequences for each as all m states and all u states
         combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
         combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
+      }
+       for(str in 1:length(private$singleStr)){
         # Update the neighbSt according to the new sequence
         combi_u$get_singleStr(str)$init_neighbSt()
         combi_m$get_singleStr(str)$init_neighbSt()
         ### note that rate trees are not updated in combi_u and combi_m 
       }
+      print("before $cftp_apply_events seq")
+      print("self")
+      print(c(private$singleStr[[20]]$get_seq()[99:100], private$singleStr[[21]]$get_seq()[1]))
+      print("combi_u")
+      print(c(combi_u$get_singleStr(20)$get_seq()[99:100], combi_u$get_singleStr(21)$get_seq()[1]))
+      print("combi_m")
+      print(c(combi_m$get_singleStr(20)$get_seq()[99:100], combi_m$get_singleStr(21)$get_seq()[1]))
+      print("before $cftp_apply_events neighbSt")
+      print("self")
+      print(private$singleStr[[20]]$get_neighbSt()[100])
+      print("combi_u")
+      print(combi_u$get_singleStr(20)$get_neighbSt()[100])
+      print("combi_m")
+      print(combi_m$get_singleStr(20)$get_neighbSt()[100])
         combi_u$cftp_apply_events() 
         combi_m$cftp_apply_events() 
+        print("after $cftp_apply_events seq")
+        print("self")
+        print(c(private$singleStr[[20]]$get_seq()[99:100], private$singleStr[[21]]$get_seq()[1]))
+        print("combi_u")
+        print(c(combi_u$get_singleStr(20)$get_seq()[99:100], combi_u$get_singleStr(21)$get_seq()[1]))
+        print("combi_m")
+        print(c(combi_m$get_singleStr(20)$get_seq()[99:100], combi_m$get_singleStr(21)$get_seq()[1]))
+        print("after $cftp_apply_events neighbSt")
+        print("self")
+        print(private$singleStr[[20]]$get_neighbSt()[100])
+        print("combi_u")
+        print(combi_u$get_singleStr(20)$get_neighbSt()[100])
+        print("combi_m")
+        print(combi_m$get_singleStr(20)$get_neighbSt()[100])
         equal_str <- c()
         for(str in 1:length(private$singleStr)){
           equal_str[str] <- all(combi_u$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())

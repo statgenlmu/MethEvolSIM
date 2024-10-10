@@ -187,48 +187,96 @@ singleStructureGenerator <-
                 ## @return NULL
                 ##
                 update_neighbSt = function(position){
-                  if (is.null(private$combiStructure_index)){ # case of isolated singleStructure instance
-                    private$update_intraStr_neighbSt(position)
-                  } else { # case of singleStructure instances within combiStructure
-
-                    ## Update left neighbSt
-                    if (position == 1){
-                      if(!is.null(private$get_prevStr())){ # if singleStr is not first Str
-                        if(!is.null(private$get_prevStr()$get_seq2ndButLastPos())){ # if there is 2 positions to the left
-                          private$get_prevStr()$update_interStr_lastNeighbSt(private$get_prevStr()$get_seq2ndButLastPos(), private$seq[position])
-                        } else {
-                          private$get_prevStr()$update_interStr_lastNeighbSt(private$seq[position], private$seq[position])
-                        }
-                      }
-                    } else if (position == 2){
-                      if(!is.null(private$get_prevStr())){ # if singleStr is not first Str
-                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$seq[position]]
-                      } else { # singleStr has no neighbouring Str to the left, first position takes as 2 neighbors second position
-                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
-                      }
-                    } else {
-                      private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position - 2], private$seq[position]]
-                    }
-
-                    ## Update right neighbSt
-                    if (position == length(private$seq)){
-                      if(!is.null(private$get_nextStr())){ # if singleStr is not last Str
-                        if(!is.null(private$get_nextStr()$get_seq2ndPos())){ # if there is 2 positions to the right
-                          private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$get_nextStr()$get_seq2ndPos())
-                        } else {
-                          private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$seq[position])
-                        }
-                      }
-                    } else if (position == length(private$seq)-1){
-                      if(!is.null(private$get_nextStr())){ # if singleStr is not last Str
-                        private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$get_rightStr_neighbSt()]
-                      } else { # singleStr has no neighbouring Str to the righ, last positions takes as 2 neighbors last - 1 position
-                        private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
-                      }
-                    } else {
-                      private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position + 2]]
-                    }
+                  if (!is.numeric(position) || length(position) != 1 || position != floor(position)) {
+                    stop("'position' must be one integer index value")
                   }
+                  if( position < 1 || position > length(private$seq)){
+                    stop("'position' value must be within $seq length")
+                  }
+                  
+                  ####################### DEBUGGING ##############################
+                  if (is.null(private$combiStructure_index) || private$my_combiStructure$get_singleStr_number() == 1){ ## Case of isolated singleStructure instance
+                    private$update_intraStr_neighbSt(position)
+                  } else { ## Case of singleStructure instances within combiStructure
+                    
+                    if (length(private$seq) == 1){ ## Cases with length 1
+                      # Update leftNeighbSt
+                      if (!is.null(private$get_prevStr())){
+                        private$get_prevStr()$update_interStr_lastNeighbSt(private$get_prevStr()$get_seq2ndButLastPos(), private$seq[position])
+                      }
+                      # Update rightNeighbSt
+                      if (!is.null(private$get_nextStr())){
+                        private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$get_nextStr()$get_seq2ndPos())
+                      }
+                      
+                    } else { ## cases with length > 1
+                      
+                      if (position == 1){
+                        # Update leftNeighbSt
+                        if (!is.null(private$get_prevStr())){
+                          private$get_prevStr()$update_interStr_lastNeighbSt(private$get_prevStr()$get_seq2ndButLastPos(), private$seq[position])
+                        }
+                        # Update rightNeighbSt
+                        if(length(private$seq) < position + 2){
+                          if (!is.null(private$get_nextStr())){
+                            private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$get_nextStr()$get_seqFirstPos()]
+                          } else {
+                            private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                          }
+                        } else {
+                          private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                        }
+                      } else if (position == 2){
+                        # Update leftNeighbSt
+                        if (!is.null(private$get_prevStr())){
+                          private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$get_prevStr()$get_seqLastPos(), private$seq[position]]
+                        } else {
+                          private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                        }
+                        # Update rightNeighbSt
+                        if(length(private$seq) < position + 2){
+                          if(position == length(private$seq)){ # second position is also last
+                            if (!is.null(private$get_nextStr())){ # if there is another structure to the right
+                              private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$get_nextStr()$get_seq2ndPos())
+                            }
+                          } else {# second position is also previous to last
+                            if (!is.null(private$get_nextStr())){
+                              private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$get_nextStr()$get_seqFirstPos()]
+                            } else {
+                              private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                            }
+                          }
+                        } else { # second position is not last or previous to last
+                          private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                        }
+                      } else if (position == length(private$seq)){ 
+                        # Update leftNeighbSt (always position 3 or higher, so it has two left neighbors)
+                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                        # Update rightNeighbSt
+                        if(!is.null(private$get_nextStr())){
+                          private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$get_nextStr()$get_seq2ndPos())
+                        }
+                        
+                      } else if (position == length(private$seq)-1){
+                        # Update leftNeighbSt (always position 3 or higher, so it has two left neighbors)
+                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                        # Update rightNeighbSt
+                        if(!is.null(private$get_nextStr())){
+                          private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$get_nextStr()$get_seqFirstPos()]
+                        } else {
+                          private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                        }
+                      } else {
+                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                        private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                      }
+                    } ## End of cases with length > 1
+        
+                  } ## End of case of singleStructure instances within combiStructure
+                  
+                  
+                  ####################### DEBUGGING ##############################  
+                   
                 },
                 ## @field alpha_Ri Private attribute: Model parameter for gamma distribution shape to initialize the 3 $Ri_values
                 alpha_Ri = 0.1,
@@ -698,13 +746,19 @@ singleStructureGenerator <-
                   private$set_Qi()
                   private$set_Qc()
                   private$set_Q()
-                  #undebug(private$update_intraStr_neighbSt)
+                  #undebug(private$update_neighbSt)
+                  #undebug(self$update_interStr_firstNeighbSt)
                   if(is.null(private$my_combiStructure)){
                     self$init_neighbSt()
                     #debug(self$initialize_ratetree)
                     self$initialize_ratetree()
                   }
                 },
+                #' @description
+                #' Public method: Set my_combiStructurw
+                #'
+                #' @return NULL
+                set_myCombiStructure = function(combi) private$my_combiStructure <- combi,
                 #' @description
                 #' Public method: Get object's methylation state sequence
                 #'
@@ -1635,7 +1689,7 @@ combiStructureGenerator <-
                 #' @return NULL
                 set_singleStr = function(singStrList){
                     private$singleStr <- lapply(singStrList, function(singleStr) {
-                        singleStr$clone()
+                        singleStr$clone(deep = TRUE)
                     })
                 },
 
@@ -1646,6 +1700,9 @@ combiStructureGenerator <-
                 copy = function(){
                     new_obj <- self$clone()
                     new_obj$set_singleStr(private$singleStr)
+                    for (str in 1:length(private$singleStr)){
+                      new_obj$get_singleStr(str)$set_myCombiStructure(new_obj)
+                    }
                     return(new_obj)
                 },
 
