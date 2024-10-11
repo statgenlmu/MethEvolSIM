@@ -284,20 +284,6 @@ combiStructureGenerator$set("public", "cftp", function(steps = 10000, testing = 
       # Copy (deep clone) the combiStructure instance to generate 2 instances
       combi_u <- self$copy()
       combi_m <- self$copy()
-      #print("before $init_neighbSt seq")
-      #print("self")
-      #print(c(private$singleStr[[20]]$get_seq()[99:100], private$singleStr[[21]]$get_seq()[1]))
-      #print("combi_u")
-      #print(c(combi_u$get_singleStr(20)$get_seq()[99:100], combi_u$get_singleStr(21)$get_seq()[1]))
-      #print("combi_m")
-      #print(c(combi_m$get_singleStr(20)$get_seq()[99:100], combi_m$get_singleStr(21)$get_seq()[1]))
-      #print("before $init_neighbSt neighbSt")
-      #print("self")
-      #print(private$singleStr[[20]]$get_neighbSt()[100])
-      #print("combi_u")
-      #print(combi_u$get_singleStr(20)$get_neighbSt()[100])
-      #print("combi_m")
-      #print(combi_m$get_singleStr(20)$get_neighbSt()[100])
       for(str in 1:length(private$singleStr)){
         # Set the sequences for each as all m states and all u states
         combi_u$get_singleStr(str)$cftp_all_equal(state = "U")

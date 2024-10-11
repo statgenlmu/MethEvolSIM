@@ -91,43 +91,7 @@ test_that("singleStructureGenerator get_seqLastPos() from combiStructureGenerato
   }
 })
 
-test_that("singleStructureGenerator get_leftStr_neighbSt() from combiStructureGenerator instance", {
-  # Under testing mode: known $seq
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  expect_error(get_private(combi_obj$get_singleStr(1))$get_leftStr_neighbSt(),
-               info = "fails to throw an error when called from first Structure")
-  for (i in 2:nrow(infoStr)){
-    expect_equal(get_private(combi_obj$get_singleStr(i))$get_leftStr_neighbSt(), 3,
-                 info = "function returns left neighbSt different from known under testing mode")
-  }
-  # Under default, non testing mode: unknown $seq
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  for (i in 2:nrow(infoStr)){
-    expect_equal(get_private(combi_obj$get_singleStr(i))$get_leftStr_neighbSt(), combi_obj$get_singleStr(i-1)$get_seq()[length(combi_obj$get_singleStr(i-1)$get_seq())],
-                 info = "output not consistent with get_seq()[length(..)] under non testing mode")
-  }
-})
 
-test_that("singleStructureGenerator get_rightStr_neighbSt() from combiStructureGenerator instance", {
-  # Under testing mode: known $seq
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  expect_error(get_private(combi_obj$get_singleStr(3))$get_rightStr_neighbSt(),
-               info = "fails to throw an error when called from last Structure")
-  for (i in 1:(nrow(infoStr)-1)){
-    expect_equal(get_private(combi_obj$get_singleStr(i))$get_rightStr_neighbSt(), 1,
-                 info = "function returns right neighbSt different from known under testing mode")
-  }
-  # Under default, non testing mode: unknown $seq
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  for (i in 1:(nrow(infoStr)-1)){
-    expect_equal(get_private(combi_obj$get_singleStr(i))$get_rightStr_neighbSt(), combi_obj$get_singleStr(i+1)$get_seq()[1],
-                 info = "output not consistent with get_seq()[1] under non testing mode")
-  }
-})
 
 test_that("singleStructureGenerator get_nextStr()", {
   infoStr <- data.frame(n = c(10, 1, 10),
@@ -1653,610 +1617,7 @@ test_that("singleStructureGenerator $update_neighbSt() seqlength > 4 intermediat
   
 })
 
-if (FALSE){
 
-  
-  
-  
-  
-  
-  
-  ##TODO: test duplicated
-  test_that("singleStructureGenerator update_neighbSt()", {
-    ##############
-    ### Test cases: change of methylation state in different positions within singleStructure instances
-    if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
-      singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
-        private$seq[position] <-newState
-      })
-    }
-    ## Structure of length 1
-    single_obj <- singleStructureGenerator$new("U", 1)
-    single_obj$modify_seqPos(position = 1, newState = 1)
-    get_private(single_obj)$update_neighbSt(1)
-    expect_equal(get_private(single_obj)$neighbSt, 1,
-                 info = "singleStr of length 1 assigns wrong neighbSt for newState 1")
-    single_obj$modify_seqPos(position = 1, newState = 2)
-    get_private(single_obj)$update_neighbSt(1)
-    expect_equal(get_private(single_obj)$neighbSt, 5,
-                 info = "singleStr of length 1 assigns wrong neighbSt for newState 2")
-    single_obj$modify_seqPos(position = 1, newState = 3)
-    get_private(single_obj)$update_neighbSt(1)
-    expect_equal(get_private(single_obj)$neighbSt, 9,
-                 info = "singleStr of length 1 assigns wrong neighbSt for newState 3")
-    
-    
-    ## Position 1
-    ### Length to the right > position + 2
-    single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-    single_obj$modify_seqPos(position = 1, newState = 2)
-    get_private(single_obj)$update_neighbSt(1)
-    expected_neighbSt <- c(1, 5, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-    expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt,
-                 info = "wrong singleStr update after modification of position 1 with length to the right > position + 2")
-    ### length to the right < position + 2 (seq length = 2: only neighbor of position 2 is position 1)
-    single_obj <- singleStructureGenerator$new("U", 2)
-    single_obj$modify_seqPos(position = 1, newState = 2)
-    get_private(single_obj)$update_neighbSt(1)
-    expect_equal(get_private(single_obj)$neighbSt[2], 5,
-                 info = "wrong singleStr update after modification of position 1 with length to the right < position + 2")
-    
-    ## Position n
-    single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-    single_obj$modify_seqPos(position = 13, newState = 1)
-    get_private(single_obj)$update_neighbSt(13)
-    expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 7, 5)  # Manually calculated based on the testing sequence
-    expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-    
-    ## Position 2
-    single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-    single_obj$modify_seqPos(position = 2, newState = 3)
-    get_private(single_obj)$update_neighbSt(2)
-    expected_neighbSt <- c(9, 2, 9, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-    expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-    
-    ## Position n-1
-    single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-    single_obj$modify_seqPos(position = 12, newState = 1)
-    get_private(single_obj)$update_neighbSt(12)
-    expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 4, 9, 1)  # Manually calculated based on the testing sequence
-    expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-    
-    ## Position between 2 and n-1
-    single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-    single_obj$modify_seqPos(position = 5, newState = 2)
-    get_private(single_obj)$update_neighbSt(5)
-    expected_neighbSt <- c(1, 2, 3, 5, 7, 4, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-    expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-    
-    ##########
-    #### Test cases: change of methylation state in different positions within combiStructure instances
-    ### Case 2: First position
-    ## Case 2.1. First position of structure without left neighbouring structure
-    infoStr <- data.frame(n = c(13, 13, 13),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 3)
-    #debug(get_private(combi_obj$get_singleStr(1))$update_neighbSt)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
-    # Update right neighbSt
-    ### a) Length to the right > position + 2
-    exp_neighbSt <- 8 #modified left neighb 3, right neighb 2
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.1 a)")
-    ### b) Length to the right < position + 2 and no right structure
-    infoStr <- data.frame(n = c(2),
-                          globalState = c("M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
-    exp_neighbSt <- 5 #first position only singleStr counts as both neighbors
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.1 b)")
-    ### c) Length to the right < position + 2 with right structure
-    mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
-    infoStr <- data.frame(n = c(2, 6),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
-    leftN <- 2
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.1 c)")
-    
-    
-    
-    
-    ## Case 2.2. First position of structure with left neighbouring structure with length > 1
-    infoStr <- data.frame(n = c(13, 13, 13),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-    # left neighbSt
-    exp_neighbSt <- 5 #left neighb 2, modified right neighb 2
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[length(get_private(combi_obj$get_singleStr(1))$neighbSt)], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 2.2")
-    # right neighbSt
-    ### a) Length to the right > position + 2
-    exp_neighbSt <- 5 #modified left neighb 2, right neighb 2
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.2 a)")
-    ### b) Length to the right < position + 2 and no right structure
-    infoStr <- data.frame(n = c(13, 2),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.2 b)")
-    ### c) Length to the right < position + 2 with right structure
-    infoStr <- data.frame(n = c(13, 2, 3),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.2 c)")
-    
-    ## Case 2.3. First position of structure with left neighbouring structure with length = 1 and additional left neighbStr
-    infoStr <- data.frame(n = c(13, 1, 5),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    # left neighbSt
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[length(combi_obj$get_singleStr(1)$get_seq())]
-    combi_obj$get_singleStr(3)$modify_seqPos(position = 1, newState = 2)
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    get_private(combi_obj$get_singleStr(3))$update_neighbSt(1)
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 2.3")
-    # right neighbSt
-    ### a) Length to the right > position + 2
-    leftN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[3]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.3 a)")
-    ### b) Length to the right < position + 2 and no right structure
-    infoStr <- data.frame(n = c(13, 1, 2),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(3)$modify_seqPos(position = 1, newState = 2)
-    get_private(combi_obj$get_singleStr(3))$update_neighbSt(1)
-    leftN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.3 b)")
-    ### c) Length to the right < position + 2 with right structure
-    infoStr <- data.frame(n = c(13, 1, 2, 1),
-                          globalState = c("M", "U", "M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(3)$modify_seqPos(position = 1, newState = 2)
-    get_private(combi_obj$get_singleStr(3))$update_neighbSt(1)
-    leftN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(4)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.3 c)")
-    
-    
-    ## Case 2.4. First position of structure with left neighbouring structure with length = 1 without additional left neighbStr
-    infoStr <- data.frame(n = c(1, 13, 5),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    # left neighbSt (there is no left neighbor, so right neighb counts as both neighbors)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    #debug(get_private(combi_obj$get_singleStr(2))$update_neighbSt)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 2.4")
-    # right neighbSt
-    ### a) Length to the right > position + 2
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[3]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.4 a)")
-    ### b) Length to the right < position + 2 and no right structure
-    infoStr <- data.frame(n = c(1, 2),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.4 b)")
-    ### c) Length to the right < position + 2 with right structure
-    infoStr <- data.frame(n = c(1, 2, 1),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 2.4 c)")
-    
-    
-    ### Case 3: 2nd position
-    ## Case 3.1. Second position of structure without left neighbouring structure
-    infoStr <- data.frame(n = c(14, 5),
-                          globalState = c("U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    # left neighbSt (there is no left neighbor, so right neighb counts as both neighbors)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 3.1")
-    # right neighbSt
-    ### a) Length to the right > position + 2
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[4]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 3.1 a)")
-    ### b) Length to the right < position + 2 and no right structure
-    infoStr <- data.frame(n = c(3),
-                          globalState = c("U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 3.1 b)")
-    ### c) Length to the right < position + 2 with right structure
-    infoStr <- data.frame(n = c(3, 1),
-                          globalState = c("U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 3.1 c)")
-    
-    ## Case 3.2. Second position of structure with left neighbouring structure
-    infoStr <- data.frame(n = c(1, 13, 5),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    # left neighbSt
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 3.2")
-    # right neighbSt
-    ### a) Length to the right > position + 2
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[4]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 3.2 a)")
-    ### b) Length to the right < position + 2 and no right structure
-    infoStr <- data.frame(n = c(1, 3),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 3.2 b)")
-    ### c) Length to the right < position + 2 with right structure
-    infoStr <- data.frame(n = c(1, 3, 2),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 3.2 c)")
-    
-    
-    ### Case 4: 2ndButLast position
-    ## Case 4.1. 2ndButLast position of structure without right neighbouring structure
-    infoStr <- data.frame(n = c(14, 5),
-                          globalState = c("U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 4, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(4)
-    # right neighbSt (there is no right neighbor, so left neighb counts as both neighbors)
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[4]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[4]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[5], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 4.1")
-    # left neighbSt
-    ### a) Length to the left > position - 2
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[4]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 4.1 a)")
-    ### b) Length to the left < position - 2 and no left structure
-    infoStr <- data.frame(n = c(3),
-                          globalState = c("U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 4.1 b)")
-    ### c) Length to the left < position - 2 with left structure
-    infoStr <- data.frame(n = c(1, 3),
-                          globalState = c("U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 4.1 c)")
-    
-    
-    ## Case 4.2. 2ndButLast position of structure with right neighbouring structure
-    infoStr <- data.frame(n = c(1, 13, 5),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 12, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(12)
-    # right neighbSt
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[12]
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[13], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 4.2")
-    # left neighbSt
-    ### a) Length to the left > position - 2
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[10]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[12]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[11], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 4.2 a)")
-    ### b) Length to the left < position - 2 and no left structure
-    infoStr <- data.frame(n = c(3, 1),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 4.2 b)")
-    ### c) Length to the left < position - 2 with left structure
-    infoStr <- data.frame(n = c(1, 3, 1),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 4.2 c)")
-    
-    
-    ### Case 5: Last position
-    ## Case 5.1. Last position of structure without right neighbouring structure
-    infoStr <- data.frame(n = c(1, 13, 5),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    # left neighbSt
-    ### a) Length to the left > position - 2
-    combi_obj$get_singleStr(3)$modify_seqPos(position = 5, newState = 2)
-    leftN <- combi_obj$get_singleStr(3)$get_seq()[3]
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[5]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    get_private(combi_obj$get_singleStr(3))$update_neighbSt(5)
-    expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[4], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.1 a)")
-    ### b) Length to the left < position - 2 and no left structure
-    infoStr <- data.frame(n = c(2),
-                          globalState = c("M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.1 b)")
-    ### c) Length to the left < position - 2 with left structure
-    infoStr <- data.frame(n = c(1, 2),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.1 c)")
-    
-    
-    ## Case 5.2. Last position of structure with right neighbouring structure with length > 1
-    infoStr <- data.frame(n = c(1, 13, 5),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 13, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(13)
-    # right neighbSt
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[13]
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 5.2")
-    # left neighbSt
-    ### a) Length to the left > position - 2
-    leftN <- combi_obj$get_singleStr(2)$get_seq()[11]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[13]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[12], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.2 a)")
-    ### b) Length to the left < position - 2 and no left structure
-    infoStr <- data.frame(n = c(2, 12),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.2 b)")
-    ### c) Length to the left < position - 2 with left structure
-    infoStr <- data.frame(n = c(1, 2, 11),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.2 c)")
-    
-    
-    ## Case 5.3. Last position of structure with right neighbouring structure with length = 1 and additional right neighbStr
-    infoStr <- data.frame(n = c(13, 1, 5),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 13, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(13)
-    # right neighbSt
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[13]
-    rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 5.3")
-    # left neighbSt
-    ### a) Length to the left > position - 2
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[11]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[13]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[12], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.3 a)")
-    ### b) Length to the left < position - 2 and no left structure
-    infoStr <- data.frame(n = c(2, 1, 6),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.3 b)")
-    ### c) Length to the left < position - 2 with left structure
-    infoStr <- data.frame(n = c(1, 2, 1, 5),
-                          globalState = c("M", "U", "M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.3 c)")
-    
-    
-    ## Case 5.4. Last position of structure with right neighbouring structure with length = 1 without additional right neighbStr
-    infoStr <- data.frame(n = c(13, 1),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 13, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(13)
-    # right neighbSt
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[13]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[13]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 5.4")
-    # left neighbSt
-    ### a) Length to the left > position - 2
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[11]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[13]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[12], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.4 a)")
-    ### b) Length to the left < position - 2 and no left structure
-    infoStr <- data.frame(n = c(2, 1),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.4 b)")
-    ### c) Length to the left < position - 2 with left structure
-    infoStr <- data.frame(n = c(1, 2, 1),
-                          globalState = c("M", "U", "M"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-    get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 5.4 c)")
-    
-    
-    ### Case 6: Position between 2 and n-1
-    infoStr <- data.frame(n = c(13, 1),
-                          globalState = c("M", "U"))
-    combi_obj <- combiStructureGenerator$new(infoStr)
-    # left neighbSt
-    combi_obj$get_singleStr(1)$modify_seqPos(position = 3, newState = 2)
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[3]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    get_private(combi_obj$get_singleStr(1))$update_neighbSt(3)
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
-                 info = "assigns wrong left neighbSt case 6")
-    # right neighbSt
-    leftN <- combi_obj$get_singleStr(1)$get_seq()[3]
-    rightN <- combi_obj$get_singleStr(1)$get_seq()[5]
-    exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-    expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[4], exp_neighbSt,
-                 info = "assigns wrong right neighbSt case 6")
-    
-  })
-}
-
-################################## DEBUGGING #####################################
 
 test_that("singleStructureGenerator init_Ri_values()",{
   # singleStructure instance
@@ -2756,6 +2117,83 @@ test_that("singleStructureGenerator choose_number_of_changes()",{
   
 })
 
+test_that("combiStructureGenerator $get_sharedCounter and $reset_sharedCounter", {
+  # Initiate an instance
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  # Reset shared counter
+  c$reset_sharedCounter()
+  expect_equal(c$get_sharedCounter(), 0)
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_sharedCounter(), 1)
+  c <- combiStructureGenerator$new(infoStr)
+  c <- combiStructureGenerator$new(infoStr)
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_sharedCounter(), 4)
+  c$reset_sharedCounter()
+  expect_equal(c$get_sharedCounter(), 0)
+})
+
+test_that("combiStructureGenerator $get_id()", {
+  
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  # Reset shared counter
+  c <- combiStructureGenerator$new(infoStr)
+  c$reset_sharedCounter()
+  # Initiate an instance
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_id(), 1,
+               info = "method returns incorrect value after initialization")
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_id(), 2,
+               info = "method returns incorrect value after 2nd initialization")
+  
+  # Reset shared counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator $set_id()", {
+  
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  # Reset shared counter
+  c <- combiStructureGenerator$new(infoStr)
+  c$reset_sharedCounter()
+  # Initiate an instance
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_id(), 1,
+               info = "incorrect id value after initialization")
+  clone_c <- c$copy()
+  # Test use within $copy method
+  expect_equal(clone_c$get_id(), 2,
+               info = "incorrect id value of cloned combi instance")
+  expect_equal(c$get_id(), 1,
+               info = "incorrect id value of original combi instance after cloning")
+  c$set_id(5136)
+  expect_equal(c$get_id(), 5136,
+               info = "method returns incorrect value after setting to know value")
+  
+  # Reset shared counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator $get_next_id()", {
+  # Initiate an instance
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(get_private(c)$static_counter, 1,
+               info = "attribute $static_counter is not initated with value 1")
+  value <- get_private(c)$get_next_id()
+  expect_equal(value, 2,
+               info = "calling get_next_id does not return a correct value")
+  expect_equal(get_private(c)$get_sharedCounter, 2,
+               info = "calling get_next_id does not assign a correct value to attribute $static_counter")
+})
+
+## TODO: Update following
 test_that("combiStructureGenerator set_singleStr() and copy()",{
   if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
     singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
