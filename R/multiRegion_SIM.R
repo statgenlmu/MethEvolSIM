@@ -598,72 +598,79 @@ singleStructureGenerator <-
                 #'
                 #' @return NULL
                 init_neighbSt = function(){
-                  if (is.null(private$my_combiStructure)){ # cases of singleStructure instances initiated outside combiStructure instance
-                    if (length(private$seq)== 1){ # cases with length 1
-                      private$neighbSt <<- private$mapNeighbSt_matrix[private$seq[1],private$seq[1]]
-                    } else { # cases with length > 1
-                      for (position in 1:length(private$seq)){
-                        if (position == 1){ #1st counts the only neighbor as both neighbors
-                          private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position + 1], private$seq[position + 1]]
-                        } else if (position == length(private$seq)){ #last counts the only neighbor as both neighbors
-                          private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position - 1]]
-                        } else {
-                          private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
-                        }
-                      }
-                    }
-                  } else { # cases of singleStructure instances initiated from combiStructure instance
-                    if (length(private$seq)== 1){ # cases with length 1
-                      if (private$combiStructure_index == 1){ # first singleStructure instance in combiStructure
-                        if (is.null(private$get_nextStr())){ # fist singleStr is only singleStr
-                          private$neighbSt <<- private$mapNeighbSt_matrix[private$seq[1],private$seq[1]]
-                        } else { # first position next structure counts as both neighbors
-                          private$neighbSt <<- private$mapNeighbSt_matrix[private$get_rightStr_neighbSt(), private$get_rightStr_neighbSt()]
-                        }
-                      } else if (private$combiStructure_index == private$my_combiStructure$get_singleStr_number()){ # last singleStructure instance in combiStructure, last position in previous structure counts as both neighbors
-                        private$neighbSt <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$get_leftStr_neighbSt()]
-                      } else {
-                        private$neighbSt <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$get_rightStr_neighbSt()]
-                      }
-                    } else { # cases with length > 1
-                      if (private$combiStructure_index == 1){ # first singleStructure instance in combiStructure
-                        ## TODO: if length < position +2
+                  for (i in 1:length(private$seq)){
+                    private$update_neighbSt(i)
+                  }
+                  ## TODO: clean this
+                  if (FALSE) {
+                    if (is.null(private$my_combiStructure)){ # cases of singleStructure instances initiated outside combiStructure instance
+                      if (length(private$seq)== 1){ # cases with length 1
+                        private$neighbSt <<- private$mapNeighbSt_matrix[private$seq[1],private$seq[1]]
+                      } else { # cases with length > 1
                         for (position in 1:length(private$seq)){
                           if (position == 1){ #1st counts the only neighbor as both neighbors
                             private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position + 1], private$seq[position + 1]]
-                          } else if (position == length(private$seq)){ #last uses as right neighbor next singleStructure info
-                            if(is.null(private$get_nextStr())){ # fist singleStr is only singleStr it counts previous position as both neighbors
-                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position - 1]]
-                            } else {
-                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$get_rightStr_neighbSt()]
-                            }
-                          } else {
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
-                          }
-                        }
-                      } else if (private$combiStructure_index == private$my_combiStructure$get_singleStr_number()){ # last singleStructure instance in combiStructure
-                        for (position in 1:length(private$seq)){
-                          if (position == 1){ #1st uses as left neighbor previous singleStructure info
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$seq[position + 1]]
                           } else if (position == length(private$seq)){ #last counts the only neighbor as both neighbors
                             private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position - 1]]
                           } else {
                             private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
                           }
                         }
-                      } else { # intermediate singleStructure instances in combiStructure
-                        for (position in 1:length(private$seq)){
-                          if (position == 1){ #1st uses as left neighbor previous singleStructure info
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$seq[position + 1]]
-                          } else if (position == length(private$seq)){ #last uses as right neighbor next singleStructure info
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$get_rightStr_neighbSt()]
-                          } else {
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
+                      }
+                    } else { # cases of singleStructure instances initiated from combiStructure instance
+                      if (length(private$seq)== 1){ # cases with length 1
+                        if (private$combiStructure_index == 1){ # first singleStructure instance in combiStructure
+                          if (is.null(private$get_nextStr())){ # fist singleStr is only singleStr
+                            private$neighbSt <<- private$mapNeighbSt_matrix[private$seq[1],private$seq[1]]
+                          } else { # first position next structure counts as both neighbors
+                            private$neighbSt <<- private$mapNeighbSt_matrix[private$get_rightStr_neighbSt(), private$get_rightStr_neighbSt()]
+                          }
+                        } else if (private$combiStructure_index == private$my_combiStructure$get_singleStr_number()){ # last singleStructure instance in combiStructure, last position in previous structure counts as both neighbors
+                          private$neighbSt <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$get_leftStr_neighbSt()]
+                        } else {
+                          private$neighbSt <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$get_rightStr_neighbSt()]
+                        }
+                      } else { # cases with length > 1
+                        if (private$combiStructure_index == 1){ # first singleStructure instance in combiStructure
+                          ## TODO: if length < position +2
+                          for (position in 1:length(private$seq)){
+                            if (position == 1){ #1st counts the only neighbor as both neighbors
+                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position + 1], private$seq[position + 1]]
+                            } else if (position == length(private$seq)){ #last uses as right neighbor next singleStructure info
+                              if(is.null(private$get_nextStr())){ # fist singleStr is only singleStr it counts previous position as both neighbors
+                                private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position - 1]]
+                              } else {
+                                private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$get_rightStr_neighbSt()]
+                              }
+                            } else {
+                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
+                            }
+                          }
+                        } else if (private$combiStructure_index == private$my_combiStructure$get_singleStr_number()){ # last singleStructure instance in combiStructure
+                          for (position in 1:length(private$seq)){
+                            if (position == 1){ #1st uses as left neighbor previous singleStructure info
+                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$seq[position + 1]]
+                            } else if (position == length(private$seq)){ #last counts the only neighbor as both neighbors
+                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position - 1]]
+                            } else {
+                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
+                            }
+                          }
+                        } else { # intermediate singleStructure instances in combiStructure
+                          for (position in 1:length(private$seq)){
+                            if (position == 1){ #1st uses as left neighbor previous singleStructure info
+                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$seq[position + 1]]
+                            } else if (position == length(private$seq)){ #last uses as right neighbor next singleStructure info
+                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$get_rightStr_neighbSt()]
+                            } else {
+                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
+                            }
                           }
                         }
                       }
                     }
                   }
+                  
                 },
                 #' @description
                 #' Public method: Initialization of $ratetree
@@ -746,8 +753,10 @@ singleStructureGenerator <-
                   private$set_Qi()
                   private$set_Qc()
                   private$set_Q()
+                  #undebug(self$initialize_ratetree)
+                  #undebug(self$init_neighbSt)
                   #undebug(private$update_neighbSt)
-                  #undebug(self$update_interStr_firstNeighbSt)
+                  #undebug(self$update_interStr_lastNeighbSt)
                   if(is.null(private$my_combiStructure)){
                     self$init_neighbSt()
                     #debug(self$initialize_ratetree)
@@ -861,11 +870,11 @@ singleStructureGenerator <-
                   if (!is.null(leftNeighb_seqSt) && !leftNeighb_seqSt %in% c(1, 2, 3)) {
                     stop("Error: argument 'leftNeighb_seqSt' must be NULL, 1, 2, or 3")
                   }
-                  
+                  position <- length(private$seq)
                   if(!is.null(leftNeighb_seqSt)){
-                    private$neighbSt[length(private$neighbSt)] <<- private$mapNeighbSt_matrix[leftNeighb_seqSt, rightNeighb_seqSt]
+                    private$neighbSt[position] <<- private$mapNeighbSt_matrix[leftNeighb_seqSt, rightNeighb_seqSt]
                   } else { # if there is no left neighbour use right neighb as both neighbors
-                    private$neighbSt[length(private$neighbSt)] <<- private$mapNeighbSt_matrix[rightNeighb_seqSt, rightNeighb_seqSt]
+                    private$neighbSt[position] <<- private$mapNeighbSt_matrix[rightNeighb_seqSt, rightNeighb_seqSt]
                   }
                 },
                 #' @description
@@ -1509,9 +1518,12 @@ combiStructureGenerator <-
 
                           }
                       }
+                      ## TODO: Report this change. First init neighbSt, then rate tree.
                       for (i in 1:length(private$singleStr)){
                           private$singleStr[[i]]$init_neighbSt()
-                          private$singleStr[[i]]$initialize_ratetree()
+                      }
+                      for (i in 1:length(private$singleStr)){
+                        private$singleStr[[i]]$initialize_ratetree()
                       }
                       if(!is.null(params)){
                           private$mu <- params$mu
