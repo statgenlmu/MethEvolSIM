@@ -274,10 +274,6 @@ for(sim in 1:n_sim){
       summaryStats[sim,"meanMidPoint"] <- transition_params$meanMidPoint
       summaryStats[sim,"sdMidPoint"] <- transition_params$sdMidPoint
     } else {
-      ## TODO: delete
-      #transition_params
-      transition_params <- fit_MethTrans(data = data, threshold = 0.5, minRepresentation = 10, subset_CpG_n = 30, sample_n = 1)
-      print(transition_params)
       meanSteepness[sim] <- transition_params$meanSteepness
       sdSteepness[sim] <- transition_params$sdSteepness
       meanMidPoint[sim] <- transition_params$meanMidPoint
