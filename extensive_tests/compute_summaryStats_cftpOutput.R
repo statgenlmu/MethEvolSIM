@@ -261,7 +261,7 @@ for(sim in 1:n_sim){
   ## Compute summary statistics for the transitions of methylation frequency between differentially methylated regions
   if ( "all" %in% stats_to_compute || "Transitions" %in% stats_to_compute) {
     transition_params <- tryCatch({
-      fit_MethTrans(data = data, threshold = 0.5, minRepresentation = 10, subset_CpG_n = 30)
+      fit_MethTrans(data = data, threshold = 0.5, minRepresentation = 10, subset_CpG_n = 30, sample_n = opt[["sample-n"]])
     }, error = function(e) {
       error_msg <- paste("Simulation", sim, "- Error in fit_MethTrans:", e$message)
       error_log[[length(error_log) + 1]] <- error_msg
