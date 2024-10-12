@@ -1376,7 +1376,7 @@ combiStructureGenerator <-
                   #'
                   #' @return A new `combiStructureGenerator` object.
                   initialize = function (infoStr, params = NULL, testing = FALSE){
-                      private$id <- private$get_next_id()  # Assign a unique private ID
+                      private$id <- private$get_next_id()  # Assign a unique private ID and update the shared counter (private attribute $shared_env)
                       private$singleStr <- list()
                       private$singleStr_globalState <- c()
                       if (testing){ # data with seqlength 13

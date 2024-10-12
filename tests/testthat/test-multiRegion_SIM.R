@@ -2184,38 +2184,662 @@ test_that("combiStructureGenerator $get_next_id()", {
   infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   c <- combiStructureGenerator$new(infoStr)
-  expect_equal(get_private(c)$static_counter, 1,
+  expect_equal(c$get_id(), 1,
                info = "attribute $static_counter is not initated with value 1")
   value <- get_private(c)$get_next_id()
   expect_equal(value, 2,
                info = "calling get_next_id does not return a correct value")
-  expect_equal(get_private(c)$get_sharedCounter, 2,
+  expect_equal(c$get_sharedCounter(), 2,
                info = "calling get_next_id does not assign a correct value to attribute $static_counter")
+  c$reset_sharedCounter()
 })
 
-## TODO: Update following
-test_that("combiStructureGenerator set_singleStr() and copy()",{
-  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
-    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
-      private$seq[position] <-newState
-    })
-  }
+test_that("combiStructureGenerator set_singleStr() and copy() check $my_combiStructure$get_id() points to correct combi instance",{
+  # Initiate an instance to reset counter
   infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
-  combiObj <- combiStructureGenerator$new(infoStr)
-  cloned_combiObj <- combiObj$copy()
-  original_data <- get_private(combiObj$get_singleStr(1))$seq
-  copied_data <- get_private(cloned_combiObj$get_singleStr(1))$seq
-  expect_equal(original_data, copied_data, info="fails to copy data")
-
-  ## Modify value in cloned_combiObj and check it does not modify combiObj
-  cloned_combiObj$get_singleStr(1)$modify_seqPos(1,2)
-  changed_value <- get_private(cloned_combiObj$get_singleStr(1))$seq[1]
-  expect_equal(changed_value, 2, info = "changed singleStructure instance does not get the given value")
-  unchanged_value <- get_private(combiObj$get_singleStr(1))$seq[1]
-  expect_equal(unchanged_value, original_data[1], info = "unchanged singleStructure within combiStructure instance changes")
-
+  c <- combiStructureGenerator$new(infoStr)
+  c$reset_sharedCounter()
+  
+  # Check singleStrctures get in my_combiStructure the correct combi instance
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  for (i in 1: 3){
+    expect_equal(get_private(c$get_singleStr(i))$my_combiStructure$get_id(), 1,
+                 info = paste("singleStr", i, "does not have correct my_combiStructure according to ID before cloning copy()"))
+  }
+  cloned_c <- c$copy()
+  for (i in 1: 3){
+    expect_equal(get_private(c$get_singleStr(i))$my_combiStructure$get_id(), 1,
+                 info = paste("Original combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+    expect_equal(get_private(cloned_c$get_singleStr(i))$my_combiStructure$get_id(), 2,
+                 info = paste("Cloned combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+  }
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  for (i in 1: 3){
+    expect_equal(get_private(c$get_singleStr(i))$my_combiStructure$get_id(), 1,
+                 info = paste("Original combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+    expect_equal(get_private(cloned_c$get_singleStr(i))$my_combiStructure$get_id(), 2,
+                 info = paste("Cloned combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+    expect_equal(get_private(cloned2_c$get_singleStr(i))$my_combiStructure$get_id(), 3,
+                 info = paste("Second clone from original combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+    expect_equal(get_private(cloned_from_cloned_c$get_singleStr(i))$my_combiStructure$get_id(), 4,
+                 info = paste("Clone from cloned combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
 })
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification without self reference only affects clone calling modification (c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Modify intermediate position
+  if (original_seq[2]==1 || original_seq[2]==3) newSt <- 2 else newSt <- 2
+  c$get_singleStr(2)$set_seqSt_update_neighbSt(index = 2, newSt = newSt)
+  
+  modified_seq <- get_private(c$get_singleStr(2))$seq
+  expect_false(all(modified_seq == original_seq), info = "clone fails to get $seq modified")
+  expect_equal(original_seq, cloned_c$get_singleStr(2)$get_seq(), info= "first clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned2_c$get_singleStr(2)$get_seq(), info="second clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_from_cloned_c$get_singleStr(2)$get_seq(), info="clone from clone gets incorrect modification of $seq data")
+  
+  modified_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  expect_false(all(modified_neighbSt == original_neighbSt), info = "clone fails to get $neighbSt modified")
+  expect_equal(original_neighbSt, cloned_c$get_singleStr(2)$get_neighbSt(), info= "first clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned2_c$get_singleStr(2)$get_neighbSt(), info="second clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(), info="clone from clone gets incorrect modification of $neighbSt data")
+  
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification without self reference only affects clone calling modification (cloned_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Modify intermediate position
+  if (original_seq[2]==1 || original_seq[2]==3) newSt <- 2 else newSt <- 2
+  cloned_c$get_singleStr(2)$set_seqSt_update_neighbSt(index = 2, newSt = newSt)
+  
+  modified_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  expect_false(all(modified_seq == original_seq), info = "clone fails to get $seq modified")
+  expect_equal(original_seq, c$get_singleStr(2)$get_seq(), info= "original combi gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned2_c$get_singleStr(2)$get_seq(), info="second clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_from_cloned_c$get_singleStr(2)$get_seq(), info="clone from clone gets incorrect modification of $seq data")
+  
+  modified_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  expect_false(all(modified_neighbSt == original_neighbSt), info = "clone fails to get $neighbSt modified")
+  expect_equal(original_neighbSt, c$get_singleStr(2)$get_neighbSt(), info= "original combi gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned2_c$get_singleStr(2)$get_neighbSt(), info="second clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(), info="clone from clone gets incorrect modification of $neighbSt data")
+  
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification without self reference only affects clone calling modification (cloned2_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+
+  # Modify intermediate position
+  if (original_seq[2]==1 || original_seq[2]==3) newSt <- 2 else newSt <- 2
+  cloned2_c$get_singleStr(2)$set_seqSt_update_neighbSt(index = 2, newSt = newSt)
+  
+  modified_seq <- get_private(cloned2_c$get_singleStr(2))$seq
+  expect_false(all(modified_seq == original_seq), info = "clone fails to get $seq modified")
+  expect_equal(original_seq, c$get_singleStr(2)$get_seq(), info= "original combi gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_c$get_singleStr(2)$get_seq(), info="first clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_from_cloned_c$get_singleStr(2)$get_seq(), info="clone from clone gets incorrect modification of $seq data")
+  
+  modified_neighbSt <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  expect_false(all(modified_neighbSt == original_neighbSt), info = "clone fails to get $neighbSt modified")
+  expect_equal(original_neighbSt, c$get_singleStr(2)$get_neighbSt(), info= "original combi gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_c$get_singleStr(2)$get_neighbSt(), info="first clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(), info="clone from clone gets incorrect modification of $neighbSt data")
+  
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification without self reference only affects clone calling modification (cloned_from_cloned_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Modify intermediate position
+  if (original_seq[2]==1 || original_seq[2]==3) newSt <- 2 else newSt <- 2
+  cloned_from_cloned_c$get_singleStr(2)$set_seqSt_update_neighbSt(index = 2, newSt = newSt)
+  
+  modified_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_false(all(modified_seq == original_seq), info = "clone fails to get $seq modified")
+  expect_equal(original_seq, c$get_singleStr(2)$get_seq(), info= "original combi gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_c$get_singleStr(2)$get_seq(), info="first clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned2_c$get_singleStr(2)$get_seq(), info="second clone gets incorrect modification of $seq data")
+  
+  modified_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_false(all(modified_neighbSt == original_neighbSt), info = "clone fails to get $neighbSt modified")
+  expect_equal(original_neighbSt, c$get_singleStr(2)$get_neighbSt(), info= "original combi gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_c$get_singleStr(2)$get_neighbSt(), info="first clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned2_c$get_singleStr(2)$get_neighbSt(), info="second clone gets incorrect modification of $neighbSt data")
+  
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification with self reference only affects clone calling modification (c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+
+  # Check modifications only applied to combi calling the change
+  lastPosFirstStr_original_neighbSt <- get_private(c$get_singleStr(1))$neighbSt[13]
+  firstPosLastStr_original_neighbSt <- get_private(c$get_singleStr(3))$neighbSt[1]
+  old_completeSeq <- c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq())
+  old_2ndStr_NeighbSt <- c$get_singleStr(2)$get_neighbSt()
+  
+  if (lastPosFirstStr_original_neighbSt != 9 && firstPosLastStr_original_neighbSt != 9){
+    if(!all(old_completeSeq == 3)){ # this also ensures that all old_2ndStr_NeighbSt are not equal to 9
+
+      # Modify all $seq positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        c$get_singleStr(str)$cftp_all_equal(state = "M")
+      }
+      
+      # Update neighbSt for all positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        c$get_singleStr(str)$init_neighbSt()
+      }
+      
+      # Check modifications in $seq
+      modified_completeSeq <- c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq())
+      expect_true(all(modified_completeSeq == 3), info = "clone fails to get $seq modified")
+      expect_equal(c(cloned_c$get_singleStr(1)$get_seq(), cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info= "first clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned2_c$get_singleStr(1)$get_seq(),cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="second clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="clone from clone gets incorrect modification of $seq data")
+      
+      # Check modifications in $neighbSt second singleStr
+      modified_2ndStr_neighbSt <- c$get_singleStr(2)$get_neighbSt()
+      expect_true(all(modified_2ndStr_neighbSt == 9), info = "clone fails to get $neighbSt modified at second singleStr")
+      
+      expect_equal(cloned_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info= "first clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned2_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(),
+                   old_2ndStr_NeighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at second singleStr")
+      
+      # Check modifications in $neighbSt last position first singleStr
+      modified_lastPosFirstStr <- c$get_singleStr(1)$get_neighbSt()[13]
+      expect_true(modified_lastPosFirstStr == 9, info = "clone fails to get $neighbSt modified at last position first singleStr")
+      
+      expect_equal(cloned_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info= "first clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned2_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(1)$get_neighbSt()[13],
+                   lastPosFirstStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      
+      # Check modifications in $neighbSt first position last singleStr
+      modified_firstPosLastStr <- c$get_singleStr(3)$get_neighbSt()[1]
+      expect_true(modified_firstPosLastStr == 9, info = "clone fails to get $neighbSt modified at first position last singleStr")
+      expect_equal(cloned_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info= "first clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned2_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(3)$get_neighbSt()[1],
+                   firstPosLastStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at first position last singleStr")
+    }
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification with self reference only affects clone calling modification (cloned_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Check modifications only applied to combi calling the change
+  lastPosFirstStr_original_neighbSt <- get_private(cloned_c$get_singleStr(1))$neighbSt[13]
+  firstPosLastStr_original_neighbSt <- get_private(cloned_c$get_singleStr(3))$neighbSt[1]
+  old_completeSeq <- c(cloned_c$get_singleStr(1)$get_seq(), cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq())
+  old_2ndStr_NeighbSt <- cloned_c$get_singleStr(2)$get_neighbSt()
+  
+  if (lastPosFirstStr_original_neighbSt != 9 && firstPosLastStr_original_neighbSt != 9){
+    if(!all(old_completeSeq == 3)){ # this also ensures that all old_2ndStr_NeighbSt are not equal to 9
+      
+      # Modify all $seq positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned_c$get_singleStr(str)$cftp_all_equal(state = "M")
+      }
+      
+      # Update neighbSt for all positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned_c$get_singleStr(str)$init_neighbSt()
+      }
+      
+      # Check modifications in $seq
+      modified_completeSeq <- c(cloned_c$get_singleStr(1)$get_seq(), cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq())
+      expect_true(all(modified_completeSeq == 3), info = "clone fails to get $seq modified")
+      expect_equal(c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info= "original combi gets incorrect modification of $seq data")
+      expect_equal(c(cloned2_c$get_singleStr(1)$get_seq(),cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="second clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="clone from clone gets incorrect modification of $seq data")
+      
+      # Check modifications in $neighbSt second singleStr
+      modified_2ndStr_neighbSt <- cloned_c$get_singleStr(2)$get_neighbSt()
+      expect_true(all(modified_2ndStr_neighbSt == 9), info = "clone fails to get $neighbSt modified at second singleStr")
+      
+      expect_equal(c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned2_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(),
+                   old_2ndStr_NeighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at second singleStr")
+      
+      # Check modifications in $neighbSt last position first singleStr
+      modified_lastPosFirstStr <- cloned_c$get_singleStr(1)$get_neighbSt()[13]
+      expect_true(modified_lastPosFirstStr == 9, info = "clone fails to get $neighbSt modified at last position first singleStr")
+      
+      expect_equal(c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned2_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(1)$get_neighbSt()[13],
+                   lastPosFirstStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      
+      # Check modifications in $neighbSt first position last singleStr
+      modified_firstPosLastStr <- cloned_c$get_singleStr(3)$get_neighbSt()[1]
+      expect_true(modified_firstPosLastStr == 9, info = "clone fails to get $neighbSt modified at first position last singleStr")
+      expect_equal(c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned2_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(3)$get_neighbSt()[1],
+                   firstPosLastStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at first position last singleStr")
+    }
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification with self reference only affects clone calling modification (cloned2_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Check modifications only applied to combi calling the change
+  lastPosFirstStr_original_neighbSt <- get_private(cloned2_c$get_singleStr(1))$neighbSt[13]
+  firstPosLastStr_original_neighbSt <- get_private(cloned2_c$get_singleStr(3))$neighbSt[1]
+  old_completeSeq <- c(cloned2_c$get_singleStr(1)$get_seq(), cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq())
+  old_2ndStr_NeighbSt <- cloned2_c$get_singleStr(2)$get_neighbSt()
+  
+  if (lastPosFirstStr_original_neighbSt != 9 && firstPosLastStr_original_neighbSt != 9){
+    if(!all(old_completeSeq == 3)){ # this also ensures that all old_2ndStr_NeighbSt are not equal to 9
+      
+      # Modify all $seq positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned2_c$get_singleStr(str)$cftp_all_equal(state = "M")
+      }
+      
+      # Update neighbSt for all positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned2_c$get_singleStr(str)$init_neighbSt()
+      }
+      
+      # Check modifications in $seq
+      modified_completeSeq <- c(cloned2_c$get_singleStr(1)$get_seq(), cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq())
+      expect_true(all(modified_completeSeq == 3), info = "clone fails to get $seq modified")
+      expect_equal(c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info= "original combi gets incorrect modification of $seq data")
+      expect_equal(c(cloned_c$get_singleStr(1)$get_seq(),cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="first clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="clone from clone gets incorrect modification of $seq data")
+      
+      # Check modifications in $neighbSt second singleStr
+      modified_2ndStr_neighbSt <- cloned2_c$get_singleStr(2)$get_neighbSt()
+      expect_true(all(modified_2ndStr_neighbSt == 9), info = "clone fails to get $neighbSt modified at second singleStr")
+      
+      expect_equal(c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(),
+                   old_2ndStr_NeighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at second singleStr")
+      
+      # Check modifications in $neighbSt last position first singleStr
+      modified_lastPosFirstStr <- cloned2_c$get_singleStr(1)$get_neighbSt()[13]
+      expect_true(modified_lastPosFirstStr == 9, info = "clone fails to get $neighbSt modified at last position first singleStr")
+      
+      expect_equal(c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(1)$get_neighbSt()[13],
+                   lastPosFirstStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      
+      # Check modifications in $neighbSt first position last singleStr
+      modified_firstPosLastStr <- cloned2_c$get_singleStr(3)$get_neighbSt()[1]
+      expect_true(modified_firstPosLastStr == 9, info = "clone fails to get $neighbSt modified at first position last singleStr")
+      expect_equal(c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(3)$get_neighbSt()[1],
+                   firstPosLastStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at first position last singleStr")
+    }
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification with self reference only affects clone calling modification (cloned_from_cloned_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Check modifications only applied to combi calling the change
+  lastPosFirstStr_original_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(1))$neighbSt[13]
+  firstPosLastStr_original_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(3))$neighbSt[1]
+  old_completeSeq <- c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq())
+  old_2ndStr_NeighbSt <- cloned_from_cloned_c$get_singleStr(2)$get_neighbSt()
+  
+  if (lastPosFirstStr_original_neighbSt != 9 && firstPosLastStr_original_neighbSt != 9){
+    if(!all(old_completeSeq == 3)){ # this also ensures that all old_2ndStr_NeighbSt are not equal to 9
+      
+      # Modify all $seq positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned_from_cloned_c$get_singleStr(str)$cftp_all_equal(state = "M")
+      }
+      
+      # Update neighbSt for all positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned_from_cloned_c$get_singleStr(str)$init_neighbSt()
+      }
+      
+      # Check modifications in $seq
+      modified_completeSeq <- c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq())
+      expect_true(all(modified_completeSeq == 3), info = "clone fails to get $seq modified")
+      expect_equal(c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info= "original combi gets incorrect modification of $seq data")
+      expect_equal(c(cloned_c$get_singleStr(1)$get_seq(),cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="first clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned2_c$get_singleStr(1)$get_seq(), cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="second clone gets incorrect modification of $seq data")
+      
+      # Check modifications in $neighbSt second singleStr
+      modified_2ndStr_neighbSt <- cloned_from_cloned_c$get_singleStr(2)$get_neighbSt()
+      expect_true(all(modified_2ndStr_neighbSt == 9), info = "clone fails to get $neighbSt modified at second singleStr")
+      
+      expect_equal(c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned2_c$get_singleStr(2)$get_neighbSt(),
+                   old_2ndStr_NeighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at second singleStr")
+      
+      # Check modifications in $neighbSt last position first singleStr
+      modified_lastPosFirstStr <- cloned_from_cloned_c$get_singleStr(1)$get_neighbSt()[13]
+      expect_true(modified_lastPosFirstStr == 9, info = "clone fails to get $neighbSt modified at last position first singleStr")
+      
+      expect_equal(c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned2_c$get_singleStr(1)$get_neighbSt()[13],
+                   lastPosFirstStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      
+      # Check modifications in $neighbSt first position last singleStr
+      modified_firstPosLastStr <- cloned_from_cloned_c$get_singleStr(3)$get_neighbSt()[1]
+      expect_true(modified_firstPosLastStr == 9, info = "clone fails to get $neighbSt modified at first position last singleStr")
+      expect_equal(c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned2_c$get_singleStr(3)$get_neighbSt()[1],
+                   firstPosLastStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at first position last singleStr")
+    }
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
 
 test_that("singleStructureGenerator SSE_evol()", {
   ################# singleStructure instance ##
