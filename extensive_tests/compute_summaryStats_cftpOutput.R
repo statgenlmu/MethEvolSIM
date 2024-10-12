@@ -9,7 +9,7 @@ option_list <- list(
   make_option(c("-f", "--design-file"), type = "character", default = NULL,
               help = "Full path to the simulation design file", metavar = "character"),
   make_option(c("-s", "--stats"), type = "character", default = "all",
-              help = "Comma-separated list of summary statistics to compute (default: all). Options: meanFreqP_i, meanFreqP_ni, sdFreqP_i, sdFreqP_ni, meanFreqM_i, meanFreqM_ni, sdFreqM_i, sdFreqM_ni, meanFracMoverMU_i, meanFracMoverMU_ni, sdFracMoverMU_i, sdFracMoverMU_ni, FChangeCherry_i, FChangeCherry_ni, Fitch, Steepness, meanCor", metavar = "character"),
+              help = "Comma-separated list of summary statistics to compute (default: all). Options: meanFreqP_i, meanFreqP_ni, sdFreqP_i, sdFreqP_ni, meanFreqM_i, meanFreqM_ni, sdFreqM_i, sdFreqM_ni, meanFracMoverMU_i, meanFracMoverMU_ni, sdFracMoverMU_i, sdFracMoverMU_ni, FChangeCherry_i, FChangeCherry_ni, Fitch, Transitions, meanCor", metavar = "character"),
   make_option(c("-n", "--sample-n"), type = "integer", default = NULL,
               help = "Number of samples per file", metavar = "integer"),
   make_option(c("-p", "--pattern"), type = "character", default = NULL,
@@ -98,6 +98,8 @@ if (!is.null(opt[["update-file"]])){
   
   meanSteepness <- rep(NA, n_sim)
   sdSteepness <- rep(NA, n_sim)
+  meanMidPoint <- rep(NA, n_sim)
+  sdMidPoint <- rep(NA, n_sim)
   
   meanCor_i <- rep(NA, n_sim)
   meanCor_ni <- rep(NA, n_sim)
@@ -257,7 +259,7 @@ for(sim in 1:n_sim){
   }
   
   ## Compute summary statistics for the transitions of methylation frequency between differentially methylated regions
-  if ( "all" %in% stats_to_compute || "Steepness" %in% stats_to_compute) {
+  if ( "all" %in% stats_to_compute || "Transitions" %in% stats_to_compute) {
     transition_params <- tryCatch({
       fit_MethTrans(data = data, threshold = 0.5, minRepresentation = 10, subset_CpG_n = 30)
     }, error = function(e) {
@@ -268,9 +270,13 @@ for(sim in 1:n_sim){
     if (!is.null(opt[["update-file"]])){
       summaryStats[sim,"meanSteepness"] <- transition_params$meanSteepness
       summaryStats[sim,"sdSteepness"] <- transition_params$sdSteepness
+      summaryStats[sim,"meanMidPoint"] <- transition_params$meanMidPoint
+      summaryStats[sim,"sdMidPoint"] <- transition_params$sdMidPoint
     } else {
       meanSteepness[sim] <- transition_params$meanSteepness
       sdSteepness[sim] <- transition_params$sdSteepness
+      meanMidPoint[sim] <- transition_params$meanMidPoint
+      sdMidPoint[sim] <- transition_params$sdMidPoint
     }
   }
   
@@ -327,6 +333,8 @@ if (!is.null(opt[["update-file"]])){
                              sdFitch = sdFitch,
                              meanSteepness = meanSteepness,
                              sdSteepness = sdSteepness,
+                             meanMidPoint = meanMidPoint,
+                             sdMidPoint = sdMidPoint,
                              meanCor_i = meanCor_i,
                              meanCor_ni = meanCor_ni)
   print("Finished generating summary statistics")

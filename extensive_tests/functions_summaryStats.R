@@ -492,7 +492,14 @@ computeFitch_RegionGlbSt <- function(index_islands, data, tree, u_threshold, m_t
 
 
 ##### Select the borders between regions with a difference in mean methylation levels over a threshold
-select_minDiffMethTrans <- function(threshold, data) {
+select_minDiffMethTrans <- function(threshold, data, sample_n) {
+  
+  # Restructure data as nested list when data corresponds to a single replicate/tip/sample
+  if (sample_n == 1){
+    data_list <- list()
+    data_list[[1]] <- data
+    data <- data_list
+  }
 
   minDiffMethTrans <- data.frame(border = integer(),
                                  tip = integer(),
@@ -547,6 +554,8 @@ select_minRepresentation <- function(minDiffMethTrans, minRepresentation){
   return(selected_data)
 } 
 
+
+## TODO: delete this one
 compute_kTrans <- function(border, tips, subset_CpG_n){
   # Set vectors sum the methylation states at each side of the border for the selected tips
   sum_leftStr <- rep(0, subset_CpG_n)
@@ -558,6 +567,65 @@ compute_kTrans <- function(border, tips, subset_CpG_n){
   # Transform methylation values (0,0.5 or 1) to count values (double strand: 0, 1 or 2)
   k <- 2*c(sum_leftStr, sum_rightStr)
   return(k)
+}
+
+## TODO: document this one
+compute_kTrans_acrossSamples <- function(data, border, tips, subset_CpG_n){
+  
+  # Set vectors sum the methylation states at each side of the border for the selected tips
+  sum_leftStr <- rep(0, subset_CpG_n)
+  sum_rightStr <- rep(0, subset_CpG_n)
+  for(tip in tips){
+    minCpG_check <- check_minCpGnumber(data, border, subset_CpG_n, sample_n = length(data))
+    if(minCpG_check){
+      for(tip in tips){
+        sum_leftStr <- sum_leftStr + data[[tip]][[border]][(length(data[[tip]][[border]])-(subset_CpG_n-1)):length(data[[tip]][[border]])]
+        sum_rightStr <- sum_rightStr + data[[tip]][[border+1]][1:subset_CpG_n]
+      }
+    }
+  }
+  # Transform methylation values (0,0.5 or 1) to count values (double strand: 0, 1 or 2)
+  k <- 2*c(sum_leftStr, sum_rightStr)
+  return(k)
+}
+
+## TODO: document this one
+compute_kTrans_withinSample <- function(data, minDiffMethTrans, subset_CpG_n){
+  # Set vectors sum the methylation states at each side of the border for the selected tips
+  sum_leftStr <- rep(0, subset_CpG_n)
+  sum_rightStr <- rep(0, subset_CpG_n)
+  for (i in 1:nrow(minDiffMethTrans)){
+    border <- minDiffMethTrans$border[i]
+    minCpG_check <- check_minCpGnumber(data, border, subset_CpG_n, sample_n = 1)
+    if(minCpG_check){
+      if(minDiffMethTrans$type[i] == "d"){ # Reverse the methylation states at borders with decreasing transitions
+        sum_leftStr <- sum_leftStr + rev(data[[border]][(length(data[[border]])-(subset_CpG_n-1)):length(data[[border]])])
+        sum_rightStr <- sum_rightStr + rev(data[[border+1]][1:subset_CpG_n])
+      } else {
+        sum_leftStr <- sum_leftStr + data[[border]][(length(data[[border]])-(subset_CpG_n-1)):length(data[[border]])]
+        sum_rightStr <- sum_rightStr + data[[border+1]][1:subset_CpG_n]
+      }
+    }
+  }
+  # Transform methylation values (0,0.5 or 1) to count values (double strand: 0, 1 or 2)
+  k <- 2*c(sum_leftStr, sum_rightStr)
+  return(k)
+}
+
+## TODO: document this one
+check_minCpGnumber <- function(data, border, subset_CpG_n, sample_n){
+  # Restructure data as nested list when data corresponds to a single replicate/tip/samle
+  if (sample_n == 1){
+    data_list <- list()
+    data_list[[1]] <- data
+    data <- data_list
+  }
+  if(length(data[[1]][[border]])<2*subset_CpG_n || length(data[[1]][[border+1]])<2*subset_CpG_n){
+    print(paste("Structures at the side of each border should have at least twice the number of CpGs than given 'subset_CpG_n'. Neglecting border:", border))
+    return(FALSE)
+  } else {
+    TRUE
+  }
 }
 
 
@@ -602,38 +670,182 @@ fit_logistic <- function(k, n, subset_CpG_n){
               steepness = fitted_params[4]))
 }
 
+## TODO: Update comment.
 ##### Get the mean and sd of the steepness of fitted logistic transition between DMR
 ## data: list with methylation states at tree tips for each structure 
 ## data[[tip]][[structure]] when the number of tips is >1
 ## threshold: minimum difference of average methylation frequencies between regions to select the border. Needs to be smaller than the number of tips.
 ## minRepresentation: minimum number of samples/replicates with a selected border of equal type (decreasing or increasing methylation)
 ## subset_CpG_n: number of CpG sites at each side of the border to consider.
-fit_MethTrans <- function(data, threshold, minRepresentation, subset_CpG_n){
-  if(!is.list(data[[1]])){
-    stop("To fit the methylation transitions data at several tips/samples/replicates needs to be provided (e.g: data[[tip]][[structure]])")
-  }
-  if(minRepresentation > length(data[[1]])){
-    stop("The minimum number of tips/samples/replicates set to select transitions 'minRepresentation' is higher than the number of tips/samples/replicates in the data")
-  }
-  minDiffMethTrans <- select_minDiffMethTrans(threshold, data)
-  selectedTrans <- select_minRepresentation(minDiffMethTrans = minDiffMethTrans, minRepresentation = minRepresentation)
+fit_MethTrans <- function(data, threshold, minRepresentation, subset_CpG_n, sample_n){
+  minDiffMethTrans <- select_minDiffMethTrans(threshold, data, sample_n)
   steepness <- c()
   midpoint <- c()
-  for (i in 1:length(selectedTrans$border)){
-    border <- selectedTrans$border[i]
-    if(length(data[[1]][[border]])<2*subset_CpG_n || length(data[[1]][[border+1]])<2*subset_CpG_n){
-      print(paste("Structures at the side of each border should have at least twice the number of CpGs than given 'subset_CpG_n'. Neglecting border:", border))
+  if (sample_n == 1){
+    # Use all the borders of minDiffMethTrans if there is a minimum number of borders (minRepresentation).
+    # For that, reverse decreasing transitions (type == "d")
+    if(minRepresentation > length(data)-1){
+      stop("The minimum number of borders to select transitions 'minRepresentation' is higher than the number of borders in the data")
+    }
+    if(nrow(minDiffMethTrans) >= minRepresentation){
+      # fit
+      k <- compute_kTrans_withinSample(data, minDiffMethTrans, subset_CpG_n)
+      n <- 2*nrow(minDiffMethTrans) 
+      fitted_params <- fit_logistic(k = k, n = n, subset_CpG_n = subset_CpG_n)
+      steepness[1] <- fitted_params$steepness
+      midpoint[1] <- fitted_params$midpoint
     } else {
-      k <- compute_kTrans(border = border, tips = selectedTrans$tips[[i]], subset_CpG_n = subset_CpG_n)
+      print("minRepresentation not met")
+    }
+    
+  } else {
+    if(!is.list(data[[1]])){
+      stop("To fit the methylation transitions data across tips/samples/replicates data needs to be a nested list (e.g: data[[tip]][[structure]])")
+    }
+    if(minRepresentation > length(data)){
+      stop("The minimum number of tips/samples/replicates set to select transitions 'minRepresentation' is higher than the number of tips/samples/replicates in the data")
+    }
+    # For each border, select the transition type (decreasing or incresing) more represented across samples
+    # and if it is represented in a minimum number of replicates (minRepresentation), select it
+    selectedTrans <- select_minRepresentation(minDiffMethTrans = minDiffMethTrans, minRepresentation = 10)
+    for (i in 1:length(selectedTrans$border)){
+      border <- selectedTrans$border[i]
+      k <- compute_kTrans_acrossSamples(data, border, tips = selectedTrans$tips[[i]], subset_CpG_n)
       n <- 2*length(selectedTrans$tips[[i]])
       fitted_params <- fit_logistic(k = k, n = n, subset_CpG_n = subset_CpG_n)
       steepness[i] <- fitted_params$steepness
       midpoint[i] <- fitted_params$midpoint
     }
   }
+  ## TODO: also return mean and sd of midpoint
   return(list(meanSteepness = mean(steepness),
-              sdSteepness = sd(steepness)))
+              sdSteepness = sd(steepness),
+              meanMidPoint = mean(midpoint),
+              sdMidPoint = sd(midpoint)))
 }
+
+## TODO: After visualizations of summary statistics show new functions work, delete the ones inside if (FALSE)
+if (FALSE) {
+  ## TODO: Update comment.
+  ##### Get the mean and sd of the steepness of fitted logistic transition between DMR
+  ## data: list with methylation states at tree tips for each structure 
+  ## data[[tip]][[structure]] when the number of tips is >1
+  ## threshold: minimum difference of average methylation frequencies between regions to select the border. Needs to be smaller than the number of tips.
+  ## minRepresentation: minimum number of samples/replicates with a selected border of equal type (decreasing or increasing methylation)
+  ## subset_CpG_n: number of CpG sites at each side of the border to consider.
+  fit_MethTrans <- function(data, threshold, minRepresentation, subset_CpG_n, sample_n){
+    minDiffMethTrans <- select_minDiffMethTrans(threshold, data, sample_n)
+    steepness <- c()
+    midpoint <- c()
+    if (sample_n == 1){
+      # Use all the borders of minDiffMethTrans if there is a minimum number of borders (minRepresentation).
+      # For that, reverse decreasing transitions (type == "d")
+      if(minRepresentation > length(data)-1){
+        stop("The minimum number of borders to select transitions 'minRepresentation' is higher than the number of borders in the data")
+      }
+      if(nrow(minDiffMethTrans) >= minRepresentation){
+        # fit
+        k <- compute_kTrans_withinSample(data, minDiffMethTrans, subset_CpG_n)
+        n <- 2*nrow(minDiffMethTrans) 
+        fitted_params <- fit_logistic(k = k, n = n, subset_CpG_n = subset_CpG_n)
+        steepness[i] <- fitted_params$steepness
+        midpoint[i] <- fitted_params$midpoint
+      } else {
+        print("minRepresentation not met")
+      }
+      
+    } else {
+      if(!is.list(data[[1]])){
+        stop("To fit the methylation transitions data across tips/samples/replicates data needs to be a nested list (e.g: data[[tip]][[structure]])")
+      }
+      if(minRepresentation > length(data[[1]])){
+        stop("The minimum number of tips/samples/replicates set to select transitions 'minRepresentation' is higher than the number of tips/samples/replicates in the data")
+      }
+      # For each border, select the transition type (decreasing or incresing) more represented across samples
+      # and if it is represented in a minimum number of replicates (minRepresentation), select it
+      selectedTrans <- select_minRepresentation(minDiffMethTrans = minDiffMethTrans, minRepresentation = 10)
+      for (i in 1:length(selectedTrans$border)){
+        k <- compute_kTrans_acrossSamples(data, border, tips = selectedTrans$tips[[i]], subset_CpG_n)
+        n <- 2*length(selectedTrans$tips[[i]])
+        fitted_params <- fit_logistic(k = k, n = n, subset_CpG_n = subset_CpG_n)
+        steepness[i] <- fitted_params$steepness
+        midpoint[i] <- fitted_params$midpoint
+      }
+    }
+    ## TODO: also return mean and sd of midpoint
+    return(list(meanSteepness = mean(steepness),
+                sdSteepness = sd(steepness)))
+  }
+  
+  ## TODO: This one wil be fit_MethTrans_acrossSamples
+  ##### Get the mean and sd of the steepness of fitted logistic transition between DMR
+  ## data: list with methylation states at tree tips for each structure 
+  ## data[[tip]][[structure]] when the number of tips is >1
+  ## threshold: minimum difference of average methylation frequencies between regions to select the border. Needs to be smaller than the number of tips.
+  ## minRepresentation: minimum number of samples/replicates with a selected border of equal type (decreasing or increasing methylation)
+  ## subset_CpG_n: number of CpG sites at each side of the border to consider.
+  fit_MethTrans <- function(data, threshold, minRepresentation, subset_CpG_n){
+    if(!is.list(data[[1]])){
+      stop("To fit the methylation transitions data at several tips/samples/replicates needs to be provided (e.g: data[[tip]][[structure]])")
+    }
+    if(minRepresentation > length(data[[1]])){
+      stop("The minimum number of tips/samples/replicates set to select transitions 'minRepresentation' is higher than the number of tips/samples/replicates in the data")
+    }
+    minDiffMethTrans <- select_minDiffMethTrans(threshold, data)
+    selectedTrans <- select_minRepresentation(minDiffMethTrans = minDiffMethTrans, minRepresentation = minRepresentation)
+    steepness <- c()
+    midpoint <- c()
+    for (i in 1:length(selectedTrans$border)){
+      border <- selectedTrans$border[i]
+      if(length(data[[1]][[border]])<2*subset_CpG_n || length(data[[1]][[border+1]])<2*subset_CpG_n){
+        print(paste("Structures at the side of each border should have at least twice the number of CpGs than given 'subset_CpG_n'. Neglecting border:", border))
+      } else {
+        k <- compute_kTrans(border = border, tips = selectedTrans$tips[[i]], subset_CpG_n = subset_CpG_n)
+        n <- 2*length(selectedTrans$tips[[i]])
+        fitted_params <- fit_logistic(k = k, n = n, subset_CpG_n = subset_CpG_n)
+        steepness[i] <- fitted_params$steepness
+        midpoint[i] <- fitted_params$midpoint
+      }
+    }
+    return(list(meanSteepness = mean(steepness),
+                sdSteepness = sd(steepness)))
+  }
+  
+  ## TODO: This one wil be fit_MethTrans_withinSample
+  ##### Get the mean and sd of the steepness of fitted logistic transition between DMR
+  ## data: list with methylation states at tree tips for each structure 
+  ## data[[tip]][[structure]] when the number of tips is >1
+  ## threshold: minimum difference of average methylation frequencies between regions to select the border. Needs to be smaller than the number of tips.
+  ## minRepresentation: minimum number of samples/replicates with a selected border of equal type (decreasing or increasing methylation)
+  ## subset_CpG_n: number of CpG sites at each side of the border to consider.
+  fit_MethTrans <- function(data, threshold, minRepresentation, subset_CpG_n){
+    if(!is.list(data[[1]])){
+      stop("To fit the methylation transitions data at several tips/samples/replicates needs to be provided (e.g: data[[tip]][[structure]])")
+    }
+    if(minRepresentation > length(data[[1]])){
+      stop("The minimum number of tips/samples/replicates set to select transitions 'minRepresentation' is higher than the number of tips/samples/replicates in the data")
+    }
+    minDiffMethTrans <- select_minDiffMethTrans(threshold, data)
+    selectedTrans <- select_minRepresentation(minDiffMethTrans = minDiffMethTrans, minRepresentation = minRepresentation)
+    steepness <- c()
+    midpoint <- c()
+    for (i in 1:length(selectedTrans$border)){
+      border <- selectedTrans$border[i]
+      if(length(data[[1]][[border]])<2*subset_CpG_n || length(data[[1]][[border+1]])<2*subset_CpG_n){
+        print(paste("Structures at the side of each border should have at least twice the number of CpGs than given 'subset_CpG_n'. Neglecting border:", border))
+      } else {
+        k <- compute_kTrans(border = border, tips = selectedTrans$tips[[i]], subset_CpG_n = subset_CpG_n)
+        n <- 2*length(selectedTrans$tips[[i]])
+        fitted_params <- fit_logistic(k = k, n = n, subset_CpG_n = subset_CpG_n)
+        steepness[i] <- fitted_params$steepness
+        midpoint[i] <- fitted_params$midpoint
+      }
+    }
+    return(list(meanSteepness = mean(steepness),
+                sdSteepness = sd(steepness)))
+  }
+}
+
 
 #### #### #### Correlations within structure #### #### ####
 

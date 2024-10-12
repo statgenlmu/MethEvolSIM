@@ -8,7 +8,7 @@ test_n=2
 base_dir="/scratch/saracv/CFTP_test/test${test_n}"
 
 #for i in $(seq 1 10)
-for i in 2 3 4 5 7 9 10
+for i in 1 2 3 4 5 6 7 8 9 10
 do
   if [ $i -lt 10 ]
   then
