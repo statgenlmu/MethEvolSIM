@@ -2,7 +2,7 @@
 #SBATCH --job-name=CFTP_compute_summaryStats
 
 # Define the test number variable
-test_n=2
+test_n=1
 
 # Define the base directory path
 base_dir="/scratch/saracv/CFTP_test/test${test_n}"
