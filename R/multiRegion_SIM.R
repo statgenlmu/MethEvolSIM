@@ -1285,11 +1285,10 @@ singleStructureGenerator <-
                 cftp_all_equal = function(state, testing = FALSE) {
                   n <- length(private$seq)
                   if (state == "U"){
-                    ### TODO: If cftp at some point accounts for IWEs, then this assigning "U" or "M" to globalState should not be done.
-                    private$globalState <- "U"
+                    #private$globalState <- "U"
                     private$seq <- rep(1L, n)
                   } else if (state == "M"){
-                    private$globalState <- "M"
+                    #private$globalState <- "M"
                     private$seq <- rep(3L, n)
                   } else {
                     stop("Invalid 'state' value. Must be 'U' for unmethylated or 'M' for methylated")
@@ -1477,7 +1476,7 @@ combiStructureGenerator <-
                   #' @param testing Default FALSE. TRUE for testing output.
                   #'
                   #' @return A new `combiStructureGenerator` object.
-                  initialize = function (infoStr, params = NULL, testing = FALSE){
+                  initialize = function (infoStr, params = NULL, CFTP = FALSE, testing = FALSE){
                       private$id <- private$get_next_id()  # Assign a unique private ID and update the shared counter (private attribute $shared_env)
                       private$singleStr <- list()
                       private$singleStr_globalState <- c()
@@ -1845,7 +1844,7 @@ combiStructureGenerator <-
                     # For generation -n
                     # Propose 1 site and what may happen to it
                     chosen_singleStr[n] <- sample(1:length(private$singleStr), 1, prob=singleStr_n)
-                    chosen_site[n] <- sample(1:length(private$singleStr[[str]]$get_seq()), 1)
+                    chosen_site[n] <- sample(1:length(private$singleStr[[chosen_singleStr[n]]]$get_seq()), 1)
                     event[n] <- sample(1:5, 1)  ## 1,2,3: go to u, p, m by SSEi ## 4,5: copy left, copy right.                        
                     # Sample a threshold to accept or reject event
                     random_threshold[n] <- runif(1) # numerical value between 0 and 1
@@ -1948,6 +1947,7 @@ combiStructureGenerator <-
                 cftp = function(steps = 10000, testing = FALSE) {
                   # Set a variable to track when the $seq of the 2 combi instances become equal
                   equal <- FALSE
+                  counter <- 0
                   while(!equal) {
                     # Sample the CFTP steps 
                     self$cftp_event_generator(steps)
@@ -1974,6 +1974,7 @@ combiStructureGenerator <-
                     }
                     equal <- all(equal_str)
                     steps <- 2*steps
+                    counter <- counter + 1
                   }
                   for(str in 1:length(private$singleStr)){
                     # update converged combiStructure ratetree
@@ -1982,7 +1983,10 @@ combiStructureGenerator <-
                   if(testing){
                     return(list(combi_u = combi_u,
                                 combi_m = combi_m,
-                                total_steps = length(private$CFTP_event)))
+                                self = self,
+                                counter = counter,
+                                total_steps = length(private$CFTP_event),
+                                CFTP_chosen_site = private$CFTP_chosen_site))
                   } else {
                     return(combi_u)
                   }
