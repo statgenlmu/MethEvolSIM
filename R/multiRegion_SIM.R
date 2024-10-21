@@ -561,6 +561,8 @@ singleStructureGenerator <-
                 }
               ),
               public = list(
+                #' @field testing_output Public attribute: Testing output for initialize
+                testing_output = NULL,
                 #' @description
                 #' Public method: Initialization of $neighbSt
                 #'
@@ -611,7 +613,7 @@ singleStructureGenerator <-
                 #' @param combiStr Default NULL. When initiated from combiStructureGenerator: object of class combiStructureGenerator containing it
                 #' @param combiStr_index Default NULL. When initiated from combiStructureGenerator: index in Object of class combiStructureGenerator
                 #' @param params Default NULL. When given: data frame containing model parameters
-                #' @param testing Default FALSE. TRUE for testing output
+                #' @param testing Default FALSE. TRUE for writing in public field of new instance $testing_output
                 #' @return A new `singleStructureGenerator` object.
                 initialize = function(globalState, n, eqFreqs = NULL, combiStr = NULL, combiStr_index = NULL,  params = NULL, testing = FALSE) {
                   if (!is.character(globalState)) {
@@ -649,9 +651,6 @@ singleStructureGenerator <-
                     private$eqFreqs <- eqFreqs
                   }
                   private$seq <- sample(1L:3L, size = n, prob = private$eqFreqs, replace = TRUE)
-                  if(testing){ # when testing neighbSt initiate instance with n=13
-                    private$seq <- c(1, 1, 2, 3, 1, 1, 1, 3, 2, 2, 3, 2, 3)
-                  }
                   private$siteR <- sample(1L:3L, size = n, replace = TRUE)
                   private$my_combiStructure <- combiStr
                   private$combiStructure_index <- combiStr_index
@@ -670,7 +669,9 @@ singleStructureGenerator <-
                   }
                 },
                 #' @description
-                #' Public method: Set my_combiStructurw
+                #' Public method: Set my_combiStructure. Assigns given combi instance to private field my_combiStructure
+                #' 
+                #' @param combi instance of combiStructureGenerator
                 #'
                 #' @return NULL
                 set_myCombiStructure = function(combi) private$my_combiStructure <- combi,
@@ -1241,7 +1242,7 @@ singleStructureGenerator <-
                 #' @description
                 #' Public Method. Decode methylation state of left neighbor form owns neighbSt
                 #' 
-                #' @param index. Integer index value for the CpG position within the singleStr instance
+                #' @param index Integer index value for the CpG position within the singleStr instance
                 #' 
                 #' @return decoded methylation state ($seq) of left neighbor (1, 2 or 3 for unmethylated, partially methylated or methylated)
                 get_seqSt_leftneighb = function(index){
@@ -1260,7 +1261,7 @@ singleStructureGenerator <-
                 #' @description
                 #' Public Method. Decode methylation state of left neighbor form owns neighbSt
                 #' 
-                #' @param index. Integer index value for the CpG position within the singleStr instance
+                #' @param index Integer index value for the CpG position within the singleStr instance
                 #' 
                 #' @return decoded methylation state ($seq) of right neighbor (1, 2 or 3 for unmethylated, partially methylated or methylated)
                 get_seqSt_rightneighb = function(index){
@@ -1279,7 +1280,8 @@ singleStructureGenerator <-
                 #' Public Method. Make a singleStructure with the same segment lengths and parameters
                 #' as the focal one but where all states are m or u
                 #' 
-                #' @param state. Character value "U" or "M"
+                #' @param state Character value "U" or "M"
+                #' @param testing default FALSE. TRUE for testing output
                 #' 
                 #' @return right neighbSt
                 cftp_all_equal = function(state, testing = FALSE) {
@@ -1301,8 +1303,8 @@ singleStructureGenerator <-
                 #' @description
                 #' Public Method. Set the methylation state of a sequence position and update the neighbor's neighbSt. It does NOT update RATETREE 
                 #' 
-                #' @param index. Numerical value for the index of the CpG position within the singleStr instance
-                #' @param newSt. Numerical value encoding for the sites new methylation state (1, 2 or 3)
+                #' @param index Numerical value for the index of the CpG position within the singleStr instance
+                #' @param newSt Numerical value encoding for the sites new methylation state (1, 2 or 3)
                 #' @param testing default FALSE. TRUE for testing output
                 #' 
                 #' @return NULL when testing FALSE. Testing output when testing TRUE.
@@ -1465,6 +1467,9 @@ combiStructureGenerator <-
                 CFTP_random = numeric(length=0)
               ),
               public = list(
+                  #' @field testing_output Public attribute: Testing output for initialize
+                  testing_output = NULL,
+                  
                   #' @description
                   #' Create a new combiStructureGenerator object.
                   #'
@@ -1473,55 +1478,62 @@ combiStructureGenerator <-
                   #' @param infoStr A data frame containing columns 'n' for the number of sites, and 'globalState' for the favoured global methylation state.
                   #' If initial equilibrium frequencies are given the dataframe must contain 3 additional columns: 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
                   #' @param params Default NULL. When given: data frame containing model parameters.
-                  #' @param testing Default FALSE. TRUE for testing output.
+                  #' @param testing Default FALSE. TRUE for writing in public field of new instance $testing_output
                   #'
                   #' @return A new `combiStructureGenerator` object.
-                  initialize = function (infoStr, params = NULL, CFTP = FALSE, testing = FALSE){
+                  initialize = function (infoStr, params = NULL, testing = FALSE){
                       private$id <- private$get_next_id()  # Assign a unique private ID and update the shared counter (private attribute $shared_env)
+                      
+                      # Initialize the private attributes to store stingleStructureGenerator instances and their corresponding globalState
                       private$singleStr <- list()
                       private$singleStr_globalState <- c()
-                      if (testing){ # data with seqlength 13
-                          for (i in 1:nrow(infoStr)) {
-                              u_length <- infoStr[i, "n"]
-                              private$singleStr_globalState[i] <- infoStr[i, "globalState"]
-                              private$singleStr[[i]] <- singleStructureGenerator$new(private$singleStr_globalState[i],
-                                                                                     u_length,
-                                                                                     combiStr = self, combiStr_index = i,
-                                                                                     testing = TRUE)
-                          }
-                      } else {
-                          for (i in 1:nrow(infoStr)) {
-                              u_length <- infoStr[i, "n"]
-                              private$singleStr_globalState[i] <- infoStr[i, "globalState"]
-                              if(all(c("u_eqFreq", "p_eqFreq", "m_eqFreq") %in% colnames(infoStr))){
-                                  eqFreqs <- c(infoStr$u_eqFreq[i], infoStr$p_eqFreq[i], infoStr$m_eqFreq[i])
-                              } else{
-                                  eqFreqs <- NULL
-                              }
-                              private$singleStr[[i]] <- singleStructureGenerator$new(globalState = private$singleStr_globalState[i],
-                                                                                     n = u_length,
-                                                                                     eqFreqs = eqFreqs,
-                                                                                     combiStr = self ,combiStr_index = i,
-                                                                                     params = params)
-
-                          }
-                      }
+        
+                      # Initialize the singleStructure instances
+                      for (i in 1:nrow(infoStr)) {
+                        
+                        u_length <- infoStr[i, "n"]
+                        private$singleStr_globalState[i] <- infoStr[i, "globalState"]
+                        
+                        if(all(c("u_eqFreq", "p_eqFreq", "m_eqFreq") %in% colnames(infoStr))){
+                          eqFreqs <- c(infoStr$u_eqFreq[i], infoStr$p_eqFreq[i], infoStr$m_eqFreq[i])
+                        } else{
+                          eqFreqs <- NULL
+                        }
+                        
+                        private$singleStr[[i]] <- singleStructureGenerator$new(globalState = private$singleStr_globalState[i],
+                                                                               n = u_length,
+                                                                               eqFreqs = eqFreqs,
+                                                                               combiStr = self ,combiStr_index = i,
+                                                                               params = params)
+                                                                               # if testing needs to be passed on to the singleStr initialize,
+                                                                               # add testing = testing as argument 
+                      } 
                       ## Initialice the neighbSt encoding for each singleStr
                       for (i in 1:length(private$singleStr)){
-                          private$singleStr[[i]]$init_neighbSt()
+                        private$singleStr[[i]]$init_neighbSt()
                       }
+                      
                       ## Initialice the rate_tree for each singleStr
                       # Note that this step needs the previous one run for all the structures
                       for (i in 1:length(private$singleStr)){
                         private$singleStr[[i]]$initialize_ratetree()
                       }
                       if(!is.null(params)){
-                          private$mu <- params$mu
+                        private$mu <- params$mu
                       }
                       private$set_IWE_rate()
                       #undebug(self$cftp_apply_events)
                       #debug(self$cftp)
-
+                      
+                      
+                      ## TODO: delete before merging to main
+                      ## Example for Nikolas ##
+                      # if (dist == TRUE){
+                          # self$testing_output <- list()
+                          # self$testing_output$testing_info_1 <- info_1
+                      # }
+                      # Example with my own implementation in initialize from treeMultiRegionSimulator
+                      
                   },
                   #' @description
                   #' Public method: Get one singleStructureGenerator object in $singleStr
@@ -1692,16 +1704,26 @@ combiStructureGenerator <-
                 },
                 #' @description
                 #' Public method. Set the unique ID of the instance
+                #' 
+                #' @param id integer value to identificate the combiStructure instance
                 #'
                 #' @return A numeric value representing the unique ID of the instance.
                 set_id = function(id) {
                   private$id <- id
                 },
-                ## TODO: DOCUMENT
+                
+                #' @description
+                #' Public method. Get the counter value from the shared environment between instances of combiStructureGenerator class
+                #'
+                #' @return Numeric counter value.
                 get_sharedCounter = function(){
                   private$shared_env$counter
                 },
                 
+                #' @description
+                #' Public method. Reset the counter value of the shared environment between instances of combiStructureGenerator class
+                #'
+                #' @return NULL
                 reset_sharedCounter = function(){
                   private$shared_env$counter <- 0
                 },
@@ -1808,7 +1830,7 @@ combiStructureGenerator <-
                 #' @description
                 #' Public Method. Generates the events to apply for CFTP.
                 #' 
-                #' @param steps. Integer value >=1
+                #' @param steps Integer value >=1
                 #' @param testing default FALSE. TRUE for testing output
                 #' 
                 #' @return NULL when testing FALSE. Testing output when testing TRUE.
@@ -2079,6 +2101,8 @@ split_newick <- function(tree) {
 #'
 treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                              public = list(
+                               #' @field testing_output Public attribute: Testing output for initialize
+                               testing_output = NULL,
                                #' @field Branch Public attribute: List containing objects of class combiStructureGenerator
                                Branch=NULL,
                                #' @field branchLength Public attribute: Vector with the corresponding branch lengths of each $Branch element
@@ -2133,23 +2157,52 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                #' @param tree tree
                                #' @param infoStr  A data frame containing columns 'n' for the number of sites, and 'globalState' for the favoured global methylation state.
                                #' If initial equilibrium frequencies are given the dataframe must contain 3 additional columns: 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
-                               #' @param params Default NULL. When given: data frame containing model parameters. Note that rootData is given, its parameter values are used.
+                               #' @param params Default NULL. When given: data frame containing model parameters. Note that if rootData is not null, its parameter values are used.
                                #' @param dt length of the dt time steps for the SSE evolutionary process
+                               #' @param CFTP Default FALSE. TRUE for calling cftp algorithm to set root state according to model equilibrium (Note that current implementation neglects IWE process).
                                #' @param testing Default FALSE. TRUE for testing output.
                                #'
                                #' @return A new `treeMultiRegionSimulator` object.
-                               initialize = function(infoStr = NULL, rootData = NULL, tree, params = NULL, dt = 0.01, testing = FALSE) {
+                               initialize = function(infoStr = NULL, rootData = NULL, tree = NULL, params = NULL, dt = 0.01, CFTP = FALSE, testing = FALSE) {
+                                 if(is.null(rootData) && is.null(infoStr)) stop("One of the following arguments: 'rootData' or 'infoStr' needs to be given")
+                                 if(is.null(tree)) stop("Argument 'tree' is missing with no default.")
+                            
                                  self$Branch <- list()
-                                 if(!is.null(infoStr) && is.null(rootData)){
-                                   message(paste("Simulating data at root and letting it evolve along given tree: ", tree))
-                                   self$Branch[[1]] <- combiStructureGenerator$new(infoStr, params = params, testing = testing)
-                                 }
-                                 if(!is.null(rootData)&& is.null(infoStr)){
+                      
+                                 if(!is.null(rootData)){
+                                   if (!is.null(infoStr) || !is.null(params)) stop("if 'rootData' is given, 'infoStr' and 'params' need to be NULL")
                                    message(paste("Simulating evolution of given data at root along given tree: ", tree))
                                    self$Branch[[1]] <- rootData$copy()
                                  }
+                                 
+                                 if(!is.null(params)){
+                                   if(!is.data.frame(params) || !all(c("alpha_pI", "beta_pI", "alpha_mI", "beta_mI", "alpha_pNI", "beta_pNI", "alpha_mNI", "beta_mNI", "mu", "alpha_Ri", "iota") %in% colnames(params))){
+                                     stop("if 'params' is given, it needs to be a dataframe with column names as in get_parameterValues() output")
+                                   }
+                                 }
+                                 
+                                 if(!is.null(infoStr)){
+                                   message(paste("Simulating data at root and letting it evolve along given tree: ", tree))
+                                   self$Branch[[1]] <- combiStructureGenerator$new(infoStr, params = params)
+                                   # if testing needs to be passed on to the combiStr initialize,
+                                   # add testing = testing as argument 
+                                 }
+                                 
+                                 if(CFTP){
+                                   message("Calling CFTP algorithm for data at root before letting it evolve along given tree.")
+                                   if(testing){
+                                     self$testing_output <- list()
+                                     self$testing_output$self_before_cftp <- self$Branch[[1]]
+                                     self$testing_output$cftp_output <- self$Branch[[1]]$cftp(testing = testing)
+                                     self$Branch[[1]] <- self$testing_output$cftp_output$combi_u
+                                   } else {
+                                     self$Branch[[1]] <- self$Branch[[1]]$cftp()
+                                   }
+                                 }
+                                 
                                  self$branchLength[1] <- NULL
                                  self$Branch[[1]]$set_own_index(1)
+                                 
                                  self$treeEvol(Tree=tree, dt = dt, testing=testing)
                                }
                              )

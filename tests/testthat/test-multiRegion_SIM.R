@@ -44,31 +44,11 @@ test_that("combiStructureGenerator initialization", {
   }
 })
 
-test_that("singleStructureGenerator get_seq()", {
-  ## TODO: Modify this
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  # Define expected $seq under testing mode
-  expected_seq <- c(1, 1, 2, 3, 1, 1, 1, 3, 2, 2, 3, 2, 3)
-  for (i in 1:nrow(infoStr)){
-    expect_equal(combi_obj$get_singleStr(i)$get_seq(), expected_seq,
-                 info = "returns $seq different from expected under testing mode")
-  }
-
-})
 
 test_that("singleStructureGenerator get_seqFirstPos() from combiStructureGenerator instance", {
-  ## TODO: Modify this
-  # Under testing mode: known $seq
+
   infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  for (i in 1:nrow(infoStr)){
-    expect_equal(combi_obj$get_singleStr(i)$get_seqFirstPos(), 1,
-                 info = "function returns $seq first position different from known under testing mode")
-  }
-  # Under default, non testing mode: unknown $seq
   combi_obj <- combiStructureGenerator$new(infoStr)
   for (i in 1:nrow(infoStr)){
     expect_equal(combi_obj$get_singleStr(i)$get_seqFirstPos(), combi_obj$get_singleStr(i)$get_seq()[1],
@@ -77,20 +57,12 @@ test_that("singleStructureGenerator get_seqFirstPos() from combiStructureGenerat
 })
 
 test_that("singleStructureGenerator get_seqLastPos() from combiStructureGenerator instance", {
-  ## TODO: Modify this
-  # Under testing mode: known $seq
   infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  for (i in 1:nrow(infoStr)){
-    expect_equal(combi_obj$get_singleStr(i)$get_seqLastPos(), 3,
-                 info = "function returns $seq last position different from known under testing mode")
-  }
-  # Under default, non testing mode: unknown $seq
   combi_obj <- combiStructureGenerator$new(infoStr)
   for (i in 1:nrow(infoStr)){
     expect_equal(combi_obj$get_singleStr(i)$get_seqLastPos(), combi_obj$get_singleStr(i)$get_seq()[length(combi_obj$get_singleStr(i)$get_seq())],
-                 info = "output not consistent with get_seq()[length(..)] under non testing mode")
+                 info = "output not consistent with get_seq()[length(..)]")
   }
 })
 
@@ -121,27 +93,6 @@ test_that("singleStructureGenerator get_prevStr()", {
 })
 
 test_that("singleStructureGenerator init_neighbSt()", {
-  ## TODO: Modify this
-  # Test cases of singleStructure instances initiated outside combiStructure instance
-  obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(obj)$neighbSt, expected_neighbSt,
-               info = "fails correct neighbSt initialization outside combiStructure instance")
-
-  # Test cases of singleStructure instances initiated from combiStructure instance
-  ## Test case 1: initialization of long sequences
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  expected_neighbSt_Str1 <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 4)
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt, expected_neighbSt_Str1,
-               info = "assigns incorrect $neighbSt case 1.1")
-  expected_neighbSt_Str2 <- c(7, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 4)
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt, expected_neighbSt_Str2,
-               info = "assigns incorrect $neighbSt case 1.2")
-  expected_neighbSt_Str3 <- c(7, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)
-  expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt, expected_neighbSt_Str3,
-               info = "assigns incorrect $neighbSt case 1.3")
 
   # Test case 2: "long" single singleStructure instance initiated from combiStructure instance
   mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
@@ -622,7 +573,7 @@ test_that("singleStructureGenerator update_interStr_lastNeighbSt()", {
 
 
 test_that("singleStructureGenerator update_intraStr_neighbSt()", {
-  single_obj <- singleStructureGenerator$new("U",13, testing = TRUE)
+  single_obj <- singleStructureGenerator$new("U",13)
 
   # Test cases: incorrect input
   expect_error(get_private(single_obj)$update_intraStr_neighbSt("i"),
@@ -944,43 +895,6 @@ test_that("singleStructureGenerator update_intraStr_neighbSt()", {
   expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
                info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 3 position 5")
   
-
-
-  ## Position 1
-  ## TODO: modify this
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 1, newState = 2)
-  get_private(single_obj)$update_intraStr_neighbSt(1)
-  expected_neighbSt <- c(1, 5, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position n
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 13, newState = 1)
-  get_private(single_obj)$update_intraStr_neighbSt(13)
-  expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 7, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position 2
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 2, newState = 3)
-  get_private(single_obj)$update_intraStr_neighbSt(2)
-  expected_neighbSt <- c(9, 2, 9, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position n-1
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 12, newState = 1)
-  get_private(single_obj)$update_intraStr_neighbSt(12)
-  expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 4, 9, 1)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position between 2 and n-1
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 5, newState = 2)
-  get_private(single_obj)$update_intraStr_neighbSt(5)
-  expected_neighbSt <- c(1, 2, 3, 5, 7, 4, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
 })
 
 test_that("singleStructureGenerator $update_neighbSt() incorrect input", {
@@ -4115,14 +4029,14 @@ test_that("treeMultiRegionSimulator", {
     }
   }
   
-  ## TODO: Update following test
   # Expect objects with correct combiStructure ID
-  # Initiate an instance with a reset shared counter
+  # Initiate an instance to reset shared counter
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"))
   c <- combiStructureGenerator$new(infoStr)
   # Reset shared counter
   c$reset_sharedCounter()
+  # Expected id when Class is initiated for a given infoStr
   message <- capture.output(treeData <- treeMultiRegionSimulator$new(infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"), type = "message")
   expect_equal(treeData$Branch[[1]]$get_id(), 1, 
                info = "root ID not equal to one after resetting counter")
@@ -4149,6 +4063,41 @@ test_that("treeMultiRegionSimulator", {
                  info = paste("branch 5 singleStr", i, "does not point to correct my_combiStructure"))
     expect_equal(get_private(treeData$Branch[[6]]$get_singleStr(i))$my_combiStructure$get_id(), 6,
                  info = paste("branch 6 singleStr", i, "does not point to correct my_combiStructure"))
+  }
+  # Initiate an instance to reset shared counter
+  infoStr <- data.frame(n = c(100, 100, 100),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  # Reset shared counter
+  c$reset_sharedCounter()
+  c <- combiStructureGenerator$new(infoStr)
+  # Expected id when Class is initiated for a given rootData
+  message <- capture.output(treeData <- treeMultiRegionSimulator$new(rootData = c, tree = "(a:1, c:2, (d:3.7, e:4):5);"), type = "message")
+  expect_equal(treeData$Branch[[1]]$get_id(), 2, 
+               info = "root ID not equal to one after resetting counter and initiating with given rootData")
+  expect_equal(treeData$Branch[[2]]$get_id(), 3,
+               info = "branch 2 ID not equal to 3 after initiating with given rootData")
+  expect_equal(treeData$Branch[[3]]$get_id(), 4,
+               info = "branch 3 ID not equal to 4 after initiating with given rootData")
+  expect_equal(treeData$Branch[[4]]$get_id(), 5,
+               info = "branch 4 ID not equal to 5 after initiating with given rootData")
+  expect_equal(treeData$Branch[[5]]$get_id(), 6,
+               info = "branch 5 ID not equal to 6 after initiating with given rootData")
+  expect_equal(treeData$Branch[[6]]$get_id(), 7,
+               info = "branch 6 ID not equal to 7 after initiating with given rootData")
+  for (i in 1:3){
+    expect_equal(get_private(treeData$Branch[[1]]$get_singleStr(i))$my_combiStructure$get_id(), 2,
+                 info = paste("root singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[2]]$get_singleStr(i))$my_combiStructure$get_id(), 3,
+                 info = paste("branch 2 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[3]]$get_singleStr(i))$my_combiStructure$get_id(), 4,
+                 info = paste("branch 3 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[4]]$get_singleStr(i))$my_combiStructure$get_id(), 5,
+                 info = paste("branch 4 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[5]]$get_singleStr(i))$my_combiStructure$get_id(), 6,
+                 info = paste("branch 5 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[6]]$get_singleStr(i))$my_combiStructure$get_id(), 7,
+                 info = paste("branch 6 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
   }
 })
 
@@ -4580,8 +4529,98 @@ test_that("combiStructureGenerator $cftp", {
   expect_true(all(sort(unique(output$CFTP_chosen_site))==1:35),
               info = "not all possible sites are chosen when singleStructures have different lengths")
   
+})
+
+test_that("treeMultiRegionSimulator initialize with cftp", {
+  # Initiate a combiStructure instance to reset shared counter
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  # Reset shared counter
+  c$reset_sharedCounter()
+  
+  # Initialize treeMultiRegionSimulator instance
+  infoStr <- data.frame(n = c(20, 10, 20),
+                        globalState = c("M", "U", "M"))
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);", CFTP = TRUE, testing = TRUE), type = "message")
+  
+  # Extract sequence info
+  root_before_cftp_seq <- c()
+  root_after_cftp_seq <- c()
+  combiU_seq <- c()
+  for (i in 1:3){
+    root_before_cftp_seq <- c(root_before_cftp_seq, t$testing_output$self_before_cftp$get_singleStr(i)$get_seq())
+    combiU_seq <- c(combiU_seq, t$testing_output$cftp_output$combi_u$get_singleStr(i)$get_seq())
+    root_after_cftp_seq <- c(root_after_cftp_seq, t$Branch[[1]]$get_singleStr(i)$get_seq())
+  }
+  
+  # Expect sequence changing after cftp and root sequence to be as in cftp output
+  # Not always
+  #expect_false(all(root_after_cftp_seq == root_before_cftp_seq),
+  #             info = "$seq doesnt change after cftp")
+  expect_true(all(combiU_seq == root_after_cftp_seq),
+              info = "Root $seq doesnt correspond to $seq after cftp")
+  
+  # Expect old ID in root data to be different to new ID in root data
+  expect_false(t$testing_output$self_before_cftp$get_id() == t$Branch[[1]]$get_id(),
+               info = "root ID after CFTP fails to change")
+  
+  # Expect new ID in root data to correspond to cftp's combi_u id
+  expect_equal(t$testing_output$cftp_output$combi_u$get_id(), t$Branch[[1]]$get_id(),
+               info = "$cftp combi_u ID is different from root ID")
+  for (i in 1:3){
+    expect_equal(get_private(t$Branch[[1]]$get_singleStr(i))$my_combiStructure$get_id(), t$Branch[[1]]$get_id(),
+                 info = paste("root singleStr", i, "does not point to correct my_combiStructure according to root ID"))
+  }
+  
+  # Test ID change consistent with testing = FALSE
+  c$reset_sharedCounter()
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);", CFTP = TRUE), type = "message")
+  
+  expect_true(t$Branch[[1]]$get_id() > 1,
+              info = "id with testing = FALSE remains consistent to testing = TRUE")
+  
+  # Test ID doesnt change with CFTP = FALSE
+  c$reset_sharedCounter()
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);"), type = "message")
+  
+  expect_equal(t$Branch[[1]]$get_id(), 1,
+               info = "id with CFTP = FALSE remains 1")
+  
+  # Expect informative message when CFTP = TRUE and no message about CFTP when is, as default, FALSE
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);", CFTP = TRUE), type = "message")
+  
+  expect_true(message[2] == "Calling CFTP algorithm for data at root before letting it evolve along given tree.",
+              info = "Class fails to inform when CFTP is set to TRUE")
+  
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);"), type = "message")
+  
+  expect_true(is.na(message[2]),
+              info = "Class contains informative message when CFTP is set to FALSE")
+})
+
+test_that("treeMultiRegionSimulator errors in input", {
+  infoStr <- data.frame(n = c(20, 10, 20),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  expect_error(treeMultiRegionSimulator$new(rootData = c, infoStr = infoStr, tree = "(a:1);"),
+               info = "Class fails to throw error when both rootData and infoStr are given")
+  params <- get_parameterValues()
+  expect_error(treeMultiRegionSimulator$new(rootData = c, params = params, tree = "(a:1);"),
+               info = "Class fails to throw error when both rootData and params are given")
+  expect_error(treeMultiRegionSimulator$new(params = as.matrix(params), infoStr = infoStr, tree = "(a:1);"),
+               info = "Class fails to throw error when params is not dataframe")
+  expect_error(treeMultiRegionSimulator$new(params = params[,1:3], infoStr = infoStr, tree = "(a:1);"),
+               info = "Class fails to throw error when params is incomplete.")
+  expect_error(treeMultiRegionSimulator$new(tree = "(a:1);"),
+               info = "Class fails to throw error when none of both 'infoStr' and 'rootData' are NULL")
+  expect_error(treeMultiRegionSimulator$new(rootData = c),
+               info = "Class does not throw error when 'tree' is missing")
+  expect_error(treeMultiRegionSimulator$new(infoStr = infoStr),
+               info = "Class does not throw error when 'tree' is missing")
 
 })
+
 
 
 
