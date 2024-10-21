@@ -1,5 +1,6 @@
 # Load necessary libraries
 library(optparse)
+## TODO: Once functions are commented and tested and belong to the package, this should be library(MethEvolSIM) / while developing library(devtools); load_all()
 source("functions_summaryStats.R") # Load functions to compute summary statistics
 
 # Define the command-line options
