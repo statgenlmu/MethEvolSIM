@@ -60,6 +60,7 @@ get_parameterValues <- function(rootData = NULL){
 #'  If customized equilibrium frequencies are given, it also contains columns 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
 #'  with the equilibrium frequency values for unmethylated, partially methylated and methylated.
 #' @param params Optional data frame with specific parameter values.
+#' @param CFTP Default FALSE. TRUE for calling cftp algorithm to set root state according to model equilibrium (Note that current implementation neglects IWE process).
 #' Structure as in get_parameterValues() output. If not provided, default values will be used.
 #'
 #' @return A list containing the simulated data ($data) and parameters ($params).
@@ -80,13 +81,15 @@ get_parameterValues <- function(rootData = NULL){
 #' simulate_initialData(infoStr = infoStr, params = custom_params)
 #'
 #' @export
-simulate_initialData <- function(infoStr, params = NULL){
+simulate_initialData <- function(infoStr, params = NULL, CFTP = FALSE){
+  
+  # Control input
   if (!is.data.frame(infoStr) ||
       !all(c("n", "globalState") %in% colnames(infoStr))) {
     stop("infoStr should be a dataframe with columns: 'n', 'globalState'")
   }
   if(!is.numeric(infoStr$n)) {
-    stop("column 'n' needs to be a vector of numeric lengths (integer values)")
+    stop("column 'n' needs to be a vector of numeric CpG counts (integer values)")
   }
   if(!is.character(infoStr$globalState) || !all(infoStr$globalState %in% c("U","M"))){
     stop("column 'globalState' needs to be a character vector with values 'U' or 'M'")
@@ -105,8 +108,15 @@ simulate_initialData <- function(infoStr, params = NULL){
     if(!is.data.frame(params) || !all(c("alpha_pI", "beta_pI", "alpha_mI", "beta_mI", "alpha_pNI", "beta_pNI", "alpha_mNI", "beta_mNI", "mu", "alpha_Ri", "iota") %in% colnames(params))){
       stop("if 'params' is given, it needs to be a dataframe with column names as in get_parameterValues() output")
     }
+    message("Simulating initial data with customized parameter values")
+  } else {
+    message("Simulating initial data with default parameter values")
   }
   data <- combiStructureGenerator$new(infoStr = infoStr, params = params)
+  if (CFTP){
+    message("Calling CFTP algorithm.")
+    data <- data$cftp()
+  }
   if(is.null(params)){
     params <- get_parameterValues()
   }
@@ -219,6 +229,7 @@ extract_tipD <- function(R6obj){
 #' @param tree A string in Newick format representing the evolutionary tree.
 #' @param params Optional data frame with specific parameter values.
 #' Structure as in get_parameterValues() output. If not provided, default values will be used.
+#' @param CFTP Default FALSE. TRUE for calling cftp algorithm to set root state according to model equilibrium (Note that current implementation neglects IWE process).
 #' @param dt Length of time step for Gillespie's Tau-Leap Approximation (default is 0.01).
 #' @param n_rep Number of replicates to simulate (default is 1).
 #' @param only_tip Logical indicating whether to extract data only for tips (default is TRUE, FALSE to extract the information for all the tree branches).
@@ -276,41 +287,24 @@ extract_tipD <- function(R6obj){
 #' @export
 #'
 #'
-simulate_evolData <- function(infoStr = NULL, rootData = NULL, tree, params = NULL, dt = 0.01, n_rep = 1, only_tip = TRUE){
-  if (is.null(infoStr) && is.null(rootData)) {
-    stop("At least one of infoStr or rootData must be provided.")
-  } else if (!is.null(infoStr) && !is.null(rootData)) {
-    stop("Only one of infoStr or rootData should be provided.")
-  }
-  if(!is.null(rootData)){
-    if(!is.null(params)){
-      stop("When rootData is given, rootData parameter values are used. Argument 'params' needs to be null. \n To get rootData parameter values use get_parameterValues(rootData). \n To customize rootData parameter values use get_parameterValues() and modify the desired value(s) in the output dataframe. Then provide the  customized dataframe in the 'params' argument of the function simulate_initialData() to generate a new rootData instance with the customized parameter values.")
-    }
-    message("Parameter values set as in given rootData")
-    if(class(rootData)[1] != "combiStructureGenerator"){
-      stop("rootData should be the output of simulate_initialData()")
-    }
-  }
+simulate_evolData <- function(infoStr = NULL, rootData = NULL, tree = NULL, params = NULL, dt = 0.01, CFTP = FALSE, n_rep = 1, only_tip = TRUE){
+  
+  # Control input
+  if (is.null(infoStr) && is.null(rootData)) stop("At least one argument of 'infoStr' or 'rootData' must be provided.")
+  if (!is.null(infoStr) && !is.null(rootData)) stop("Only one argument of 'infoStr' or 'rootData' should be provided.")
+  if(is.null(tree)) stop("Argument 'tree' is missing with no default.")
+  if(!is.character(tree)) stop("tree needs to be given as string in newick format")
+  if(!is.null(rootData) && !is.null(params)) stop("When rootData is given, rootData parameter values are used. Argument 'params' needs to be null. \n To get rootData parameter values use get_parameterValues(rootData). \n To customize rootData parameter values use get_parameterValues() and modify the desired value(s) in the output dataframe. Then provide the  customized dataframe in the 'params' argument of the function simulate_initialData() to generate a new rootData instance with the customized parameter values.")
+  if(!is.null(rootData) && class(rootData)[1] != "combiStructureGenerator") stop("rootData should be the output of simulate_initialData()")
   if(!is.null(infoStr)){
-    if (!is.data.frame(infoStr) ||
-        !all(c("n", "globalState") %in% colnames(infoStr))) {
-      stop("infoStr should be a dataframe with columns: 'n', 'globalState'")
-    }
-    if (is.null(params)){
-      message("Using default parameter values")
-    }
-  }
-  if(!is.character(tree)){
-    stop("tree needs to be given as string in newick format")
+    if (!is.data.frame(infoStr) || !all(c("n", "globalState") %in% colnames(infoStr))) stop("infoStr should be a dataframe with columns: 'n', 'globalState'")
+    if (is.null(params)) message("Using default parameter values")
   }
   if(all(c("u_eqFreq", "p_eqFreq", "m_eqFreq") %in% colnames(infoStr))){
     for (i in 1:nrow(infoStr)){
       eqFreqs <- c(infoStr$u_eqFreq[i], infoStr$p_eqFreq[i], infoStr$m_eqFreq[i])
-      if(any(is.na(eqFreqs))){
-        stop(paste("if 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq' are given, they need to be frequency values. Missing values in row ", i))
-      } else if(!is.numeric(eqFreqs) || !length(eqFreqs) == 3 || !sum(eqFreqs)==1){
-        stop(paste("if 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq' are given, they need to be frequency values (sum 1). Incorrect values in row ", i))
-      }
+      if(any(is.na(eqFreqs))) stop(paste("if 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq' are given, they need to be frequency values. Missing values in row ", i))
+      if(!is.numeric(eqFreqs) || !length(eqFreqs) == 3 || !sum(eqFreqs)==1) stop(paste("if 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq' are given, they need to be frequency values (sum 1). Incorrect values in row ", i))
     }
   }
   if(!is.null(params)){
@@ -318,10 +312,11 @@ simulate_evolData <- function(infoStr = NULL, rootData = NULL, tree, params = NU
       stop("if 'params' is given, it needs to be a dataframe with column names as in get_parameterValues() output")
     }
   }
+  
   # Simulate data
   sim_data = vector("list", n_rep)
   for (r in 1:n_rep){
-    R6_obj <- treeMultiRegionSimulator$new(infoStr = infoStr, rootData = rootData, tree = tree, params = params)
+    R6_obj <- treeMultiRegionSimulator$new(infoStr = infoStr, rootData = rootData, tree = tree, params = params, CFTP = CFTP, dt = dt)
     if(only_tip){
       sim_data[[r]] <- extract_tipD(R6obj = R6_obj)
     } else {

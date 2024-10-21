@@ -58,7 +58,8 @@ test_that("simulate_initialData",{
   ## a) For input without customized eqFreqs or params
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
-  output <- simulate_initialData(infoStr = infoStr)
+  m <- capture.output(output <- simulate_initialData(infoStr = infoStr), type = "message")
+  expect_equal(m, "Simulating initial data with default parameter values")
   expect_equal(class(output$data)[1], "combiStructureGenerator", info ="does not generate correct output$data class for correct input")
   expect_true(all(output$params == get_parameterValues()), info ="does not return default parameter values when not given a)")
   ## b) For input with customized eqFreqs
@@ -67,7 +68,8 @@ test_that("simulate_initialData",{
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0.1, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
-  output <- simulate_initialData(infoStr = infoStr)
+  m <- capture.output(output <- simulate_initialData(infoStr = infoStr), type = "message")
+  expect_equal(m, "Simulating initial data with default parameter values")
   expect_equal(class(output$data)[1], "combiStructureGenerator", info ="does not generate correct output$data class for correct input")
   expect_true(all(output$params == get_parameterValues()), info ="does not return default parameter values when not given b)")
   ## c) For input with customized params
@@ -78,9 +80,26 @@ test_that("simulate_initialData",{
                         m_eqFreq = c(0.8, 0.1, 0.8))
   custom_params <- get_parameterValues()
   custom_params$iota <- 0.5
-  output <- simulate_initialData(infoStr = infoStr, params = custom_params)
+  m <- capture.output(output <- simulate_initialData(infoStr = infoStr, params = custom_params), type = "message")
+  expect_equal(m, "Simulating initial data with customized parameter values")
   expect_equal(class(output$data)[1], "combiStructureGenerator", info ="does not generate correct output$data class for correct input")
   expect_true(all(output$params == custom_params), info ="does not return customized params when given")
+  ## d) For CFTP = TRUE
+  infoStr <- data.frame(n = c(30, 10, 5),
+                        globalState= c("M", "U", "M"))
+  message <- capture.output(o <- simulate_initialData(infoStr = infoStr, CFTP = TRUE), type = "message")
+  expect_equal(message[2], "Calling CFTP algorithm.")
+  # Reset combi counter to check ID of output 
+  # First without CFTP
+  c <- combiStructureGenerator$new(infoStr = infoStr); c$reset_sharedCounter()
+  m <- capture.output(o <- simulate_initialData(infoStr = infoStr), type = "message")
+  expect_equal(o$data$get_id(), 1,
+               info = "wrong ID of generated data without CFTP")
+  # Now with CFTP
+  c <- combiStructureGenerator$new(infoStr = infoStr); c$reset_sharedCounter()
+  m <- capture.output(o <- simulate_initialData(infoStr = infoStr, CFTP = TRUE), type = "message")
+  expect_true(o$data$get_id() > 1,
+               info = "wrong ID of generated data with CFTP")
 })
 
 test_that("simulate_evolData input control",{
@@ -89,8 +108,10 @@ test_that("simulate_evolData input control",{
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   tree <- "(a:1, c:2, (d:3.7, e:4):5);"
-  expect_error(capture.output(simulate_evolData(infoStr = infoStr), type = "message"), info='fails to throw error when tree argument is missing')
-  expect_error(capture.output(simulate_evolData(tree = tree), type = "message"), info='fails to throw error when neither infoStr nor rootData are given')
+  expect_error(capture.output(simulate_evolData(infoStr = infoStr), type = "message"), 
+               info='fails to throw error when tree argument is missing')
+  expect_error(capture.output(simulate_evolData(tree = tree), type = "message"), 
+               info='fails to throw error when neither infoStr nor rootData are given')
 
   ## b) infoStr with eqFreqs: incorrect values
   infoStr <- data.frame(n = c(100, 100, 100),
@@ -98,13 +119,15 @@ test_that("simulate_evolData input control",{
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(NA, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
-  expect_error(capture.output(simulate_evolData(infoStr = infoStr, tree = tree), type = "message"), info = "fails to throw error when given eqFreqs in infoStr have missing values")
+  expect_error(capture.output(simulate_evolData(infoStr = infoStr, tree = tree), type = "message"), 
+               info = "fails to throw error when given eqFreqs in infoStr have missing values")
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState = c("M", "U", "M"),
                         u_eqFreq = c(0.1, 0.8, 0.1),
                         p_eqFreq = c(0, 0.1, 0.1),
                         m_eqFreq = c(0.8, 0.1, 0.8))
-  expect_error(capture.output(simulate_evolData(infoStr = infoStr, tree = tree), type ="message"), info = "fails to throw error when given eqFreqs in infoStr are incorrect")
+  expect_error(capture.output(simulate_evolData(infoStr = infoStr, tree = tree), type ="message"), 
+               info = "fails to throw error when given eqFreqs in infoStr are incorrect")
 
   ## c) incorrect customized params
   infoStr <- data.frame(n = c(100, 100, 100),
@@ -143,7 +166,7 @@ test_that("simulate_evolData output",{
   rootData <- simulate_initialData(infoStr = infoStr)$data
   silence <- capture.output(output <- simulate_evolData(rootData = rootData, tree = tree), type = "message")
   expect_equal(class(output$data), "list", info ="does not generate correct output$data list (a2)")
-  print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[2])
+  print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[1])
   expect_print <- "Simulating evolution of given data at root along given tree:  (a:1, c:2, (d:3.7, e:4):5);"
   expect_equal(print, expect_print, info = "Not initiating evolution of given data when rootData is given")
   expect_true(all(output$params == get_parameterValues()), info = "fails to return default params when not given")
@@ -188,10 +211,15 @@ test_that("simulate_evolData output",{
   silence <- capture.output(output <- simulate_evolData(rootData = rootData, tree = tree), type = "message")
   expect_equal(class(output$data), "list", info ="does not generate correct output$data list (d)")
   print <- sub("\\[\\d+\\] \"(.*)\"", "\\1", silence[1])
-  expect_print <- "Parameter values set as in given rootData"
+  expect_print <- "Simulating evolution of given data at root along given tree:  (a:1, c:2, (d:3.7, e:4):5);"
   expect_equal(print, expect_print, info = "Fails to inform that parameter values are set as in given rootData d)")
   expect_equal(output$params$alpha_mNI, 0.5, info = "does not return params as in given rootData")
-
+  
+  ## e) For CFTP
+  infoStr <- data.frame(n = c(10, 10, 20),
+                        globalState= c("M", "U", "M"))
+  silence <- capture.output(output <- simulate_evolData(infoStr = infoStr, tree = tree, CFTP = TRUE), type = "message")
+  expect_equal(silence[3], "Calling CFTP algorithm for data at root before letting it evolve along given tree.")
 })
 
 test_that("simulate_evolData output$data",{

@@ -79,28 +79,6 @@ singleStructureGenerator <-
                 #### ####[3,]    7    8    9
                 mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3),
                 ## @description
-                ## Private method: Get left singleStructureGenerator object in my_combiStructure object last seq state
-                ## @return last seq value
-                get_leftStr_neighbSt = function(){
-                  if (private$combiStructure_index == 1) {
-                    stop("'combiStructure_index' is 1, no leftStr available")
-                  }
-                  if (private$combiStructure_index > 1){
-                    private$my_combiStructure$get_singleStr(private$combiStructure_index - 1)$get_seqLastPos()
-                  }
-                },
-                ## @description
-                ## Private method: Get right singleStructureGenerator object in my_combiStructure object first seq state
-                ## @return first seq value
-                get_rightStr_neighbSt = function(){
-                  if (private$combiStructure_index == private$my_combiStructure$get_singleStr_number()) {
-                    stop("'combiStructure_index' is last, no rightStr available")
-                  }
-                  if (private$combiStructure_index < private$my_combiStructure$get_singleStr_number()){
-                    private$my_combiStructure$get_singleStr(private$combiStructure_index + 1)$get_seqFirstPos()
-                  }
-                },
-                ## @description
                 ## Private method: Get next singleStructureGenerator object in my_combiStructure object
                 ## @return next singleStructureGenerator object if it exists, NULL if it does not exist
                 get_nextStr = function(){
@@ -123,7 +101,6 @@ singleStructureGenerator <-
                 ## @description
                 ## Private method: Update $neighbSt of a CpG position's neighbors within singleStructureGenerator object
                 ##
-                ## This fuction takes in the position index of a CpG site that
                 ## changed $seq state and updates $neighbSt for the neighbors of the changed position
                 ##
                 ## @param position position index of the $seq change
@@ -131,8 +108,8 @@ singleStructureGenerator <-
                 ## @return NULL
                 ##
                 update_intraStr_neighbSt = function(position){
-                  if (!is.numeric(position) || length(position) != 1) {
-                    stop("'position' must be one number")
+                  if (!is.numeric(position) || length(position) != 1 || position != floor(position)) {
+                    stop("'position' must be one integer index value")
                   }
                   if( position < 1 || position > length(private$seq)){
                     stop("'position' value must be within $seq length")
@@ -149,12 +126,23 @@ singleStructureGenerator <-
                         private$neighbSt[position + 1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position + 2]]
                       }
                     } else if (position == 2){
-                      #1st counts the only neighbor as both neighbors
+                      # position 1 has only one neighbor: position 2
                       private$neighbSt[position-1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
-                      private$neighbSt[position+1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                      if (position != length(private$seq)){
+                        if (length(private$seq) < position + 2){
+                          # position 3 has only one neighbor: position 2
+                          private$neighbSt[position+1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                        } else {
+                          private$neighbSt[position+1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                        }
+                      }
                     } else if (position == length(private$seq)){
-                      # position n has only one neighbor
-                      private$neighbSt[position-1] <<- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                      if (length(private$seq) < 3){
+                        # position n-1 has only one neighbor: position n
+                        private$neighbSt[position-1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                      } else {
+                        private$neighbSt[position-1] <<- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                      }
                     } else if (position == length(private$seq)-1){
                       #last counts the only neighbor as both neighbors
                       private$neighbSt[position+1] <<- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
@@ -177,48 +165,90 @@ singleStructureGenerator <-
                 ## @return NULL
                 ##
                 update_neighbSt = function(position){
-                  if (is.null(private$combiStructure_index)){ # case of isolated singleStructure instance
-                    private$update_intraStr_neighbSt(position)
-                  } else { # case of singleStructure instances within combiStructure
-
-                    ## Update left neighbSt
-                    if (position == 1){
-                      if(!is.null(private$get_prevStr())){ # if singleStr is not first Str
-                        if(!is.null(private$get_prevStr()$get_seq2ndButLastPos())){ # if there is 2 positions to the left
-                          private$get_prevStr()$update_interStr_lastNeighbSt(private$get_prevStr()$get_seq2ndButLastPos(), private$seq[position])
-                        } else {
-                          private$get_prevStr()$update_interStr_lastNeighbSt(private$seq[position], private$seq[position])
-                        }
-                      }
-                    } else if (position == 2){
-                      if(!is.null(private$get_prevStr())){ # if singleStr is not first Str
-                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$seq[position]]
-                      } else { # singleStr has no neighbouring Str to the left, first position takes as 2 neighbors second position
-                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
-                      }
-                    } else {
-                      private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position - 2], private$seq[position]]
-                    }
-
-                    ## Update right neighbSt
-                    if (position == length(private$seq)){
-                      if(!is.null(private$get_nextStr())){ # if singleStr is not last Str
-                        if(!is.null(private$get_nextStr()$get_seq2ndPos())){ # if there is 2 positions to the right
-                          private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$get_nextStr()$get_seq2ndPos())
-                        } else {
-                          private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$seq[position])
-                        }
-                      }
-                    } else if (position == length(private$seq)-1){
-                      if(!is.null(private$get_nextStr())){ # if singleStr is not last Str
-                        private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$get_rightStr_neighbSt()]
-                      } else { # singleStr has no neighbouring Str to the righ, last positions takes as 2 neighbors last - 1 position
-                        private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
-                      }
-                    } else {
-                      private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position + 2]]
-                    }
+                  if (!is.numeric(position) || length(position) != 1 || position != floor(position)) {
+                    stop("'position' must be one integer index value")
                   }
+                  if( position < 1 || position > length(private$seq)){
+                    stop("'position' value must be within $seq length")
+                  }
+                  if (is.null(private$combiStructure_index) || private$my_combiStructure$get_singleStr_number() == 1){ ## Case of isolated singleStructure instance
+                    private$update_intraStr_neighbSt(position)
+                  } else { ## Case of singleStructure instances within combiStructure
+                    
+                    if (length(private$seq) == 1){ ## Cases with length 1
+                      # Update leftNeighbSt
+                      if (!is.null(private$get_prevStr())){
+                        private$get_prevStr()$update_interStr_lastNeighbSt(private$get_prevStr()$get_seq2ndButLastPos(), private$seq[position])
+                      }
+                      # Update rightNeighbSt
+                      if (!is.null(private$get_nextStr())){
+                        private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$get_nextStr()$get_seq2ndPos())
+                      }
+                      
+                    } else { ## cases with length > 1
+                      
+                      if (position == 1){
+                        # Update leftNeighbSt
+                        if (!is.null(private$get_prevStr())){
+                          private$get_prevStr()$update_interStr_lastNeighbSt(private$get_prevStr()$get_seq2ndButLastPos(), private$seq[position])
+                        }
+                        # Update rightNeighbSt
+                        if(length(private$seq) < position + 2){
+                          if (!is.null(private$get_nextStr())){
+                            private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$get_nextStr()$get_seqFirstPos()]
+                          } else {
+                            private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                          }
+                        } else {
+                          private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                        }
+                      } else if (position == 2){
+                        # Update leftNeighbSt
+                        if (!is.null(private$get_prevStr())){
+                          private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$get_prevStr()$get_seqLastPos(), private$seq[position]]
+                        } else {
+                          private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                        }
+                        # Update rightNeighbSt
+                        if(length(private$seq) < position + 2){
+                          if(position == length(private$seq)){ # second position is also last
+                            if (!is.null(private$get_nextStr())){ # if there is another structure to the right
+                              private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$get_nextStr()$get_seq2ndPos())
+                            }
+                          } else {# second position is also previous to last
+                            if (!is.null(private$get_nextStr())){
+                              private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$get_nextStr()$get_seqFirstPos()]
+                            } else {
+                              private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                            }
+                          }
+                        } else { # second position is not last or previous to last
+                          private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                        }
+                      } else if (position == length(private$seq)){ 
+                        # Update leftNeighbSt (always position 3 or higher, so it has two left neighbors)
+                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                        # Update rightNeighbSt
+                        if(!is.null(private$get_nextStr())){
+                          private$get_nextStr()$update_interStr_firstNeighbSt(private$seq[position], private$get_nextStr()$get_seq2ndPos())
+                        }
+                        
+                      } else if (position == length(private$seq)-1){
+                        # Update leftNeighbSt (always position 3 or higher, so it has two left neighbors)
+                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                        # Update rightNeighbSt
+                        if(!is.null(private$get_nextStr())){
+                          private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$get_nextStr()$get_seqFirstPos()]
+                        } else {
+                          private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position]]
+                        }
+                      } else {
+                        private$neighbSt[position - 1] <- private$mapNeighbSt_matrix[private$seq[position-2], private$seq[position]]
+                        private$neighbSt[position + 1] <- private$mapNeighbSt_matrix[private$seq[position], private$seq[position+2]]
+                      }
+                    } ## End of cases with length > 1
+        
+                  } ## End of case of singleStructure instances within combiStructure
                 },
                 ## @field alpha_Ri Private attribute: Model parameter for gamma distribution shape to initialize the 3 $Ri_values
                 alpha_Ri = 0.1,
@@ -531,80 +561,25 @@ singleStructureGenerator <-
                 }
               ),
               public = list(
+                #' @field testing_output Public attribute: Testing output for initialize
+                testing_output = NULL,
                 #' @description
                 #' Public method: Initialization of $neighbSt
                 #'
                 #' This fuction initiates each CpG position $neighbSt as encoded in $mapNeighbSt_matrix
+                #' 
+                #' It uses $update_neighbSt which updates for each sequence index, the neighbSt of left and right neighbors
+                #' This means that it updates position 2, then 1 and 3, then 2 and 4.. 
+                #' Therefore, if the combiStructure instance has several singleStr instances within and the first has length 1,
+                #' the $neighbSt of that position of the first singleStr instance is initialized when the method is called from the second singleStr instance
+                #' 
                 #' Positions at the edge of the entire simulated sequence use
                 #' their only neighbor as both neighbors.
                 #'
                 #' @return NULL
                 init_neighbSt = function(){
-                  if (is.null(private$my_combiStructure)){ # cases of singleStructure instances initiated outside combiStructure instance
-                    if (length(private$seq)== 1){ # cases with length 1
-                      private$neighbSt <<- private$mapNeighbSt_matrix[private$seq[1],private$seq[1]]
-                    } else { # cases with length > 1
-                      for (position in 1:length(private$seq)){
-                        if (position == 1){ #1st counts the only neighbor as both neighbors
-                          private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position + 1], private$seq[position + 1]]
-                        } else if (position == length(private$seq)){ #last counts the only neighbor as both neighbors
-                          private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position - 1]]
-                        } else {
-                          private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
-                        }
-                      }
-                    }
-                  } else { # cases of singleStructure instances initiated from combiStructure instance
-                    if (length(private$seq)== 1){ # cases with length 1
-                      if (private$combiStructure_index == 1){ # first singleStructure instance in combiStructure
-                        if (is.null(private$get_nextStr())){ # fist singleStr is only singleStr
-                          private$neighbSt <<- private$mapNeighbSt_matrix[private$seq[1],private$seq[1]]
-                        } else { # first position next structure counts as both neighbors
-                          private$neighbSt <<- private$mapNeighbSt_matrix[private$get_rightStr_neighbSt(), private$get_rightStr_neighbSt()]
-                        }
-                      } else if (private$combiStructure_index == private$my_combiStructure$get_singleStr_number()){ # last singleStructure instance in combiStructure, last position in previous structure counts as both neighbors
-                        private$neighbSt <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$get_leftStr_neighbSt()]
-                      } else {
-                        private$neighbSt <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$get_rightStr_neighbSt()]
-                      }
-                    } else { # cases with length > 1
-                      if (private$combiStructure_index == 1){ # first singleStructure instance in combiStructure
-                        ## TODO: if length < position +2
-                        for (position in 1:length(private$seq)){
-                          if (position == 1){ #1st counts the only neighbor as both neighbors
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position + 1], private$seq[position + 1]]
-                          } else if (position == length(private$seq)){ #last uses as right neighbor next singleStructure info
-                            if(is.null(private$get_nextStr())){ # fist singleStr is only singleStr it counts previous position as both neighbors
-                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position - 1]]
-                            } else {
-                              private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$get_rightStr_neighbSt()]
-                            }
-                          } else {
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
-                          }
-                        }
-                      } else if (private$combiStructure_index == private$my_combiStructure$get_singleStr_number()){ # last singleStructure instance in combiStructure
-                        for (position in 1:length(private$seq)){
-                          if (position == 1){ #1st uses as left neighbor previous singleStructure info
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$seq[position + 1]]
-                          } else if (position == length(private$seq)){ #last counts the only neighbor as both neighbors
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position - 1]]
-                          } else {
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
-                          }
-                        }
-                      } else { # intermediate singleStructure instances in combiStructure
-                        for (position in 1:length(private$seq)){
-                          if (position == 1){ #1st uses as left neighbor previous singleStructure info
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$get_leftStr_neighbSt(), private$seq[position + 1]]
-                          } else if (position == length(private$seq)){ #last uses as right neighbor next singleStructure info
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$get_rightStr_neighbSt()]
-                          } else {
-                            private$neighbSt[position] <<- private$mapNeighbSt_matrix[private$seq[position - 1], private$seq[position + 1]]
-                          }
-                        }
-                      }
-                    }
+                  for (i in 1:length(private$seq)){
+                    private$update_neighbSt(i)
                   }
                 },
                 #' @description
@@ -638,7 +613,7 @@ singleStructureGenerator <-
                 #' @param combiStr Default NULL. When initiated from combiStructureGenerator: object of class combiStructureGenerator containing it
                 #' @param combiStr_index Default NULL. When initiated from combiStructureGenerator: index in Object of class combiStructureGenerator
                 #' @param params Default NULL. When given: data frame containing model parameters
-                #' @param testing Default FALSE. TRUE for testing output
+                #' @param testing Default FALSE. TRUE for writing in public field of new instance $testing_output
                 #' @return A new `singleStructureGenerator` object.
                 initialize = function(globalState, n, eqFreqs = NULL, combiStr = NULL, combiStr_index = NULL,  params = NULL, testing = FALSE) {
                   if (!is.character(globalState)) {
@@ -670,15 +645,12 @@ singleStructureGenerator <-
                   if(is.null(eqFreqs)){
                     private$eqFreqs <- private$sample_eqFreqs()
                   } else {
-                    if(!is.numeric(eqFreqs) || !length(eqFreqs) == 3 || !sum(eqFreqs)==1){
+                    if(!(is.numeric(eqFreqs) && length(eqFreqs) == 3 && abs(sum(eqFreqs) -1) < 1e-8)){
                       stop("if 'eqFreqs' is not NULL, provide a numeric vector of 3 frequencies ")
                     }
                     private$eqFreqs <- eqFreqs
                   }
                   private$seq <- sample(1L:3L, size = n, prob = private$eqFreqs, replace = TRUE)
-                  if(testing){ # when testing neighbSt initiate instance with n=13
-                    private$seq <- c(1, 1, 2, 3, 1, 1, 1, 3, 2, 2, 3, 2, 3)
-                  }
                   private$siteR <- sample(1L:3L, size = n, replace = TRUE)
                   private$my_combiStructure <- combiStr
                   private$combiStructure_index <- combiStr_index
@@ -688,13 +660,21 @@ singleStructureGenerator <-
                   private$set_Qi()
                   private$set_Qc()
                   private$set_Q()
-                  #undebug(self$update_ratetree_allCases)
+                  #undebug(self$init_neighbSt)
+                  #undebug(private$update_neighbSt)
                   if(is.null(private$my_combiStructure)){
                     self$init_neighbSt()
                     #debug(self$initialize_ratetree)
                     self$initialize_ratetree()
                   }
                 },
+                #' @description
+                #' Public method: Set my_combiStructure. Assigns given combi instance to private field my_combiStructure
+                #' 
+                #' @param combi instance of combiStructureGenerator
+                #'
+                #' @return NULL
+                set_myCombiStructure = function(combi) private$my_combiStructure <- combi,
                 #' @description
                 #' Public method: Get object's methylation state sequence
                 #'
@@ -712,10 +692,10 @@ singleStructureGenerator <-
                 #'
                 #' @return numerical encoding of second position's methylation state. NULL if position does not exist
                 get_seq2ndPos = function () {
-                  if (length(private$seq)==1){
-                    if (is.null(private$get_nextStr())) NULL
-                    else private$get_nextStr()$get_seqFirstPos()
-                  } else {
+                  if (length(private$seq)==1){ # if singleStr contains only one position
+                    if (is.null(private$get_nextStr())) NULL # and if there is no other singleStr to the the right, return NULL
+                    else private$get_nextStr()$get_seqFirstPos() # if there is other singleStr to the right, return seq state first position
+                  } else { # if singleStr contains more then one position, return the seq state of second position
                     private$seq[2]
                   }
                 },
@@ -729,10 +709,10 @@ singleStructureGenerator <-
                 #'
                 #' @return numerical encoding of second but last position's methylation state. NULL if position does not exist
                 get_seq2ndButLastPos = function () {
-                  if (length(private$seq)==1){
-                    if (is.null(private$get_prevStr())) NULL
-                    else private$get_prevStr()$get_seqLastPos()
-                  } else {
+                  if (length(private$seq)==1){ # if singleStr contains only one position
+                    if (is.null(private$get_prevStr())) NULL # and there is no other singleStr to the left, return NULL
+                    else private$get_prevStr()$get_seqLastPos() # if there is other singleStr to the left, return seq state of last position
+                  } else { # if singleStr contains more than one position, return the seq state of position previous to last
                     private$seq[length(private$seq)-1]
                   }
                 },
@@ -747,29 +727,61 @@ singleStructureGenerator <-
                 #' This function is used when the last $seq position of a singleStructureGenerator object
                 #' changes methylation state to update the neighbSt position
                 #'
-                #' @param leftNeighbSt $seq state of left neighbor (left neighbor is in previous singleStructureGenerator object)
-                #' @param rightNeighbSt $seq state of right neighbor
+                #' @param leftNeighb_seqSt $seq state of left neighbor (left neighbor is in previous singleStructureGenerator object)
+                #' @param rightNeighb_seqSt $seq state of right neighbor
                 #'
                 #' @return NULL
-                update_interStr_firstNeighbSt = function(leftNeighbSt, rightNeighbSt) {
-                  if(!is.null(rightNeighbSt)){
-                    private$neighbSt[1] <<- private$mapNeighbSt_matrix[leftNeighbSt, rightNeighbSt]
-                  } else { # if there is no right neighbour
-                    private$neighbSt[1] <<- private$mapNeighbSt_matrix[leftNeighbSt, leftNeighbSt]
+                update_interStr_firstNeighbSt = function(leftNeighb_seqSt, rightNeighb_seqSt) {
+                  
+                  # Check if leftNeighb_seqSt is NULL
+                  if (is.null(leftNeighb_seqSt)) {
+                    stop("Error: argument 'leftNeighb_seqSt' cannot be NULL")
+                  }
+                  
+                  # Check if leftNeighb_seqSt is 1, 2, or 3
+                  if (!leftNeighb_seqSt %in% c(1, 2, 3)) {
+                    stop("Error: argument 'leftNeighb_seqSt' must be 1, 2, or 3")
+                  }
+                  
+                  # Check if rightNeighb_seqSt is NULL or 1, 2, or 3
+                  if (!is.null(rightNeighb_seqSt) && !rightNeighb_seqSt %in% c(1, 2, 3)) {
+                    stop("Error: argument 'rightNeighb_seqSt' must be NULL, 1, 2, or 3")
+                  }
+                  
+                  if(!is.null(rightNeighb_seqSt)){
+                    private$neighbSt[1] <<- private$mapNeighbSt_matrix[leftNeighb_seqSt, rightNeighb_seqSt]
+                  } else { # if there is no right neighbour use left neighb as both neighbors
+                    private$neighbSt[1] <<- private$mapNeighbSt_matrix[leftNeighb_seqSt, leftNeighb_seqSt]
                   }
                 },
                 #' @description
                 #' Public method: Update neighbSt of previous singleStructureGenerator object within combiStructureGenerator object
                 #'
-                #' @param leftNeighbSt $seq state of right neighbor (left neighbor is in next singleStructureGenerator object)
-                #' @param rightNeighbSt $seq state of right neighbor
+                #' @param leftNeighb_seqSt $seq state of right neighbor (left neighbor is in next singleStructureGenerator object)
+                #' @param rightNeighb_seqSt $seq state of right neighbor
                 #'
                 #' @return NULL
-                update_interStr_lastNeighbSt = function(leftNeighbSt, rightNeighbSt){
-                  if(!is.null(leftNeighbSt)){
-                    private$neighbSt[length(private$neighbSt)] <<- private$mapNeighbSt_matrix[leftNeighbSt, rightNeighbSt]
-                  } else { # if there is no left neighbour
-                    private$neighbSt[length(private$neighbSt)] <<- private$mapNeighbSt_matrix[rightNeighbSt, rightNeighbSt]
+                update_interStr_lastNeighbSt = function(leftNeighb_seqSt, rightNeighb_seqSt){
+                  
+                  # Check if rightNeighb_seqSt is NULL
+                  if (is.null(rightNeighb_seqSt)) {
+                    stop("Error: argument 'rightNeighb_seqSt' cannot be NULL")
+                  }
+                  
+                  # Check if rightNeighb_seqSt is 1, 2, or 3
+                  if (!rightNeighb_seqSt %in% c(1, 2, 3)) {
+                    stop("Error: argument 'rightNeighb_seqSt' must be 1, 2, or 3")
+                  }
+                  
+                  # Check if leftNeighb_seqSt is NULL or 1, 2, or 3
+                  if (!is.null(leftNeighb_seqSt) && !leftNeighb_seqSt %in% c(1, 2, 3)) {
+                    stop("Error: argument 'leftNeighb_seqSt' must be NULL, 1, 2, or 3")
+                  }
+                  position <- length(private$seq)
+                  if(!is.null(leftNeighb_seqSt)){
+                    private$neighbSt[position] <<- private$mapNeighbSt_matrix[leftNeighb_seqSt, rightNeighb_seqSt]
+                  } else { # if there is no left neighbour use right neighb as both neighbors
+                    private$neighbSt[position] <<- private$mapNeighbSt_matrix[rightNeighb_seqSt, rightNeighb_seqSt]
                   }
                 },
                 #' @description
@@ -816,7 +828,7 @@ singleStructureGenerator <-
                                 SSE_evolInfo <- rbind(SSE_evolInfo, data.frame(position, old_St, new_St))
                             }
                             
-                            # update neighbSt and ratetree
+                            # update neighbSt and ratetree (both methods update at neighbouring singleStructure instances if i is 1st or last position)
                             private$update_neighbSt(i)
                             private$update_ratetree_allCases(index = i)
                             
@@ -1209,8 +1221,110 @@ singleStructureGenerator <-
                                                                                         2*position)])
                     }
                   }
+                },
+                
+                #' @description
+                #' Public Method. Get list of matrices for SSE process
+                #' 
+                #' @param siteR default NULL. Numerical value encoding for the sites rate of independent SSE (1, 2 or 3)
+                #' @param oldSt default NULL. Numerical value encoding for the sites old methylation state (1, 2 or 3)
+                #' @param newSt default NULL. Numerical value encoding for the sites new methylation state (1, 2 or 3)
+                #' 
+                #' @return With NULL arguments, the list of SSEi rate matrices. With non NULL arguments, the corresponding rate of change.
+                get_Qi = function(siteR = NULL, oldSt = NULL, newSt = NULL){
+                  if(is.null(siteR) && is.null(oldSt) && is.null(newSt)){
+                    private$Qi
+                  } else{
+                    private$Qi[[siteR]][oldSt,newSt]
+                  }
+                },
+                
+                #' @description
+                #' Public Method. Decode methylation state of left neighbor form owns neighbSt
+                #' 
+                #' @param index Integer index value for the CpG position within the singleStr instance
+                #' 
+                #' @return decoded methylation state ($seq) of left neighbor (1, 2 or 3 for unmethylated, partially methylated or methylated)
+                get_seqSt_leftneighb = function(index){
+                  if (is.null(index)) stop("Argument 'index' for CpG position is missing, with no default")
+                  if(!(is.numeric(index) && length(index) == 1 && index == floor(index))){
+                    stop("Argument 'index' must be one integer index value")
+                  }
+                  if(!(index >= 1 && index <= length(private$seq))) {
+                    stop("Argument 'index' not within sequence length")
+                  }
+                  # Extract row number (corresponding to $seq state of left neighbor) from the positions neighbSt
+                  which(private$mapNeighbSt_matrix == self$get_neighbSt(index), arr.ind = TRUE)[1]
+                  #floor((self$get_neighbSt(i)-1) / 3) +1
+                },
+                
+                #' @description
+                #' Public Method. Decode methylation state of left neighbor form owns neighbSt
+                #' 
+                #' @param index Integer index value for the CpG position within the singleStr instance
+                #' 
+                #' @return decoded methylation state ($seq) of right neighbor (1, 2 or 3 for unmethylated, partially methylated or methylated)
+                get_seqSt_rightneighb = function(index){
+                  if (is.null(index)) stop("Argument 'index' for CpG position is missing, with no default")
+                  if(!(is.numeric(index) && length(index) == 1 && index == floor(index))){
+                    stop("Argument 'index' must be one integer index value")
+                  }
+                  if(!(index >= 1 && index <= length(private$seq))) {
+                    stop("Argument 'index' not within sequence length")
+                  }
+                  which(private$mapNeighbSt_matrix == self$get_neighbSt(index), arr.ind = TRUE)[2]
+                  #(self$get_neighbSt(i)-1) %% 3 +1
+                },
+                
+                #' @description
+                #' Public Method. Make a singleStructure with the same segment lengths and parameters
+                #' as the focal one but where all states are m or u
+                #' 
+                #' @param state Character value "U" or "M"
+                #' @param testing default FALSE. TRUE for testing output
+                #' 
+                #' @return right neighbSt
+                cftp_all_equal = function(state, testing = FALSE) {
+                  n <- length(private$seq)
+                  if (state == "U"){
+                    #private$globalState <- "U"
+                    private$seq <- rep(1L, n)
+                  } else if (state == "M"){
+                    #private$globalState <- "M"
+                    private$seq <- rep(3L, n)
+                  } else {
+                    stop("Invalid 'state' value. Must be 'U' for unmethylated or 'M' for methylated")
+                  }
+                  if (testing){
+                    private$seq
+                  }
+                },
+                
+                #' @description
+                #' Public Method. Set the methylation state of a sequence position and update the neighbor's neighbSt. It does NOT update RATETREE 
+                #' 
+                #' @param index Numerical value for the index of the CpG position within the singleStr instance
+                #' @param newSt Numerical value encoding for the sites new methylation state (1, 2 or 3)
+                #' @param testing default FALSE. TRUE for testing output
+                #' 
+                #' @return NULL when testing FALSE. Testing output when testing TRUE.
+                set_seqSt_update_neighbSt = function(index, newSt, testing = FALSE){
+                  if(!(is.numeric(index) && length(index) == 1 && index == floor(index))){
+                    stop("'index' must be one number without decimals")
+                  }
+                  if(!(index >= 1 && index <= length(private$seq))) {
+                    stop("'index' not within sequence length")
+                  }
+                  if(!(newSt %in% c(1, 2, 3))){
+                    stop("'newSt' must be 1, 2 or 3 (for unmethylated, partially methylated or methylated)")
+                  }
+                  private$seq[index] <- newSt
+                  private$update_neighbSt(index)
+                  if (testing){
+                    list(seq = private$seq,
+                         neighbSt = private$neighbSt)
+                  }
                 }
-                  
               )
               )
 
@@ -1227,6 +1341,25 @@ singleStructureGenerator <-
 combiStructureGenerator <-
   R6::R6Class("combiStructureGenerator",
               private = list(
+                shared_env = new.env(),
+                ## @field id Private attribute: unique numeric identifier for the instance.
+                id = NULL,
+                ## @description
+                ## Private method: Generate the next unique ID
+                ##
+                ## This private method increments the static counter and returns its value,
+                ## ensuring each new instance or copy gets a unique ID.
+                ##
+                ## @return A numeric value representing the next unique ID.
+                get_next_id = function() {
+                  counter <- private$shared_env$counter
+                  if (is.null(counter)) {
+                    counter <- 0  # Initialize the counter if it hasn't been used yet
+                  }
+                  counter <- counter + 1
+                  private$shared_env$counter <- counter  # Update the shared environment
+                  return(counter)
+                },
                 ## @field singleStr Private attribute: List containing objects of class singleStructureGenerator
                 singleStr = NULL,
                 ## @field globalState Private attribute: Vector with each singleStructureGenerator object favored global state
@@ -1334,6 +1467,9 @@ combiStructureGenerator <-
                 CFTP_random = numeric(length=0)
               ),
               public = list(
+                  #' @field testing_output Public attribute: Testing output for initialize
+                  testing_output = NULL,
+                  
                   #' @description
                   #' Create a new combiStructureGenerator object.
                   #'
@@ -1342,49 +1478,62 @@ combiStructureGenerator <-
                   #' @param infoStr A data frame containing columns 'n' for the number of sites, and 'globalState' for the favoured global methylation state.
                   #' If initial equilibrium frequencies are given the dataframe must contain 3 additional columns: 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
                   #' @param params Default NULL. When given: data frame containing model parameters.
-                  #' @param testing Default FALSE. TRUE for testing output.
+                  #' @param testing Default FALSE. TRUE for writing in public field of new instance $testing_output
                   #'
                   #' @return A new `combiStructureGenerator` object.
                   initialize = function (infoStr, params = NULL, testing = FALSE){
+                      private$id <- private$get_next_id()  # Assign a unique private ID and update the shared counter (private attribute $shared_env)
+                      
+                      # Initialize the private attributes to store stingleStructureGenerator instances and their corresponding globalState
                       private$singleStr <- list()
                       private$singleStr_globalState <- c()
-                      if (testing){ # data with seqlength 13
-                          for (i in 1:nrow(infoStr)) {
-                              u_length <- infoStr[i, "n"]
-                              private$singleStr_globalState[i] <- infoStr[i, "globalState"]
-                              private$singleStr[[i]] <- singleStructureGenerator$new(private$singleStr_globalState[i],
-                                                                                     u_length,
-                                                                                     combiStr = self, combiStr_index = i,
-                                                                                     testing = TRUE)
-                          }
-                      } else {
-                          for (i in 1:nrow(infoStr)) {
-                              u_length <- infoStr[i, "n"]
-                              private$singleStr_globalState[i] <- infoStr[i, "globalState"]
-                              if(all(c("u_eqFreq", "p_eqFreq", "m_eqFreq") %in% colnames(infoStr))){
-                                  eqFreqs <- c(infoStr$u_eqFreq[i], infoStr$p_eqFreq[i], infoStr$m_eqFreq[i])
-                              } else{
-                                  eqFreqs <- NULL
-                              }
-                              private$singleStr[[i]] <- singleStructureGenerator$new(globalState = private$singleStr_globalState[i],
-                                                                                     n = u_length,
-                                                                                     eqFreqs = eqFreqs,
-                                                                                     combiStr = self ,combiStr_index = i,
-                                                                                     params = params)
-
-                          }
-                      }
+        
+                      # Initialize the singleStructure instances
+                      for (i in 1:nrow(infoStr)) {
+                        
+                        u_length <- infoStr[i, "n"]
+                        private$singleStr_globalState[i] <- infoStr[i, "globalState"]
+                        
+                        if(all(c("u_eqFreq", "p_eqFreq", "m_eqFreq") %in% colnames(infoStr))){
+                          eqFreqs <- c(infoStr$u_eqFreq[i], infoStr$p_eqFreq[i], infoStr$m_eqFreq[i])
+                        } else{
+                          eqFreqs <- NULL
+                        }
+                        
+                        private$singleStr[[i]] <- singleStructureGenerator$new(globalState = private$singleStr_globalState[i],
+                                                                               n = u_length,
+                                                                               eqFreqs = eqFreqs,
+                                                                               combiStr = self ,combiStr_index = i,
+                                                                               params = params)
+                                                                               # if testing needs to be passed on to the singleStr initialize,
+                                                                               # add testing = testing as argument 
+                      } 
+                      ## Initialice the neighbSt encoding for each singleStr
                       for (i in 1:length(private$singleStr)){
-                          private$singleStr[[i]]$init_neighbSt()
-                          private$singleStr[[i]]$initialize_ratetree()
+                        private$singleStr[[i]]$init_neighbSt()
+                      }
+                      
+                      ## Initialice the rate_tree for each singleStr
+                      # Note that this step needs the previous one run for all the structures
+                      for (i in 1:length(private$singleStr)){
+                        private$singleStr[[i]]$initialize_ratetree()
                       }
                       if(!is.null(params)){
-                          private$mu <- params$mu
+                        private$mu <- params$mu
                       }
                       private$set_IWE_rate()
                       #undebug(self$cftp_apply_events)
                       #debug(self$cftp)
-
+                      
+                      
+                      ## TODO: delete before merging to main
+                      ## Example for Nikolas ##
+                      # if (dist == TRUE){
+                          # self$testing_output <- list()
+                          # self$testing_output$testing_info_1 <- info_1
+                      # }
+                      # Example with my own implementation in initialize from treeMultiRegionSimulator
+                      
                   },
                   #' @description
                   #' Public method: Get one singleStructureGenerator object in $singleStr
@@ -1545,6 +1694,39 @@ combiStructureGenerator <-
                 #'
                 #' @return Model parameter for the rate of the IWE evolutionary process (per island and branch length).
                 get_mu = function() private$mu,
+                
+                #' @description
+                #' Public method. Get the unique ID of the instance
+                #'
+                #' @return A numeric value representing the unique ID of the instance.
+                get_id = function() {
+                  return(private$id)
+                },
+                #' @description
+                #' Public method. Set the unique ID of the instance
+                #' 
+                #' @param id integer value to identificate the combiStructure instance
+                #'
+                #' @return A numeric value representing the unique ID of the instance.
+                set_id = function(id) {
+                  private$id <- id
+                },
+                
+                #' @description
+                #' Public method. Get the counter value from the shared environment between instances of combiStructureGenerator class
+                #'
+                #' @return Numeric counter value.
+                get_sharedCounter = function(){
+                  private$shared_env$counter
+                },
+                
+                #' @description
+                #' Public method. Reset the counter value of the shared environment between instances of combiStructureGenerator class
+                #'
+                #' @return NULL
+                reset_sharedCounter = function(){
+                  private$shared_env$counter <- 0
+                },
 
                 #' @description
                 #' Public method: Clone each singleStructureGenerator object in $singleStr
@@ -1554,7 +1736,7 @@ combiStructureGenerator <-
                 #' @return NULL
                 set_singleStr = function(singStrList){
                     private$singleStr <- lapply(singStrList, function(singleStr) {
-                        singleStr$clone()
+                        singleStr$clone(deep = TRUE)
                     })
                 },
 
@@ -1564,7 +1746,11 @@ combiStructureGenerator <-
                 #' @return cloned combiStructureGenerator object
                 copy = function(){
                     new_obj <- self$clone()
+                    new_obj$set_id(private$get_next_id())
                     new_obj$set_singleStr(private$singleStr)
+                    for (str in 1:length(private$singleStr)){
+                      new_obj$get_singleStr(str)$set_myCombiStructure(new_obj)
+                    }
                     return(new_obj)
                 },
 
@@ -1639,6 +1825,194 @@ combiStructureGenerator <-
                     if(testing){
                         return(branchEvolInfo)
                     }
+                },
+                
+                #' @description
+                #' Public Method. Generates the events to apply for CFTP.
+                #' 
+                #' @param steps Integer value >=1
+                #' @param testing default FALSE. TRUE for testing output
+                #' 
+                #' @return NULL when testing FALSE. Testing output when testing TRUE.
+                #'
+                #' @details
+                #' The function add steps to the existing ones. 
+                #' If called several times the given steps need to be higher than the sum of steps generated before.
+                cftp_event_generator = function(steps, testing = FALSE) {
+                  
+                  if(!(is.numeric(steps) && length(steps) == 1 && steps == floor(steps) && steps >= 1)){
+                    stop("'index' must be one number >=1 without decimals")
+                  }
+                  
+                  # Set CFTP_highest_rate to be the highest rate across all singleStr withing combiStr instance
+                  private$CFTP_highest_rate <- 0 # ensure minimum value of 0
+                  singleStr_n <- c()
+                  for(str in 1:length(private$singleStr)){
+                    private$CFTP_highest_rate <- max(private$CFTP_highest_rate,            
+                                                     max(c(unlist(private$singleStr[[str]]$get_Qi()), 
+                                                           (1-private$singleStr[[str]]$get_iota())/2)))
+                    singleStr_n[str] <- length(private$singleStr[[str]]$get_seq())
+                  }
+                  
+                  # Generate for each CFTP step the event and location to apply it and a threshold for acceptance/rejection
+                  old_steps <- length(private$CFTP_event)
+                  if (steps <= old_steps){stop("The given number of steps has already been generated")}
+                  new_steps <- steps - old_steps
+                  chosen_singleStr <- integer(length=new_steps)
+                  chosen_site <- integer(length=new_steps)
+                  event <- integer(length=new_steps)
+                  random_threshold <- numeric(length=new_steps)
+                  for(n in new_steps:1) {
+                    # For generation -n
+                    # Propose 1 site and what may happen to it
+                    chosen_singleStr[n] <- sample(1:length(private$singleStr), 1, prob=singleStr_n)
+                    chosen_site[n] <- sample(1:length(private$singleStr[[chosen_singleStr[n]]]$get_seq()), 1)
+                    event[n] <- sample(1:5, 1)  ## 1,2,3: go to u, p, m by SSEi ## 4,5: copy left, copy right.                        
+                    # Sample a threshold to accept or reject event
+                    random_threshold[n] <- runif(1) # numerical value between 0 and 1
+                  }
+                  private$CFTP_chosen_singleStr <- c(private$CFTP_chosen_singleStr, chosen_singleStr)
+                  private$CFTP_chosen_site <- c(private$CFTP_chosen_site, chosen_site)
+                  private$CFTP_event <- c(private$CFTP_event, event)
+                  private$CFTP_random <- c(private$CFTP_random, random_threshold) 
+                  
+                  if(testing){
+                    list(CFTP_chosen_singleStr = private$CFTP_chosen_singleStr,
+                         CFTP_chosen_site = private$CFTP_chosen_site,
+                         CFTP_event = private$CFTP_event,
+                         CFTP_random = private$CFTP_random)
+                  }
+                },
+                
+                #' @description
+                #' Public Method. Applies the CFTP events.
+                #' 
+                #' @param testing default FALSE. TRUE for testing output
+                #' 
+                #' @return NULL when testing FALSE. Testing output when testing TRUE.
+                cftp_apply_events = function(testing = FALSE) {
+                  if(length(private$CFTP_event) < 1) stop("No CFTP events generated yet.")
+                  if (testing){
+                    # Set vector to save acceptance/rejection as T or F
+                    event_acceptance <- logical(length = length(private$CFTP_event))
+                    # Set vector to save the rate of the chosen site (j) at each CFTP step (k)
+                    r_jk <- rep(NA, length(private$CFTP_event))
+                    # Set vector to save the applied case 
+                    applied_event <- rep(NA, length(private$CFTP_event))
+                  } 
+                  for(k in length(private$CFTP_event):1) {
+                    ### applies the CFTP_events from -n to 1 to the combiStructure
+                    i <- private$CFTP_chosen_singleStr[k]
+                    j <- private$CFTP_chosen_site[k]
+                    oldSt <- private$singleStr[[i]]$get_seq()[j]
+                    if(private$CFTP_event[k] < 4) { # If the event is of type SSEi, set the new St as the sampled event 
+                      newSt <- private$CFTP_event[k]      
+                      if(oldSt != newSt) {
+                        siteR <- private$singleStr[[i]]$get_siteR(j)
+                        neighbSt <- private$singleStr[[i]]$get_neighbSt(j)
+                        r <- private$singleStr[[i]]$get_Qi(siteR = siteR, oldSt = oldSt, newSt = newSt)
+                        if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
+                          private$singleStr[[i]]$set_seqSt_update_neighbSt(j, newSt)
+                          if (testing){
+                            event_acceptance[k] <- TRUE
+                            r_jk[k] <- r
+                            applied_event[k] <- paste("SSEi", newSt, sep = "_")
+                          } 
+                        } else if (testing){
+                          r_jk[k] <- r
+                        }
+                      } 
+                    } else {
+                      r <- (1-private$singleStr[[i]]$get_iota())/2 # Rc/2 for each event copy left or copy right
+                      if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
+                        if(private$CFTP_event[k] == 4) {
+                          ##copy from left neighbor
+                          private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_seqSt_leftneighb(index = j))
+                          if (testing){
+                            event_acceptance[k] <- TRUE
+                            r_jk[k] <- r
+                            applied_event[k] <- paste("SSEc", "left", sep = "_")
+                          } 
+                        } else {
+                          ## copy from right neighbor
+                          private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_seqSt_rightneighb(index = j))
+                          if (testing){
+                            event_acceptance[k] <- TRUE
+                            r_jk[k] <- r
+                            applied_event[k] <- paste("SSEc", "right", sep = "_")
+                          } 
+                        }
+                      } else if (testing) {
+                        r_jk[k] <- r
+                      }
+                    }
+                  }
+                  if(testing){
+                    list(CFTP_chosen_singleStr = private$CFTP_chosen_singleStr,
+                         CFTP_chosen_site = private$CFTP_chosen_site,
+                         CFTP_event = private$CFTP_event,
+                         CFTP_random = private$CFTP_random,
+                         event_acceptance = event_acceptance,
+                         applied_event = applied_event,
+                         r_jk = r_jk,
+                         r_m = private$CFTP_highest_rate)
+                  }
+                },
+                
+                #' @description
+                #' Public Method. Applies the CFTP algorithm.
+                #' 
+                #' @param steps minimum number of steps to apply (default 10000)
+                #' @param testing default FALSE. TRUE for testing output
+                #' 
+                #' @return combiStructureGenerator instance when testing FALSE. Testing output when testing TRUE.
+                cftp = function(steps = 10000, testing = FALSE) {
+                  # Set a variable to track when the $seq of the 2 combi instances become equal
+                  equal <- FALSE
+                  counter <- 0
+                  while(!equal) {
+                    # Sample the CFTP steps 
+                    self$cftp_event_generator(steps)
+                    # Copy (deep clone) the combiStructure instance to generate 2 instances
+                    combi_u <- self$copy()
+                    combi_m <- self$copy()
+                    for(str in 1:length(private$singleStr)){
+                      # Set the sequences for each as all m states and all u states
+                      combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
+                      combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
+                    }
+                    for(str in 1:length(private$singleStr)){
+                      # Update the neighbSt according to the new sequence
+                      combi_u$get_singleStr(str)$init_neighbSt()
+                      combi_m$get_singleStr(str)$init_neighbSt()
+                      ### note that rate trees are not updated in combi_u and combi_m 
+                    }
+                    combi_u$cftp_apply_events() 
+                    combi_m$cftp_apply_events() 
+                    
+                    equal_str <- c()
+                    for(str in 1:length(private$singleStr)){
+                      equal_str[str] <- all(combi_u$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())
+                    }
+                    equal <- all(equal_str)
+                    steps <- 2*steps
+                    counter <- counter + 1
+                  }
+                  for(str in 1:length(private$singleStr)){
+                    # update converged combiStructure ratetree
+                    combi_u$get_singleStr(str)$initialize_ratetree()
+                  }
+                  if(testing){
+                    return(list(combi_u = combi_u,
+                                combi_m = combi_m,
+                                self = self,
+                                counter = counter,
+                                total_steps = length(private$CFTP_event),
+                                CFTP_chosen_site = private$CFTP_chosen_site))
+                  } else {
+                    return(combi_u)
+                  }
+                  
                 }
                 )
               )
@@ -1727,6 +2101,8 @@ split_newick <- function(tree) {
 #'
 treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                              public = list(
+                               #' @field testing_output Public attribute: Testing output for initialize
+                               testing_output = NULL,
                                #' @field Branch Public attribute: List containing objects of class combiStructureGenerator
                                Branch=NULL,
                                #' @field branchLength Public attribute: Vector with the corresponding branch lengths of each $Branch element
@@ -1781,23 +2157,52 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                #' @param tree tree
                                #' @param infoStr  A data frame containing columns 'n' for the number of sites, and 'globalState' for the favoured global methylation state.
                                #' If initial equilibrium frequencies are given the dataframe must contain 3 additional columns: 'u_eqFreq', 'p_eqFreq' and 'm_eqFreq'
-                               #' @param params Default NULL. When given: data frame containing model parameters. Note that rootData is given, its parameter values are used.
+                               #' @param params Default NULL. When given: data frame containing model parameters. Note that if rootData is not null, its parameter values are used.
                                #' @param dt length of the dt time steps for the SSE evolutionary process
+                               #' @param CFTP Default FALSE. TRUE for calling cftp algorithm to set root state according to model equilibrium (Note that current implementation neglects IWE process).
                                #' @param testing Default FALSE. TRUE for testing output.
                                #'
                                #' @return A new `treeMultiRegionSimulator` object.
-                               initialize = function(infoStr = NULL, rootData = NULL, tree, params = NULL, dt = 0.01, testing = FALSE) {
+                               initialize = function(infoStr = NULL, rootData = NULL, tree = NULL, params = NULL, dt = 0.01, CFTP = FALSE, testing = FALSE) {
+                                 if(is.null(rootData) && is.null(infoStr)) stop("One of the following arguments: 'rootData' or 'infoStr' needs to be given")
+                                 if(is.null(tree)) stop("Argument 'tree' is missing with no default.")
+                            
                                  self$Branch <- list()
-                                 if(!is.null(infoStr) && is.null(rootData)){
-                                   message(paste("Simulating data at root and letting it evolve along given tree: ", tree))
-                                   self$Branch[[1]] <- combiStructureGenerator$new(infoStr, params = params, testing = testing)
-                                 }
-                                 if(!is.null(rootData)&& is.null(infoStr)){
+                      
+                                 if(!is.null(rootData)){
+                                   if (!is.null(infoStr) || !is.null(params)) stop("if 'rootData' is given, 'infoStr' and 'params' need to be NULL")
                                    message(paste("Simulating evolution of given data at root along given tree: ", tree))
                                    self$Branch[[1]] <- rootData$copy()
                                  }
+                                 
+                                 if(!is.null(params)){
+                                   if(!is.data.frame(params) || !all(c("alpha_pI", "beta_pI", "alpha_mI", "beta_mI", "alpha_pNI", "beta_pNI", "alpha_mNI", "beta_mNI", "mu", "alpha_Ri", "iota") %in% colnames(params))){
+                                     stop("if 'params' is given, it needs to be a dataframe with column names as in get_parameterValues() output")
+                                   }
+                                 }
+                                 
+                                 if(!is.null(infoStr)){
+                                   message(paste("Simulating data at root and letting it evolve along given tree: ", tree))
+                                   self$Branch[[1]] <- combiStructureGenerator$new(infoStr, params = params)
+                                   # if testing needs to be passed on to the combiStr initialize,
+                                   # add testing = testing as argument 
+                                 }
+                                 
+                                 if(CFTP){
+                                   message("Calling CFTP algorithm for data at root before letting it evolve along given tree.")
+                                   if(testing){
+                                     self$testing_output <- list()
+                                     self$testing_output$self_before_cftp <- self$Branch[[1]]
+                                     self$testing_output$cftp_output <- self$Branch[[1]]$cftp(testing = testing)
+                                     self$Branch[[1]] <- self$testing_output$cftp_output$combi_u
+                                   } else {
+                                     self$Branch[[1]] <- self$Branch[[1]]$cftp()
+                                   }
+                                 }
+                                 
                                  self$branchLength[1] <- NULL
                                  self$Branch[[1]]$set_own_index(1)
+                                 
                                  self$treeEvol(Tree=tree, dt = dt, testing=testing)
                                }
                              )
