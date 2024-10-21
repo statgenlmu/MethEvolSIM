@@ -56,6 +56,11 @@ singleStructureGenerator <-
                   } else {
                     stop("Invalid globalState")
                   }
+                  # Normalize u, p, m so that their sum is 1
+                  total <- sum(u, p, m)
+                  u <- u / total
+                  p <- p / total
+                  m <- m / total
                   return(c(u, p, m))
                 },
                 ## @field seq Private attribute: Encoded sequence of CpGs methylation state: 1 for unmethylated, 2 for partially-methylated, 3 for methylated
