@@ -44,29 +44,11 @@ test_that("combiStructureGenerator initialization", {
   }
 })
 
-test_that("singleStructureGenerator get_seq()", {
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  # Define expected $seq under testing mode
-  expected_seq <- c(1, 1, 2, 3, 1, 1, 1, 3, 2, 2, 3, 2, 3)
-  for (i in 1:nrow(infoStr)){
-    expect_equal(combi_obj$get_singleStr(i)$get_seq(), expected_seq,
-                 info = "returns $seq different from expected under testing mode")
-  }
-
-})
 
 test_that("singleStructureGenerator get_seqFirstPos() from combiStructureGenerator instance", {
-  # Under testing mode: known $seq
+
   infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  for (i in 1:nrow(infoStr)){
-    expect_equal(combi_obj$get_singleStr(i)$get_seqFirstPos(), 1,
-                 info = "function returns $seq first position different from known under testing mode")
-  }
-  # Under default, non testing mode: unknown $seq
   combi_obj <- combiStructureGenerator$new(infoStr)
   for (i in 1:nrow(infoStr)){
     expect_equal(combi_obj$get_singleStr(i)$get_seqFirstPos(), combi_obj$get_singleStr(i)$get_seq()[1],
@@ -75,59 +57,16 @@ test_that("singleStructureGenerator get_seqFirstPos() from combiStructureGenerat
 })
 
 test_that("singleStructureGenerator get_seqLastPos() from combiStructureGenerator instance", {
-  # Under testing mode: known $seq
   infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  for (i in 1:nrow(infoStr)){
-    expect_equal(combi_obj$get_singleStr(i)$get_seqLastPos(), 3,
-                 info = "function returns $seq last position different from known under testing mode")
-  }
-  # Under default, non testing mode: unknown $seq
   combi_obj <- combiStructureGenerator$new(infoStr)
   for (i in 1:nrow(infoStr)){
     expect_equal(combi_obj$get_singleStr(i)$get_seqLastPos(), combi_obj$get_singleStr(i)$get_seq()[length(combi_obj$get_singleStr(i)$get_seq())],
-                 info = "output not consistent with get_seq()[length(..)] under non testing mode")
+                 info = "output not consistent with get_seq()[length(..)]")
   }
 })
 
-test_that("singleStructureGenerator get_leftStr_neighbSt() from combiStructureGenerator instance", {
-  # Under testing mode: known $seq
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  expect_error(get_private(combi_obj$get_singleStr(1))$get_leftStr_neighbSt(),
-               info = "fails to throw an error when called from first Structure")
-  for (i in 2:nrow(infoStr)){
-    expect_equal(get_private(combi_obj$get_singleStr(i))$get_leftStr_neighbSt(), 3,
-                 info = "function returns left neighbSt different from known under testing mode")
-  }
-  # Under default, non testing mode: unknown $seq
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  for (i in 2:nrow(infoStr)){
-    expect_equal(get_private(combi_obj$get_singleStr(i))$get_leftStr_neighbSt(), combi_obj$get_singleStr(i-1)$get_seq()[length(combi_obj$get_singleStr(i-1)$get_seq())],
-                 info = "output not consistent with get_seq()[length(..)] under non testing mode")
-  }
-})
 
-test_that("singleStructureGenerator get_rightStr_neighbSt() from combiStructureGenerator instance", {
-  # Under testing mode: known $seq
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  expect_error(get_private(combi_obj$get_singleStr(3))$get_rightStr_neighbSt(),
-               info = "fails to throw an error when called from last Structure")
-  for (i in 1:(nrow(infoStr)-1)){
-    expect_equal(get_private(combi_obj$get_singleStr(i))$get_rightStr_neighbSt(), 1,
-                 info = "function returns right neighbSt different from known under testing mode")
-  }
-  # Under default, non testing mode: unknown $seq
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  for (i in 1:(nrow(infoStr)-1)){
-    expect_equal(get_private(combi_obj$get_singleStr(i))$get_rightStr_neighbSt(), combi_obj$get_singleStr(i+1)$get_seq()[1],
-                 info = "output not consistent with get_seq()[1] under non testing mode")
-  }
-})
 
 test_that("singleStructureGenerator get_nextStr()", {
   infoStr <- data.frame(n = c(10, 1, 10),
@@ -154,26 +93,6 @@ test_that("singleStructureGenerator get_prevStr()", {
 })
 
 test_that("singleStructureGenerator init_neighbSt()", {
-  # Test cases of singleStructure instances initiated outside combiStructure instance
-  obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(obj)$neighbSt, expected_neighbSt,
-               info = "fails correct neighbSt initialization outside combiStructure instance")
-
-  # Test cases of singleStructure instances initiated from combiStructure instance
-  ## Test case 1: initialization of long sequences
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  expected_neighbSt_Str1 <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 4)
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt, expected_neighbSt_Str1,
-               info = "assigns incorrect $neighbSt case 1.1")
-  expected_neighbSt_Str2 <- c(7, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 4)
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt, expected_neighbSt_Str2,
-               info = "assigns incorrect $neighbSt case 1.2")
-  expected_neighbSt_Str3 <- c(7, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)
-  expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt, expected_neighbSt_Str3,
-               info = "assigns incorrect $neighbSt case 1.3")
 
   # Test case 2: "long" single singleStructure instance initiated from combiStructure instance
   mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
@@ -526,7 +445,7 @@ test_that("init_neighbSt() in structure of length 1", {
 })
 
 test_that("singleStructureGenerator get_seq2ndPos() from combiStructureGenerator instance", {
-  # Under testing mode: known $seq
+  
   infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
@@ -550,7 +469,7 @@ test_that("singleStructureGenerator get_seq2ndPos() from combiStructureGenerator
 
 
 test_that("singleStructureGenerator get_seq2ndButLastPos() from combiStructureGenerator instance", {
-  # Under testing mode: known $seq
+  
   infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
@@ -572,32 +491,101 @@ test_that("singleStructureGenerator get_seq2ndButLastPos() from combiStructureGe
   expect_null(combi_obj$get_singleStr(1)$get_seq2ndButLastPos())
 })
 
+
 test_that("singleStructureGenerator update_interStr_firstNeighbSt()", {
-  single_obj <- singleStructureGenerator$new("U",13, testing = TRUE)
-  expect_equal(get_private(single_obj)$neighbSt[1], 1)
+  single_obj <- singleStructureGenerator$new("U",10)
+  
+  # Test cases: incorrect leftNeighb_seqSt argument
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = "i", rightNeighb_seqSt = 1),
+               info = "method fails to trow error with non-numeric 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = NaN, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NaN 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = NA, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NA 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 0, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with 0 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = NULL, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NULL 'leftNeighb_seqSt' argument")
+  
+  # Test cases: incorrect rightNeighb_seqSt argument
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = "i"),
+               info = "method fails to trow error with non-numeric 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NaN),
+               info = "method fails to trow error with NaN 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NA),
+               info = "method fails to trow error with NA 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 0),
+               info = "method fails to trow error with 0 'rightNeighb_seqSt' argument")
+  # Expect no error when both are correct
+  expect_no_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NULL))
+  expect_no_error(single_obj$update_interStr_firstNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 1))
+  
+  # Test cases: update neighbSt first position
+  single_obj <- singleStructureGenerator$new("U",10)
   single_obj$update_interStr_firstNeighbSt(3,2)
-  expect_equal(get_private(single_obj)$neighbSt[1], 8)
+  expect_equal(get_private(single_obj)$neighbSt[1], 8,
+               info = "method fails to correctly update neighbSt given 2 correct non NULL arguments")
   single_obj$update_interStr_firstNeighbSt(2, NULL)
-  expect_equal(get_private(single_obj)$neighbSt[1], 5)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "method fails to correctly update neighbSt given 2 correct arguments")
 })
+
 
 test_that("singleStructureGenerator update_interStr_lastNeighbSt()", {
-  single_obj <- singleStructureGenerator$new("U",13, testing = TRUE)
-  expect_equal(get_private(single_obj)$neighbSt[length(get_private(single_obj)$neighbSt)], 5)
-  single_obj$update_interStr_lastNeighbSt(1,3)
-  expect_equal(get_private(single_obj)$neighbSt[length(get_private(single_obj)$neighbSt)], 3)
-  single_obj$update_interStr_lastNeighbSt(NULL,3)
-  expect_equal(get_private(single_obj)$neighbSt[length(get_private(single_obj)$neighbSt)], 9)
+  single_obj <- singleStructureGenerator$new("U",10)
+  
+  # Test cases: incorrect leftNeighb_seqSt argument
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = "i", rightNeighb_seqSt = 1),
+               info = "method fails to trow error with non-numeric 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = NaN, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NaN 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = NA, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with NA 'leftNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 0, rightNeighb_seqSt = 1),
+               info = "method fails to trow error with 0 'leftNeighb_seqSt' argument")
+  
+  
+  # Test cases: incorrect rightNeighb_seqSt argument
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = "i"),
+               info = "method fails to trow error with non-numeric 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NaN),
+               info = "method fails to trow error with NaN 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NA),
+               info = "method fails to trow error with NA 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 0),
+               info = "method fails to trow error with 0 'rightNeighb_seqSt' argument")
+  expect_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = NULL),
+               info = "method fails to trow error with NULL 'leftNeighb_seqSt' argument")
+  
+  # Expect no error when both are correct
+  expect_no_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = NULL, rightNeighb_seqSt = 1))
+  expect_no_error(single_obj$update_interStr_lastNeighbSt(leftNeighb_seqSt = 1, rightNeighb_seqSt = 1))
+  
+  # Test cases: update neighbSt first position
+  single_obj <- singleStructureGenerator$new("U",10)
+  single_obj$update_interStr_lastNeighbSt(3,3)
+  expect_equal(get_private(single_obj)$neighbSt[10], 9,
+               info = "method fails to correctly update neighbSt given 2 correct non NULL arguments")
+  single_obj$update_interStr_lastNeighbSt(NULL, 1)
+  expect_equal(get_private(single_obj)$neighbSt[10], 1,
+               info = "method fails to correctly update neighbSt given 2 correct arguments")
 })
 
+
 test_that("singleStructureGenerator update_intraStr_neighbSt()", {
-  single_obj <- singleStructureGenerator$new("U",13, testing = TRUE)
+  single_obj <- singleStructureGenerator$new("U",13)
 
   # Test cases: incorrect input
-  expect_error(get_private(single_obj)$update_intraStr_neighbSt("i"))
-  expect_error(get_private(single_obj)$update_intraStr_neighbSt(c(1,2)))
-  expect_error(get_private(single_obj)$update_intraStr_neighbSt(14))
-  expect_error(get_private(single_obj)$update_intraStr_neighbSt(0))
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt("i"),
+               info = "method fails to trow error with non-numeric 'position' argument")
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt(c(1,2)),
+               info = "method fails to trow error with non-numeric 'position' argument")
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt(14),
+               info = "method fails to trow error with 'position' argument bigger than sequence length")
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt(0),
+               info = "method fails to trow error with 'position' argument 0")
+  expect_error(get_private(single_obj)$update_intraStr_neighbSt(1.5),
+               info = "method fails to trow error with 'position' argument non-index (integer)")
 
   # Test cases: change of methylation state in different positions within singleStructure instances
   if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
@@ -605,6 +593,7 @@ test_that("singleStructureGenerator update_intraStr_neighbSt()", {
       private$seq[position] <-newState
     })
   }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
 
   ## Structure of length 1
   single_obj <- singleStructureGenerator$new("U", 1)
@@ -620,636 +609,931 @@ test_that("singleStructureGenerator update_intraStr_neighbSt()", {
   get_private(single_obj)$update_intraStr_neighbSt(1)
   expect_equal(get_private(single_obj)$neighbSt, 9,
                info = "singleStr of length 1 assigns wrong neighbSt for newState 3")
-
-
-  ## Position 1
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
+  
+  ## Structure of length 2: change seq state position 1, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 2)
+  single_obj$modify_seqPos(position = 1, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  expect_equal(get_private(single_obj)$neighbSt[2], 1,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 2 for newState 1")
   single_obj$modify_seqPos(position = 1, newState = 2)
   get_private(single_obj)$update_intraStr_neighbSt(1)
-  expected_neighbSt <- c(1, 5, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position n
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 13, newState = 1)
-  get_private(single_obj)$update_intraStr_neighbSt(13)
-  expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 7, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position 2
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
+  expect_equal(get_private(single_obj)$neighbSt[2], 5,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 2 for newState 2")
+  single_obj$modify_seqPos(position = 1, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  expect_equal(get_private(single_obj)$neighbSt[2], 9,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 2 for newState 3")
+  
+  ## Structure of length 2: change seq state position 2, update neighbSt position 1
+  single_obj <- singleStructureGenerator$new("U", 2)
+  single_obj$modify_seqPos(position = 2, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 1,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 1 for newState 1")
+  single_obj$modify_seqPos(position = 2, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 1 for newState 2")
   single_obj$modify_seqPos(position = 2, newState = 3)
   get_private(single_obj)$update_intraStr_neighbSt(2)
-  expected_neighbSt <- c(9, 2, 9, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position n-1
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 12, newState = 1)
-  get_private(single_obj)$update_intraStr_neighbSt(12)
-  expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 4, 9, 1)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position between 2 and n-1
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
+  expect_equal(get_private(single_obj)$neighbSt[1], 9,
+               info = "singleStr of length 2 assigns wrong neighbSt to position 1 for newState 3")
+ 
+  ## Structure of length 3: change seq state position 1, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 3)
+  single_obj$modify_seqPos(position = 1, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 1 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 2 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 3 position 1")
+  
+  ## Structure of length 3: change seq state position 2, update neighbSt position 1 and 3
+  single_obj <- singleStructureGenerator$new("U", 3)
+  single_obj$modify_seqPos(position = 2, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 1,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 1 for newState 1 position 2")
+  expect_equal(get_private(single_obj)$neighbSt[3], 1,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 3 for newState 1 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 1 for newState 2 position 2")
+  expect_equal(get_private(single_obj)$neighbSt[3], 5,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 3 for newState 2 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 9,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 1 for newState 3 position 2")
+  expect_equal(get_private(single_obj)$neighbSt[3], 9,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 3 for newState 3 position 2")
+  
+  ## Structure of length 3: change seq state position 3, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 3)
+  single_obj$modify_seqPos(position = 3, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 1]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 1 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 2]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 2 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 3]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 3 assigns wrong neighbSt to position 2 for newState 3 position 3")
+  
+  
+  ## Structure of length 4: change seq state position 1, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 4)
+  single_obj$modify_seqPos(position = 1, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 1 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 2 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 3 position 1")
+  
+  
+  ## Structure of length 4: change seq state position 2, update neighbSt position 1 and 3
+  single_obj <- singleStructureGenerator$new("U", 4)
+  single_obj$modify_seqPos(position = 2, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 1,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 1 for newState 1 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 1 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 1 for newState 2 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 2 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 9,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 1 for newState 3 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 3 position 2")
+  
+  ## Structure of length 4: change seq state position 3, update neighbSt position 2 and 4
+  single_obj <- singleStructureGenerator$new("U", 4)
+  single_obj$modify_seqPos(position = 3, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 1]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 1 position 3")
+  expect_equal(get_private(single_obj)$neighbSt[4], 1,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 4 for newState 1 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 2]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 2 position 3")
+  expect_equal(get_private(single_obj)$neighbSt[4], 5,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 4 for newState 2 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 3]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 2 for newState 3 position 3")
+  expect_equal(get_private(single_obj)$neighbSt[4], 9,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 4 for newState 3 position 3")
+  
+  ## Structure of length 4: change seq state position 4, update neighbSt position 3
+  single_obj <- singleStructureGenerator$new("U", 4)
+  single_obj$modify_seqPos(position = 4, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 1]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 1 position 4")
+  single_obj$modify_seqPos(position = 4, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 2]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 2 position 4")
+  single_obj$modify_seqPos(position = 4, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 3]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 4 assigns wrong neighbSt to position 3 for newState 3 position 4")
+  
+  
+  ## Structure of length 5: change seq state position 1, update neighbSt position 2
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 1, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 1 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 2 position 1")
+  single_obj$modify_seqPos(position = 1, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[3]]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 3 position 1")
+  
+  ## Structure of length 5: change seq state position 2, update neighbSt position 1 and 3
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 2, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 1,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 1 for newState 1 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 1 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 5,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 1 for newState 2 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 2 position 2")
+  single_obj$modify_seqPos(position = 2, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(2)
+  expect_equal(get_private(single_obj)$neighbSt[1], 9,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 1 for newState 3 position 2")
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[4]]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 3 position 2")
+  
+  ## Structure of length 5: change seq state position 3, update neighbSt position 2 and 4
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 3, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 1]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 1 position 3")
+  exp_neighbSt <- mapNeighbSt_matrix[1, single_obj$get_seq()[5]]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 1 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 2]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 2 position 3")
+  exp_neighbSt <- mapNeighbSt_matrix[2, single_obj$get_seq()[5]]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 2 position 3")
+  single_obj$modify_seqPos(position = 3, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[1], 3]
+  expect_equal(get_private(single_obj)$neighbSt[2], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 2 for newState 3 position 3")
+  exp_neighbSt <- mapNeighbSt_matrix[3, single_obj$get_seq()[5]]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 3 position 3")
+  
+  ## Structure of length 5: change seq state position 4, update neighbSt positions 3 and 5
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 4, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 1]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 1 position 4")
+  expect_equal(get_private(single_obj)$neighbSt[5], 1,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 5 for newState 1 position 4")
+  single_obj$modify_seqPos(position = 4, newState = 2)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 2]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 2 position 4")
+  expect_equal(get_private(single_obj)$neighbSt[5], 5,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 5 for newState 2 position 4")
+  single_obj$modify_seqPos(position = 4, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[2], 3]
+  expect_equal(get_private(single_obj)$neighbSt[3], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 3 for newState 3 position 4")
+  expect_equal(get_private(single_obj)$neighbSt[5], 9,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 5 for newState 3 position 4")
+  
+  ## Structure of length 5: change seq state position 5, update neighbSt position 4
+  single_obj <- singleStructureGenerator$new("U", 5)
+  single_obj$modify_seqPos(position = 5, newState = 1)
+  get_private(single_obj)$update_intraStr_neighbSt(5)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[3], 1]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 1 position 5")
   single_obj$modify_seqPos(position = 5, newState = 2)
   get_private(single_obj)$update_intraStr_neighbSt(5)
-  expected_neighbSt <- c(1, 2, 3, 5, 7, 4, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[3], 2]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 2 position 5")
+  single_obj$modify_seqPos(position = 5, newState = 3)
+  get_private(single_obj)$update_intraStr_neighbSt(5)
+  exp_neighbSt <- mapNeighbSt_matrix[single_obj$get_seq()[3], 3]
+  expect_equal(get_private(single_obj)$neighbSt[4], exp_neighbSt,
+               info = "singleStr of length 5 assigns wrong neighbSt to position 4 for newState 3 position 5")
+  
 })
 
-test_that("singleStructureGenerator update_neighbSt()", {
-  ##############
-  ### Test cases: change of methylation state in different positions within singleStructure instances
+test_that("singleStructureGenerator $update_neighbSt() incorrect input", {
+  single_obj <- singleStructureGenerator$new("U",13)
+  
+  # Test cases: incorrect input
+  expect_error(get_private(single_obj)$update_neighbSt("i"),
+               info = "method fails to trow error with non-numeric 'position' argument")
+  expect_error(get_private(single_obj)$update_neighbSt(c(1,2)),
+               info = "method fails to trow error with non-numeric 'position' argument")
+  expect_error(get_private(single_obj)$update_neighbSt(14),
+               info = "method fails to trow error with 'position' argument bigger than sequence length")
+  expect_error(get_private(single_obj)$update_neighbSt(0),
+               info = "method fails to trow error with 'position' argument 0")
+  expect_error(get_private(single_obj)$update_neighbSt(1.5),
+               info = "method fails to trow error with 'position' argument non-index (integer)")
+})
+
+test_that("singleStructureGenerator $update_neighbSt() instance of length 1", {
+  
   if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
     singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
       private$seq[position] <-newState
     })
   }
-  ## Structure of length 1
-  single_obj <- singleStructureGenerator$new("U", 1)
-  single_obj$modify_seqPos(position = 1, newState = 1)
-  get_private(single_obj)$update_neighbSt(1)
-  expect_equal(get_private(single_obj)$neighbSt, 1,
-               info = "singleStr of length 1 assigns wrong neighbSt for newState 1")
-  single_obj$modify_seqPos(position = 1, newState = 2)
-  get_private(single_obj)$update_neighbSt(1)
-  expect_equal(get_private(single_obj)$neighbSt, 5,
-               info = "singleStr of length 1 assigns wrong neighbSt for newState 2")
-  single_obj$modify_seqPos(position = 1, newState = 3)
-  get_private(single_obj)$update_neighbSt(1)
-  expect_equal(get_private(single_obj)$neighbSt, 9,
-               info = "singleStr of length 1 assigns wrong neighbSt for newState 3")
-
-
-  ## Position 1
-  ### Length to the right > position + 2
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 1, newState = 2)
-  get_private(single_obj)$update_neighbSt(1)
-  expected_neighbSt <- c(1, 5, 3, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt,
-               info = "wrong singleStr update after modification of position 1 with length to the right > position + 2")
-  ### length to the right < position + 2 (seq length = 2: only neighbor of position 2 is position 1)
-  single_obj <- singleStructureGenerator$new("U", 2)
-  single_obj$modify_seqPos(position = 1, newState = 2)
-  get_private(single_obj)$update_neighbSt(1)
-  expect_equal(get_private(single_obj)$neighbSt[2], 5,
-               info = "wrong singleStr update after modification of position 1 with length to the right < position + 2")
-
-  ## Position n
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 13, newState = 1)
-  get_private(single_obj)$update_neighbSt(13)
-  expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 5, 7, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position 2
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 2, newState = 3)
-  get_private(single_obj)$update_neighbSt(2)
-  expected_neighbSt <- c(9, 2, 9, 4, 7, 1, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position n-1
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 12, newState = 1)
-  get_private(single_obj)$update_neighbSt(12)
-  expected_neighbSt <- c(1, 2, 3, 4, 7, 1, 3, 2, 8, 6, 4, 9, 1)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ## Position between 2 and n-1
-  single_obj <- singleStructureGenerator$new("U", 13, testing = TRUE)
-  single_obj$modify_seqPos(position = 5, newState = 2)
-  get_private(single_obj)$update_neighbSt(5)
-  expected_neighbSt <- c(1, 2, 3, 5, 7, 4, 3, 2, 8, 6, 5, 9, 5)  # Manually calculated based on the testing sequence
-  expect_equal(get_private(single_obj)$neighbSt, expected_neighbSt)
-
-  ##########
-  #### Test cases: change of methylation state in different positions within combiStructure instances
-  ### Case 2: First position
-  ## Case 2.1. First position of structure without left neighbouring structure
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 3)
-  #debug(get_private(combi_obj$get_singleStr(1))$update_neighbSt)
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
-  # Update right neighbSt
-  ### a) Length to the right > position + 2
-  exp_neighbSt <- 8 #modified left neighb 3, right neighb 2
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.1 a)")
-  ### b) Length to the right < position + 2 and no right structure
-  infoStr <- data.frame(n = c(2),
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Structure of length 1: change seq state position 1, update neighbSt position 1
+  ## Isolated
+  infoStr <- data.frame(n = c(1),
                         globalState = c("M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
   get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
   exp_neighbSt <- 5 #first position only singleStr counts as both neighbors
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.1 b)")
-  ### c) Length to the right < position + 2 with right structure
-  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
-  infoStr <- data.frame(n = c(2, 6),
-                        globalState = c("M", "U"))
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
+               info = "isolated singleStr of length 1 assigns wrong neighbSt to self")
+  # Check that when there is no neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 1,
+               info = "isolated structure. No neighbor. length of neighbSt not equal to $seq length")
+  
+  ## First structure. One right singleStr of length 1
+  infoStr <- data.frame(n = c(1, 1),
+                        globalState = c("M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
-  leftN <- 2
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
   get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.1 c)")
-
-
-
-
-  ## Case 2.2. First position of structure with left neighbouring structure with length > 1
-  infoStr <- data.frame(n = c(13, 13, 13),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr, testing = TRUE)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-  # left neighbSt
-  exp_neighbSt <- 5 #left neighb 2, modified right neighb 2
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[length(get_private(combi_obj$get_singleStr(1))$neighbSt)], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 2.2")
-  # right neighbSt
-  ### a) Length to the right > position + 2
-  exp_neighbSt <- 5 #modified left neighb 2, right neighb 2
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.2 a)")
-  ### b) Length to the right < position + 2 and no right structure
-  infoStr <- data.frame(n = c(13, 2),
-                        globalState = c("M", "U"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.2 b)")
-  ### c) Length to the right < position + 2 with right structure
-  infoStr <- data.frame(n = c(13, 2, 3),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.2 c)")
-
-  ## Case 2.3. First position of structure with left neighbouring structure with length = 1 and additional left neighbStr
-  infoStr <- data.frame(n = c(13, 1, 5),
-                       globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  # left neighbSt
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[length(combi_obj$get_singleStr(1)$get_seq())]
-  combi_obj$get_singleStr(3)$modify_seqPos(position = 1, newState = 2)
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  get_private(combi_obj$get_singleStr(3))$update_neighbSt(1)
+  exp_neighbSt <- 5 
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 2.3")
-  # right neighbSt
-  ### a) Length to the right > position + 2
-  leftN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[3]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.3 a)")
-  ### b) Length to the right < position + 2 and no right structure
-  infoStr <- data.frame(n = c(13, 1, 2),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(3)$modify_seqPos(position = 1, newState = 2)
-  get_private(combi_obj$get_singleStr(3))$update_neighbSt(1)
-  leftN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.3 b)")
-  ### c) Length to the right < position + 2 with right structure
-  infoStr <- data.frame(n = c(13, 1, 2, 1),
-                        globalState = c("M", "U", "M", "U"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(3)$modify_seqPos(position = 1, newState = 2)
-  get_private(combi_obj$get_singleStr(3))$update_neighbSt(1)
-  leftN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(4)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.3 c)")
-
-
-  ## Case 2.4. First position of structure with left neighbouring structure with length = 1 without additional left neighbStr
-  infoStr <- data.frame(n = c(1, 13, 5),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  # left neighbSt (there is no left neighbor, so right neighb counts as both neighbors)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  #debug(get_private(combi_obj$get_singleStr(2))$update_neighbSt)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 2.4")
-  # right neighbSt
-  ### a) Length to the right > position + 2
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[3]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.4 a)")
-  ### b) Length to the right < position + 2 and no right structure
+               info = "first singleStr of length 1 one right singleStr of length 1 assigns wrong neighbSt to right neighb")
+  # Check that when there is no left neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 1,
+               info = "First structure. No left neighbor. length of neighbSt not equal to $seq length")
+  
+  ## First structure. One right singleStr of length 2
   infoStr <- data.frame(n = c(1, 2),
-                        globalState = c("M", "U"))
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[2]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "first singleStr of length 1 one right singleStr of length 2 assigns wrong neighbSt to right neighb")
+  # Check that when there is no left neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 1,
+               info = "First structure. No left neighbor. length of neighbSt not equal to $seq length")
+  
+  ## First structure. Two right singleStr of length 1 each
+  infoStr <- data.frame(n = c(1,1,1),
+                        globalState = c("M", "M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(3)$get_seq()[1]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "first singleStr of length 1 Two right singleStr of length 1 each assigns wrong neighbSt to right neighb")
+  # Check that when there is no left neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 1,
+               info = "First structure. No left neighbor. length of neighbSt not equal to $seq length")
+  
+  
+  ## Second structure. One left singleStr of length 1
+  infoStr <- data.frame(n = c(1, 1),
+                        globalState = c("M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
   get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.4 b)")
-  ### c) Length to the right < position + 2 with right structure
-  infoStr <- data.frame(n = c(1, 2, 1),
-                        globalState = c("M", "U", "M"))
+  exp_neighbSt <- 5 
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
+               info = "second singleStr of length 1 one left singleStr of length 1 assigns wrong neighbSt to left neighb")
+  # Check that when there is no right neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(2))$neighbSt), 1,
+               info = "Second structure. No right neighbor. length of neighbSt not equal to $seq length")
+  
+  ## Second structure. One left singleStr of length 2
+  infoStr <- data.frame(n = c(2, 1),
+                        globalState = c("M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
   get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "second singleStr of length 1 one left singleStr of length 2 assigns wrong neighbSt to left neighb")
+  # Check that when there is no right neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(2))$neighbSt), 1,
+               info = "Second structure. No right neighbor. length of neighbSt not equal to $seq length")
+})
+
+test_that("singleStructureGenerator $update_neighbSt() instance of length 2 change seq state position 1", {
+  
+  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
+      private$seq[position] <-newState
+    })
+  }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Isolated: change seq state position 1, update neighbSt position 2
+  infoStr <- data.frame(n = c(2),
+                        globalState = c("M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
+  exp_neighbSt <- 5 
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "isolated singleStr assigns wrong right neighbSt")
+  # Check that when there is no left neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 2,
+               info = "isolated structure. No left neighbor. length of neighbSt not equal to $seq length")
+  
+  ## First structure. One right singleStr of length 1
+  infoStr <- data.frame(n = c(2, 1),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[1]]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1")
+  # Check that when there is no left neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 2,
+               info = "First structure. No left neighbor. length of neighbSt not equal to $seq length")
+  
+  ## Second structure. One left singleStr of length 1
+  infoStr <- data.frame(n = c(1, 2),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
+  exp_neighbSt <- 5 
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update left")
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 2.4 c)")
-
-
-  ### Case 3: 2nd position
-  ## Case 3.1. Second position of structure without left neighbouring structure
-  infoStr <- data.frame(n = c(14, 5),
-                        globalState = c("U", "M"))
+               info = "Second structure. One left singleStr of length 1, update right")
+  
+  ## Second structure. One left singleStr of length 2
+  infoStr <- data.frame(n = c(2, 2),
+                        globalState = c("M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
-  # left neighbSt (there is no left neighbor, so right neighb counts as both neighbors)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 3.1")
-  # right neighbSt
-  ### a) Length to the right > position + 2
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[4]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 3.1 a)")
-  ### b) Length to the right < position + 2 and no right structure
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 2, update left")
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], 5,
+               info = "Second structure. One left singleStr of length 2, update right")
+
+})
+
+test_that("singleStructureGenerator $update_neighbSt() instance of length 3 change seq state position 1", {
+  
+  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
+      private$seq[position] <-newState
+    })
+  }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Isolated: change seq state position 1, update neighbSt position 2
   infoStr <- data.frame(n = c(3),
-                        globalState = c("U"))
+                        globalState = c("M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 3.1 b)")
-  ### c) Length to the right < position + 2 with right structure
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(1)$get_seq()[3]]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "isolated singleStr assigns wrong right neighbSt")
+  # Check that when there is no left neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 3,
+               info = "isolated structure. No left neighbor. length of neighbSt not equal to $seq length")
+  
+  ## First structure. One right singleStr of length 1
   infoStr <- data.frame(n = c(3, 1),
-                        globalState = c("U", "M"))
+                        globalState = c("M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 3.1 c)")
-
-  ## Case 3.2. Second position of structure with left neighbouring structure
-  infoStr <- data.frame(n = c(1, 13, 5),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  # left neighbSt
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 3.2")
-  # right neighbSt
-  ### a) Length to the right > position + 2
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[4]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 3.2 a)")
-  ### b) Length to the right < position + 2 and no right structure
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(1)$get_seq()[3]]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1")
+  # Check that when there is no left neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 3,
+               info = "First structure. No left neighbor. length of neighbSt not equal to $seq length")
+  
+  ## Second structure. One left singleStr of length 1
   infoStr <- data.frame(n = c(1, 3),
-                        globalState = c("M", "U"))
+                        globalState = c("M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 3.2 b)")
-  ### c) Length to the right < position + 2 with right structure
-  infoStr <- data.frame(n = c(1, 3, 2),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 3.2 c)")
-
-
-  ### Case 4: 2ndButLast position
-  ## Case 4.1. 2ndButLast position of structure without right neighbouring structure
-  infoStr <- data.frame(n = c(14, 5),
-                        globalState = c("U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 4, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(4)
-  # right neighbSt (there is no right neighbor, so left neighb counts as both neighbors)
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[4]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[4]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[5], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 4.1")
-  # left neighbSt
-  ### a) Length to the left > position - 2
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[4]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 4.1 a)")
-  ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(n = c(3),
-                        globalState = c("U"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
+  exp_neighbSt <- 5 
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 4.1 b)")
-  ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(n = c(1, 3),
-                        globalState = c("U", "M"))
+               info = "Second structure. One left singleStr of length 1, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[3]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update right")
+  
+  ## Second structure. One left singleStr of length 2
+  infoStr <- data.frame(n = c(2, 3),
+                        globalState = c("M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 4.1 c)")
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 1, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(1)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 2, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[3]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 2, update right")
+  
+})
 
-
-  ## Case 4.2. 2ndButLast position of structure with right neighbouring structure
-  infoStr <- data.frame(n = c(1, 13, 5),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 12, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(12)
-  # right neighbSt
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[12]
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[13], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 4.2")
-  # left neighbSt
-  ### a) Length to the left > position - 2
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[10]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[12]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[11], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 4.2 a)")
-  ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(n = c(3, 1),
-                        globalState = c("M", "U"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 4.2 b)")
-  ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(n = c(1, 3, 1),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 4.2 c)")
-
-
-  ### Case 5: Last position
-  ## Case 5.1. Last position of structure without right neighbouring structure
-  infoStr <- data.frame(n = c(1, 13, 5),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  # left neighbSt
-  ### a) Length to the left > position - 2
-  combi_obj$get_singleStr(3)$modify_seqPos(position = 5, newState = 2)
-  leftN <- combi_obj$get_singleStr(3)$get_seq()[3]
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[5]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  get_private(combi_obj$get_singleStr(3))$update_neighbSt(5)
-  expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[4], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.1 a)")
-  ### b) Length to the left < position - 2 and no left structure
+test_that("singleStructureGenerator $update_neighbSt() instance of length 2 change seq state position 2", {
+  
+  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
+      private$seq[position] <-newState
+    })
+  }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Isolated: change seq state position 2, update neighbSt position 1
   infoStr <- data.frame(n = c(2),
                         globalState = c("M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
   get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
+  exp_neighbSt <- 5 
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.1 b)")
-  ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(n = c(1, 2),
-                        globalState = c("M", "U"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.1 c)")
-
-
-  ## Case 5.2. Last position of structure with right neighbouring structure with length > 1
-  infoStr <- data.frame(n = c(1, 13, 5),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 13, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(13)
-  # right neighbSt
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[13]
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(3))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 5.2")
-  # left neighbSt
-  ### a) Length to the left > position - 2
-  leftN <- combi_obj$get_singleStr(2)$get_seq()[11]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[13]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[12], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.2 a)")
-  ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(n = c(2, 12),
-                        globalState = c("M", "U"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.2 b)")
-  ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(n = c(1, 2, 11),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.2 c)")
-
-
-  ## Case 5.3. Last position of structure with right neighbouring structure with length = 1 and additional right neighbStr
-  infoStr <- data.frame(n = c(13, 1, 5),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 13, newState = 2)
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(13)
-  # right neighbSt
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[13]
-  rightN <- combi_obj$get_singleStr(3)$get_seq()[1]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 5.3")
-  # left neighbSt
-  ### a) Length to the left > position - 2
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[11]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[13]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[12], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.3 a)")
-  ### b) Length to the left < position - 2 and no left structure
-  infoStr <- data.frame(n = c(2, 1, 6),
-                        globalState = c("M", "U", "M"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.3 b)")
-  ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(n = c(1, 2, 1, 5),
-                        globalState = c("M", "U", "M", "U"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
-  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.3 c)")
-
-
-  ## Case 5.4. Last position of structure with right neighbouring structure with length = 1 without additional right neighbStr
-  infoStr <- data.frame(n = c(13, 1),
-                        globalState = c("M", "U"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 13, newState = 2)
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(13)
-  # right neighbSt
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[13]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[13]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 5.4")
-  # left neighbSt
-  ### a) Length to the left > position - 2
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[11]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[13]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[12], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.4 a)")
-  ### b) Length to the left < position - 2 and no left structure
+               info = "isolated singleStr assigns wrong left neighbSt")
+  # Check that when there is no right neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 2,
+               info = "isolated singleStr. length of neighbSt not equal to $seq length")
+  
+  ## First structure. One right singleStr of length 1
   infoStr <- data.frame(n = c(2, 1),
-                        globalState = c("M", "U"))
+                        globalState = c("M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
   get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
+  exp_neighbSt <- 5
   expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.4 b)")
-  ### c) Length to the left < position - 2 with left structure
-  infoStr <- data.frame(n = c(1, 2, 1),
-                        globalState = c("M", "U", "M"))
+               info = "First structure. One right singleStr of length 1, update left")
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update right")
+  
+  ## First structure. One right singleStr of length 2
+  infoStr <- data.frame(n = c(2, 2),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
+               info = "First structure. One right singleStr of length 2, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[2]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "First structure. One right singleStr of length 2, update right")
+  
+  ## Second structure. One left singleStr of length 1
+  infoStr <- data.frame(n = c(1, 2),
+                        globalState = c("M", "M"))
   combi_obj <- combiStructureGenerator$new(infoStr)
   combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
   get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(2)$get_seq()[2]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
   expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 5.4 c)")
-
-
-  ### Case 6: Position between 2 and n-1
-  infoStr <- data.frame(n = c(13, 1),
-                        globalState = c("M", "U"))
-  combi_obj <- combiStructureGenerator$new(infoStr)
-  # left neighbSt
-  combi_obj$get_singleStr(1)$modify_seqPos(position = 3, newState = 2)
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[1]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[3]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  get_private(combi_obj$get_singleStr(1))$update_neighbSt(3)
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
-               info = "assigns wrong left neighbSt case 6")
-  # right neighbSt
-  leftN <- combi_obj$get_singleStr(1)$get_seq()[3]
-  rightN <- combi_obj$get_singleStr(1)$get_seq()[5]
-  exp_neighbSt <- mapNeighbSt_matrix[leftN, rightN]
-  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[4], exp_neighbSt,
-               info = "assigns wrong right neighbSt case 6")
-
+               info = "Second structure. One left singleStr of length 1, update left")
+  # Check that when there is no right neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(2))$neighbSt), 2,
+               info = "Second structure. No right neighbor. length of neighbSt not equal to $seq length")
+  
+  
 })
+
+test_that("singleStructureGenerator $update_neighbSt() instance of length 3 change seq state position 2", {
+  
+  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
+      private$seq[position] <-newState
+    })
+  }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Isolated: change seq state position 2, update neighbSt position 1 and 3
+  infoStr <- data.frame(n = c(3),
+                        globalState = c("M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
+               info = "isolated singleStr assigns wrong left neighbSt")
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
+               info = "isolated singleStr assigns wrong right neighbSt")
+  
+  
+  ## First structure. One right singleStr of length 1
+  infoStr <- data.frame(n = c(3, 1),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[1]]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update right")
+  
+  
+  ## Second structure. One left singleStr of length 1
+  infoStr <- data.frame(n = c(1, 3),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update left")
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update right")
+  
+})
+
+test_that("singleStructureGenerator $update_neighbSt() instance of length 4 change seq state position 2", {
+  
+  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
+      private$seq[position] <-newState
+    })
+  }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Isolated: change seq state position 2, update neighbSt position 1 and 3
+  infoStr <- data.frame(n = c(4),
+                        globalState = c("M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
+               info = "isolated singleStr assigns wrong left neighbSt")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(1)$get_seq()[4]]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
+               info = "isolated singleStr assigns wrong right neighbSt")
+  
+  
+  ## First structure. One right singleStr of length 1
+  infoStr <- data.frame(n = c(4, 1),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 2, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(2)
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[1], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(1)$get_seq()[4]]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update right")
+  
+  
+  ## Second structure. One left singleStr of length 1
+  infoStr <- data.frame(n = c(1, 4),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 2, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(2)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[4]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update right")
+  
+})
+
+test_that("singleStructureGenerator $update_neighbSt() instance of length 3 change seq state position 3", {
+  
+  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
+      private$seq[position] <-newState
+    })
+  }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Isolated: change seq state position 3, update neighbSt position 2
+  infoStr <- data.frame(n = c(3),
+                        globalState = c("M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "isolated singleStr assigns wrong left neighbSt")
+  # Check that when there is no right neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 3,
+               info = "isolated structure. No right neighbor. length of neighbSt not equal to $seq length")
+  
+  ## Second structure. One left singleStr of length 1
+  infoStr <- data.frame(n = c(1, 3),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(2)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update left")
+  # Check that when there is no right neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(2))$neighbSt), 3,
+               info = "Second structure. No right neighbor. length of neighbSt not equal to $seq length")
+  
+  ## First structure. One right singleStr of length 1
+  infoStr <- data.frame(n = c(3, 1),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update left")
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update right")
+  
+  ## First structure. One right singleStr of length 2
+  infoStr <- data.frame(n = c(3, 2),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[2]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "First structure. One right singleStr of length 2, update right")
+  
+  ## First structure. Two right singleStr of length 1 each
+  infoStr <- data.frame(n = c(3, 1, 1),
+                        globalState = c("M", "M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(3)$get_seq()[1]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "First structure. Two right singleStr of length 1, update right")
+  
+})
+
+test_that("singleStructureGenerator $update_neighbSt() instance of length 4 change seq state position 3", {
+  
+  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
+      private$seq[position] <-newState
+    })
+  }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Isolated: change seq state position 3, update neighbSt position 2 and 4
+  infoStr <- data.frame(n = c(4),
+                        globalState = c("M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "isolated singleStr assigns wrong left neighbSt")
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[4], exp_neighbSt,
+               info = "isolated singleStr assigns wrong right neighbSt")
+  
+  ## Second structure. One left singleStr of length 1
+  infoStr <- data.frame(n = c(1, 4),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(2)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update left")
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[4], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update right")
+  
+  ## First structure. One right singleStr of length 1
+  infoStr <- data.frame(n = c(4, 1),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[1]]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[4], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update right")
+  
+})
+
+test_that("singleStructureGenerator $update_neighbSt() instance of length 4 change seq state position 4", {
+  
+  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
+      private$seq[position] <-newState
+    })
+  }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Isolated: change seq state position 4, update neighbSt position 3
+  infoStr <- data.frame(n = c(4),
+                        globalState = c("M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 4, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[2], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
+               info = "isolated singleStr assigns wrong left neighbSt")
+  # Check that when there is no right neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(1))$neighbSt), 4,
+               info = "isolated structure. No right neighbor. length of neighbSt not equal to $seq length")
+  
+  ## Second structure. One left singleStr of length 1
+  infoStr <- data.frame(n = c(1, 4),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 4, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(2)$get_seq()[2], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[3], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update left")
+  # Check that when there is no right neighbor, the length of the neighbSt encoding is equal to seq length
+  expect_equal(length(get_private(combi_obj$get_singleStr(2))$neighbSt), 4,
+               info = "Second structure. No right neighbor. length of neighbSt not equal to $seq length")
+  
+  ## First structure. One right singleStr of length 1
+  infoStr <- data.frame(n = c(4, 1),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 4, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[2], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update left")
+  exp_neighbSt <- 5
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "First structure. One right singleStr of length 1, update right")
+  
+  ## First structure. One right singleStr of length 2
+  infoStr <- data.frame(n = c(4, 2),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 4, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[2], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
+               info = "First structure. One right singleStr of length 2, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[2]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "First structure. One right singleStr of length 2, update right")
+  
+  ## First structure. Two right singleStr of length 1 each
+  infoStr <- data.frame(n = c(4, 1, 1),
+                        globalState = c("M", "M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 4, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(4)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[2], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[3], exp_neighbSt,
+               info = "First structure. Two right singleStr of length 1 each, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(3)$get_seq()[1]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[1], exp_neighbSt,
+               info = "First structure. Two right singleStr of length 1 each, update right")
+})
+
+test_that("singleStructureGenerator $update_neighbSt() seqlength > 4 intermediate positions", {
+  
+  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
+      private$seq[position] <-newState
+    })
+  }
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  
+  ## Isolated: change seq state position 3, update neighbSt position 2 and 4
+  infoStr <- data.frame(n = c(5),
+                        globalState = c("M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(1)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(1))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(1)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[2], exp_neighbSt,
+               info = "isolated singleStr assigns wrong left neighbSt")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(1)$get_seq()[5]]
+  expect_equal(get_private(combi_obj$get_singleStr(1))$neighbSt[4], exp_neighbSt,
+               info = "isolated singleStr assigns wrong right neighbSt")
+  
+  
+  ## Second structure. One left singleStr of length 1
+  infoStr <- data.frame(n = c(1, 5),
+                        globalState = c("M", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  combi_obj$get_singleStr(2)$modify_seqPos(position = 3, newState = 2)
+  get_private(combi_obj$get_singleStr(2))$update_neighbSt(3)
+  exp_neighbSt <- mapNeighbSt_matrix[combi_obj$get_singleStr(2)$get_seq()[1], 2]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[2], exp_neighbSt,
+               info = "Second structure. One left singleStr of length 1, update left")
+  exp_neighbSt <- mapNeighbSt_matrix[2, combi_obj$get_singleStr(2)$get_seq()[5]]
+  expect_equal(get_private(combi_obj$get_singleStr(2))$neighbSt[4], exp_neighbSt,
+               info = "isolated singleStr assigns wrong right neighbSt")
+  
+})
+
+
 
 test_that("singleStructureGenerator init_Ri_values()",{
   # singleStructure instance
@@ -1437,6 +1721,13 @@ test_that("singleStructureGenerator initialize_ratetree()", {
   obj <- singleStructureGenerator$new("U", 2)
   expect_equal(sd(sapply(get_private(obj)$ratetree, sum)), 0,
                info=paste("Different total rate sums in levels of ratetree after isolated singleStructure initialization c):\n", sapply(get_private(obj)$ratetree, sum)))
+  ### d) with equilibrium frequencies as all methylated or all unmethylated the total rate should be 0
+  obj <- singleStructureGenerator$new(globalState = "U", 100, eqFreqs = c(1,0,0))
+  expect_equal(get_private(obj)$ratetree[[1]][1], 0,
+               info = paste("Completely unmethylated sequence has total rate different from 0. ratetree[[1]]:", get_private(obj)$ratetree[[1]]))
+  obj <- singleStructureGenerator$new(globalState = "M", 100, eqFreqs = c(0,0,1))
+  expect_equal(get_private(obj)$ratetree[[1]][1], 0,
+               info = paste("Completely methylated sequence has total rate different from 0. ratetree[[1]]:", get_private(obj)$ratetree[[1]]))
 
   # combiStructure instance
   ### a) with sequences of long length
@@ -1463,6 +1754,8 @@ test_that("singleStructureGenerator initialize_ratetree()", {
   combi_obj <- combiStructureGenerator$new(infoStr)
   expect_equal(sd(sapply(get_private(combi_obj$get_singleStr(2))$ratetree, sum)), 0,
                info=paste("Different total rate sums in levels of ratetree after singleStructure instance within combiStructure initialization c):\n", sapply(get_private(obj)$ratetree, sum)))
+  
+  
 })
 
 test_that("singleStructureGenerator update_ratetree()", {
@@ -1520,7 +1813,188 @@ test_that("singleStructureGenerator update_ratetree()", {
                info = "fails to update rate value in singleStructure instance within combiStructure b) second change")
 })
 
-test_that("singleStructureGenerator()",{
+test_that("singleStructureGenerator() get_Q",{
+  s <- singleStructureGenerator$new("U", n = 100) 
+  obj <- s$get_Q()
+  expect_true(is.list(obj), info = "get_Q with null arguments does not return list")
+  obj <- s$get_Q(siteR = 1, neighbSt = 1, oldSt = 1, newSt = 1)
+  expect_true(is.numeric(obj), info = "get_Q with non-null arguments does not return numeric object")
+  expect_equal(length(obj), 1, info = "get_Q with non-null arguments does not return one rate value")
+})
+
+test_that("singleStructureGenerator() get_siteR",{
+  s <- singleStructureGenerator$new("U", n = 100) 
+  obj <- s$get_siteR()
+  expect_equal(length(obj), 100, info = "get_siteR with null arguments does not return vector")
+  obj <- s$get_siteR(index = 1)
+  expect_equal(length(obj), 1, info = "get_siteR with non-null argument does not return one siteR value")
+})
+
+test_that("singleStructureGenerator() get_neighbSt",{
+  s <- singleStructureGenerator$new("U", n = 100) 
+  obj <- s$get_neighbSt()
+  expect_equal(length(obj), 100, info = "get_neighbSt with null arguments does not return vector")
+  obj <- s$get_neighbSt(index = 1)
+  expect_equal(length(obj), 1, info = "get_neighbSt with non-null argument does not return one get_neighbSt value")
+})
+
+test_that("singleStructureGenerator() update_ratetree_otherStr",{
+  s <- singleStructureGenerator$new("U", n = 100) 
+  old_rate <- get_private(s)$ratetree[[8]][1]
+  old_total_rate <- get_private(s)$ratetree[[1]][1]
+  new_rate <- old_rate + 5
+  new_total_rate <- old_total_rate + 5
+  s$update_ratetree_otherStr(position = 1, rate = new_rate)
+  expect_equal(get_private(s)$ratetree[[8]][1], new_rate,
+               info = "fails updating site rate")
+  expect_equal(get_private(s)$ratetree[[1]][1], new_total_rate, 
+               info = "fails updating total rate")
+})
+
+test_that("singleStructureGenerator() update_ratetree_betweenStr",{
+  if (! "modify_neighbSt"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_neighbSt", function(position, newState) {
+      private$neighbSt[position] <-newState
+    })
+  }
+  ## Case 1: update next Structure
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s2 <- c$get_singleStr(2)
+  siteR <- s2$get_siteR(1)
+  seq <- s2$get_seq()[1]
+  new_neighbSt <- 6
+  s2$modify_neighbSt(position = 1, new_neighbSt)
+  s1 <- c$get_singleStr(1)
+  get_private(s1)$update_ratetree_betweenStr(nextStr = TRUE)
+  exp_new_rate <- abs(s2$get_Q(siteR = siteR, neighbSt = new_neighbSt, oldSt = seq, newSt = seq))
+  site_new_rate <- get_private(s2)$ratetree[[8]][1]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to assign correct rate after change in neighbSt, case 1")
+  
+  ## Case 2: update previous Structure
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s1 <- c$get_singleStr(1)
+  siteR <- s1$get_siteR(100)
+  seq <- s1$get_seq()[100]
+  new_neighbSt <- 2
+  s1$modify_neighbSt(position = 100, new_neighbSt)
+  s2 <- c$get_singleStr(2)
+  get_private(s2)$update_ratetree_betweenStr(prevStr = TRUE)
+  exp_new_rate <- abs(s1$get_Q(siteR = siteR, neighbSt = new_neighbSt, oldSt = seq, newSt = seq))
+  site_new_rate <- get_private(s1)$ratetree[[8]][100]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to assign correct rate after change in neighbSt, case 2")
+  
+  # Check when no argument is given it throws error
+  expect_error(get_private(s2)$update_ratetree_betweenStr(), info = "fails to throw an error when no argument is given")
+  
+  
+})
+
+test_that("singleStructureGenerator() update_ratetree_betweenStr",{
+  if (! "modify_neighbSt"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_neighbSt", function(position, newState) {
+      private$neighbSt[position] <-newState
+    })
+  }
+  ## Case 1: update next Structure
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s2 <- c$get_singleStr(2)
+  siteR <- s2$get_siteR(1)
+  seq <- s2$get_seq()[1]
+  new_neighbSt <- 6
+  s2$modify_neighbSt(position = 1, new_neighbSt)
+  s1 <- c$get_singleStr(1)
+  get_private(s1)$update_ratetree_betweenStr(nextStr = TRUE)
+  exp_new_rate <- abs(s2$get_Q(siteR = siteR, neighbSt = new_neighbSt, oldSt = seq, newSt = seq))
+  site_new_rate <- get_private(s2)$ratetree[[8]][1]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to assign correct rate after change in neighbSt, case 1")
+  
+  ## Case 2: update previous Structure
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s1 <- c$get_singleStr(1)
+  siteR <- s1$get_siteR(100)
+  seq <- s1$get_seq()[100]
+  new_neighbSt <- 2
+  s1$modify_neighbSt(position = 100, new_neighbSt)
+  s2 <- c$get_singleStr(2)
+  get_private(s2)$update_ratetree_betweenStr(prevStr = TRUE)
+  exp_new_rate <- abs(s1$get_Q(siteR = siteR, neighbSt = new_neighbSt, oldSt = seq, newSt = seq))
+  site_new_rate <- get_private(s1)$ratetree[[8]][100]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to assign correct rate after change in neighbSt, case 2")
+  
+  # Check when no argument is given it throws error
+  expect_error(get_private(s2)$update_ratetree_betweenStr(), info = "fails to throw an error when no argument is given")
+  
+  
+})
+
+test_that("singleStructureGenerator() update_ratetree_allCases",{
+  if (! "modify_neighbSt"%in% names(singleStructureGenerator$public_methods)){
+    singleStructureGenerator$set("public", "modify_neighbSt", function(position, newState) {
+      private$neighbSt[position] <-newState
+    })
+  }
+  ## Case 1: update positions 5,100 (and 1 of second structure)
+  test_str <- data.frame(n = c(100,100), globalState = c("U", "M"), 
+                         u_eqFreq = c(1, 0),
+                         p_eqFreq = c(0, 0),
+                         m_eqFreq = c(0, 1))
+  c <- combiStructureGenerator$new(infoStr = test_str)
+  s1 <- c$get_singleStr(1)
+  # change neighbSt position 5
+  siteR_5 <- s1$get_siteR(5)
+  seq_5 <- s1$get_seq()[5]
+  new_neighbSt_5 <- 4
+  s1$modify_neighbSt(position = 5, new_neighbSt_5)
+  # change neighbSt position 100
+  siteR_100 <- s1$get_siteR(100)
+  seq_100 <- s1$get_seq()[100]
+  new_neighbSt_100 <- 5
+  s1$modify_neighbSt(position = 100, new_neighbSt_100)
+  # change neighbState position 1 second structure
+  s2 <- c$get_singleStr(2)
+  siteR_1 <- s2$get_siteR(1)
+  seq_1 <- s2$get_seq()[1]
+  new_neighbSt_1 <- 9
+  s2$modify_neighbSt(position = 1, new_neighbSt_1)
+  get_private(s1)$update_ratetree_allCases(index = c(5,100))
+  # check change position 5
+  exp_new_rate <- abs(s1$get_Q(siteR = siteR_5, neighbSt = new_neighbSt_5, oldSt = seq_5, newSt = seq_5))
+  site_new_rate <- get_private(s1)$ratetree[[8]][5]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to update ratetree, position 5")
+  # check change position 100
+  exp_new_rate <- abs(s1$get_Q(siteR = siteR_100, neighbSt = new_neighbSt_100, oldSt = seq_100, newSt = seq_100))
+  site_new_rate <- get_private(s1)$ratetree[[8]][100]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to update ratetree, position 100")
+  # check change position 1 next structure
+  exp_new_rate <- abs(s2$get_Q(siteR = siteR_1, neighbSt = new_neighbSt_1, oldSt = seq_1, newSt = seq_1))
+  site_new_rate <- get_private(s2)$ratetree[[8]][1]
+  expect_equal(site_new_rate, exp_new_rate,
+               info = "fails to update ratetree, position 1 next structure")
+})
+
+test_that("singleStructureGenerator() choose_random_seqpos",{
   obj <- singleStructureGenerator$new("U", 100)
   # Check chosen seqposition is correct
   # with long$seq length
@@ -1549,30 +2023,740 @@ test_that("singleStructureGenerator choose_number_of_changes()",{
   # Check chosen number of changes is integer
   c <- get_private(obj)$choose_number_of_changes(dt = 0.01)
   expect_true(is.integer(c))
+  ## If sequence is totally unmethylated or methylated the total rate of change is 0, no changes should be sampled
+  obj <- singleStructureGenerator$new(globalState = "U", n = 100, eqFreqs = c(1,0,0))
+  dt_possibilities <- seq(from=0.01, to  = 10, by =0.1)
+  for(dt in 1:length(dt_possibilities)){
+    expect_equal(get_private(obj)$choose_number_of_changes(dt = dt), 0,
+                 info = paste("sampled number of changes non-0 for sequence with rate 0"))
+  }
+  
 })
 
-test_that("combiStructureGenerator set_singleStr() and copy()",{
-  if (! "modify_seqPos"%in% names(singleStructureGenerator$public_methods)){
-    singleStructureGenerator$set("public", "modify_seqPos", function(position, newState) {
-      private$seq[position] <-newState
-    })
-  }
+test_that("combiStructureGenerator $get_sharedCounter and $reset_sharedCounter", {
+  # Initiate an instance
   infoStr <- data.frame(n = c(13, 13, 13),
                         globalState = c("M", "U", "M"))
-  combiObj <- combiStructureGenerator$new(infoStr)
-  cloned_combiObj <- combiObj$copy()
-  original_data <- get_private(combiObj$get_singleStr(1))$seq
-  copied_data <- get_private(cloned_combiObj$get_singleStr(1))$seq
-  expect_equal(original_data, copied_data, info="fails to copy data")
-
-  ## Modify value in cloned_combiObj and check it does not modify combiObj
-  cloned_combiObj$get_singleStr(1)$modify_seqPos(1,2)
-  changed_value <- get_private(cloned_combiObj$get_singleStr(1))$seq[1]
-  expect_equal(changed_value, 2, info = "changed singleStructure instance does not get the given value")
-  unchanged_value <- get_private(combiObj$get_singleStr(1))$seq[1]
-  expect_equal(unchanged_value, original_data[1], info = "unchanged singleStructure within combiStructure instance changes")
-
+  c <- combiStructureGenerator$new(infoStr)
+  # Reset shared counter
+  c$reset_sharedCounter()
+  expect_equal(c$get_sharedCounter(), 0)
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_sharedCounter(), 1)
+  c <- combiStructureGenerator$new(infoStr)
+  c <- combiStructureGenerator$new(infoStr)
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_sharedCounter(), 4)
+  c$reset_sharedCounter()
+  expect_equal(c$get_sharedCounter(), 0)
 })
+
+test_that("combiStructureGenerator $get_id()", {
+  
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  # Reset shared counter
+  c <- combiStructureGenerator$new(infoStr)
+  c$reset_sharedCounter()
+  # Initiate an instance
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_id(), 1,
+               info = "method returns incorrect value after initialization")
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_id(), 2,
+               info = "method returns incorrect value after 2nd initialization")
+  
+  # Reset shared counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator $set_id()", {
+  
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  # Reset shared counter
+  c <- combiStructureGenerator$new(infoStr)
+  c$reset_sharedCounter()
+  # Initiate an instance
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_id(), 1,
+               info = "incorrect id value after initialization")
+  clone_c <- c$copy()
+  # Test use within $copy method
+  expect_equal(clone_c$get_id(), 2,
+               info = "incorrect id value of cloned combi instance")
+  expect_equal(c$get_id(), 1,
+               info = "incorrect id value of original combi instance after cloning")
+  c$set_id(5136)
+  expect_equal(c$get_id(), 5136,
+               info = "method returns incorrect value after setting to know value")
+  
+  # Reset shared counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator $get_next_id()", {
+  # Initiate an instance
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  expect_equal(c$get_id(), 1,
+               info = "attribute $static_counter is not initated with value 1")
+  value <- get_private(c)$get_next_id()
+  expect_equal(value, 2,
+               info = "calling get_next_id does not return a correct value")
+  expect_equal(c$get_sharedCounter(), 2,
+               info = "calling get_next_id does not assign a correct value to attribute $static_counter")
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check $my_combiStructure$get_id() points to correct combi instance",{
+  # Initiate an instance to reset counter
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  c$reset_sharedCounter()
+  
+  # Check singleStrctures get in my_combiStructure the correct combi instance
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  for (i in 1: 3){
+    expect_equal(get_private(c$get_singleStr(i))$my_combiStructure$get_id(), 1,
+                 info = paste("singleStr", i, "does not have correct my_combiStructure according to ID before cloning copy()"))
+  }
+  cloned_c <- c$copy()
+  for (i in 1: 3){
+    expect_equal(get_private(c$get_singleStr(i))$my_combiStructure$get_id(), 1,
+                 info = paste("Original combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+    expect_equal(get_private(cloned_c$get_singleStr(i))$my_combiStructure$get_id(), 2,
+                 info = paste("Cloned combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+  }
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  for (i in 1: 3){
+    expect_equal(get_private(c$get_singleStr(i))$my_combiStructure$get_id(), 1,
+                 info = paste("Original combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+    expect_equal(get_private(cloned_c$get_singleStr(i))$my_combiStructure$get_id(), 2,
+                 info = paste("Cloned combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+    expect_equal(get_private(cloned2_c$get_singleStr(i))$my_combiStructure$get_id(), 3,
+                 info = paste("Second clone from original combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+    expect_equal(get_private(cloned_from_cloned_c$get_singleStr(i))$my_combiStructure$get_id(), 4,
+                 info = paste("Clone from cloned combi: singleStr", i, "does not have correct my_combiStructure according to ID after cloning with copy()"))
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification without self reference only affects clone calling modification (c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Modify intermediate position
+  if (original_seq[2]==1 || original_seq[2]==3) newSt <- 2 else newSt <- 3
+  c$get_singleStr(2)$set_seqSt_update_neighbSt(index = 2, newSt = newSt)
+  
+  modified_seq <- get_private(c$get_singleStr(2))$seq
+  expect_false(all(modified_seq == original_seq), info = "clone fails to get $seq modified")
+  expect_equal(original_seq, cloned_c$get_singleStr(2)$get_seq(), info= "first clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned2_c$get_singleStr(2)$get_seq(), info="second clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_from_cloned_c$get_singleStr(2)$get_seq(), info="clone from clone gets incorrect modification of $seq data")
+  
+  modified_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  expect_false(all(modified_neighbSt == original_neighbSt), info = "clone fails to get $neighbSt modified")
+  expect_equal(original_neighbSt, cloned_c$get_singleStr(2)$get_neighbSt(), info= "first clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned2_c$get_singleStr(2)$get_neighbSt(), info="second clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(), info="clone from clone gets incorrect modification of $neighbSt data")
+  
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification without self reference only affects clone calling modification (cloned_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Modify intermediate position
+  if (original_seq[2]==1 || original_seq[2]==3) newSt <- 2 else newSt <- 3
+  cloned_c$get_singleStr(2)$set_seqSt_update_neighbSt(index = 2, newSt = newSt)
+  
+  modified_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  expect_false(all(modified_seq == original_seq), info = "clone fails to get $seq modified")
+  expect_equal(original_seq, c$get_singleStr(2)$get_seq(), info= "original combi gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned2_c$get_singleStr(2)$get_seq(), info="second clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_from_cloned_c$get_singleStr(2)$get_seq(), info="clone from clone gets incorrect modification of $seq data")
+  
+  modified_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  expect_false(all(modified_neighbSt == original_neighbSt), info = "clone fails to get $neighbSt modified")
+  expect_equal(original_neighbSt, c$get_singleStr(2)$get_neighbSt(), info= "original combi gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned2_c$get_singleStr(2)$get_neighbSt(), info="second clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(), info="clone from clone gets incorrect modification of $neighbSt data")
+  
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification without self reference only affects clone calling modification (cloned2_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Modify intermediate position
+  if (original_seq[2]==1 || original_seq[2]==3) newSt <- 2 else newSt <- 3
+  cloned2_c$get_singleStr(2)$set_seqSt_update_neighbSt(index = 2, newSt = newSt)
+  
+  modified_seq <- get_private(cloned2_c$get_singleStr(2))$seq
+  expect_false(all(modified_seq == original_seq), info = "clone fails to get $seq modified")
+  expect_equal(original_seq, c$get_singleStr(2)$get_seq(), info= "original combi gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_c$get_singleStr(2)$get_seq(), info="first clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_from_cloned_c$get_singleStr(2)$get_seq(), info="clone from clone gets incorrect modification of $seq data")
+  
+  modified_neighbSt <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  expect_false(all(modified_neighbSt == original_neighbSt), info = "clone fails to get $neighbSt modified")
+  expect_equal(original_neighbSt, c$get_singleStr(2)$get_neighbSt(), info= "original combi gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_c$get_singleStr(2)$get_neighbSt(), info="first clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(), info="clone from clone gets incorrect modification of $neighbSt data")
+  
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification without self reference only affects clone calling modification (cloned_from_cloned_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Modify intermediate position
+  if (original_seq[2]==1 || original_seq[2]==3) newSt <- 2 else newSt <- 3
+  cloned_from_cloned_c$get_singleStr(2)$set_seqSt_update_neighbSt(index = 2, newSt = newSt)
+  
+  modified_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_false(all(modified_seq == original_seq), info = "clone fails to get $seq modified")
+  expect_equal(original_seq, c$get_singleStr(2)$get_seq(), info= "original combi gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned_c$get_singleStr(2)$get_seq(), info="first clone gets incorrect modification of $seq data")
+  expect_equal(original_seq, cloned2_c$get_singleStr(2)$get_seq(), info="second clone gets incorrect modification of $seq data")
+  
+  modified_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_false(all(modified_neighbSt == original_neighbSt), info = "clone fails to get $neighbSt modified")
+  expect_equal(original_neighbSt, c$get_singleStr(2)$get_neighbSt(), info= "original combi gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned_c$get_singleStr(2)$get_neighbSt(), info="first clone gets incorrect modification of $neighbSt data")
+  expect_equal(original_neighbSt, cloned2_c$get_singleStr(2)$get_neighbSt(), info="second clone gets incorrect modification of $neighbSt data")
+  
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification with self reference only affects clone calling modification (c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+
+  # Check modifications only applied to combi calling the change
+  lastPosFirstStr_original_neighbSt <- get_private(c$get_singleStr(1))$neighbSt[13]
+  firstPosLastStr_original_neighbSt <- get_private(c$get_singleStr(3))$neighbSt[1]
+  old_completeSeq <- c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq())
+  old_2ndStr_NeighbSt <- c$get_singleStr(2)$get_neighbSt()
+  
+  if (lastPosFirstStr_original_neighbSt != 9 && firstPosLastStr_original_neighbSt != 9){
+    if(!all(old_completeSeq == 3)){ # this also ensures that all old_2ndStr_NeighbSt are not equal to 9
+
+      # Modify all $seq positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        c$get_singleStr(str)$cftp_all_equal(state = "M")
+      }
+      
+      # Update neighbSt for all positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        c$get_singleStr(str)$init_neighbSt()
+      }
+      
+      # Check modifications in $seq
+      modified_completeSeq <- c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq())
+      expect_true(all(modified_completeSeq == 3), info = "clone fails to get $seq modified")
+      expect_equal(c(cloned_c$get_singleStr(1)$get_seq(), cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info= "first clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned2_c$get_singleStr(1)$get_seq(),cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="second clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="clone from clone gets incorrect modification of $seq data")
+      
+      # Check modifications in $neighbSt second singleStr
+      modified_2ndStr_neighbSt <- c$get_singleStr(2)$get_neighbSt()
+      expect_true(all(modified_2ndStr_neighbSt == 9), info = "clone fails to get $neighbSt modified at second singleStr")
+      
+      expect_equal(cloned_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info= "first clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned2_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(),
+                   old_2ndStr_NeighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at second singleStr")
+      
+      # Check modifications in $neighbSt last position first singleStr
+      modified_lastPosFirstStr <- c$get_singleStr(1)$get_neighbSt()[13]
+      expect_true(modified_lastPosFirstStr == 9, info = "clone fails to get $neighbSt modified at last position first singleStr")
+      
+      expect_equal(cloned_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info= "first clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned2_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(1)$get_neighbSt()[13],
+                   lastPosFirstStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      
+      # Check modifications in $neighbSt first position last singleStr
+      modified_firstPosLastStr <- c$get_singleStr(3)$get_neighbSt()[1]
+      expect_true(modified_firstPosLastStr == 9, info = "clone fails to get $neighbSt modified at first position last singleStr")
+      expect_equal(cloned_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info= "first clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned2_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(3)$get_neighbSt()[1],
+                   firstPosLastStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at first position last singleStr")
+    }
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification with self reference only affects clone calling modification (cloned_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Check modifications only applied to combi calling the change
+  lastPosFirstStr_original_neighbSt <- get_private(cloned_c$get_singleStr(1))$neighbSt[13]
+  firstPosLastStr_original_neighbSt <- get_private(cloned_c$get_singleStr(3))$neighbSt[1]
+  old_completeSeq <- c(cloned_c$get_singleStr(1)$get_seq(), cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq())
+  old_2ndStr_NeighbSt <- cloned_c$get_singleStr(2)$get_neighbSt()
+  
+  if (lastPosFirstStr_original_neighbSt != 9 && firstPosLastStr_original_neighbSt != 9){
+    if(!all(old_completeSeq == 3)){ # this also ensures that all old_2ndStr_NeighbSt are not equal to 9
+      
+      # Modify all $seq positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned_c$get_singleStr(str)$cftp_all_equal(state = "M")
+      }
+      
+      # Update neighbSt for all positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned_c$get_singleStr(str)$init_neighbSt()
+      }
+      
+      # Check modifications in $seq
+      modified_completeSeq <- c(cloned_c$get_singleStr(1)$get_seq(), cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq())
+      expect_true(all(modified_completeSeq == 3), info = "clone fails to get $seq modified")
+      expect_equal(c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info= "original combi gets incorrect modification of $seq data")
+      expect_equal(c(cloned2_c$get_singleStr(1)$get_seq(),cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="second clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="clone from clone gets incorrect modification of $seq data")
+      
+      # Check modifications in $neighbSt second singleStr
+      modified_2ndStr_neighbSt <- cloned_c$get_singleStr(2)$get_neighbSt()
+      expect_true(all(modified_2ndStr_neighbSt == 9), info = "clone fails to get $neighbSt modified at second singleStr")
+      
+      expect_equal(c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned2_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(),
+                   old_2ndStr_NeighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at second singleStr")
+      
+      # Check modifications in $neighbSt last position first singleStr
+      modified_lastPosFirstStr <- cloned_c$get_singleStr(1)$get_neighbSt()[13]
+      expect_true(modified_lastPosFirstStr == 9, info = "clone fails to get $neighbSt modified at last position first singleStr")
+      
+      expect_equal(c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned2_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(1)$get_neighbSt()[13],
+                   lastPosFirstStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      
+      # Check modifications in $neighbSt first position last singleStr
+      modified_firstPosLastStr <- cloned_c$get_singleStr(3)$get_neighbSt()[1]
+      expect_true(modified_firstPosLastStr == 9, info = "clone fails to get $neighbSt modified at first position last singleStr")
+      expect_equal(c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned2_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(3)$get_neighbSt()[1],
+                   firstPosLastStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at first position last singleStr")
+    }
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification with self reference only affects clone calling modification (cloned2_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Check modifications only applied to combi calling the change
+  lastPosFirstStr_original_neighbSt <- get_private(cloned2_c$get_singleStr(1))$neighbSt[13]
+  firstPosLastStr_original_neighbSt <- get_private(cloned2_c$get_singleStr(3))$neighbSt[1]
+  old_completeSeq <- c(cloned2_c$get_singleStr(1)$get_seq(), cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq())
+  old_2ndStr_NeighbSt <- cloned2_c$get_singleStr(2)$get_neighbSt()
+  
+  if (lastPosFirstStr_original_neighbSt != 9 && firstPosLastStr_original_neighbSt != 9){
+    if(!all(old_completeSeq == 3)){ # this also ensures that all old_2ndStr_NeighbSt are not equal to 9
+      
+      # Modify all $seq positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned2_c$get_singleStr(str)$cftp_all_equal(state = "M")
+      }
+      
+      # Update neighbSt for all positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned2_c$get_singleStr(str)$init_neighbSt()
+      }
+      
+      # Check modifications in $seq
+      modified_completeSeq <- c(cloned2_c$get_singleStr(1)$get_seq(), cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq())
+      expect_true(all(modified_completeSeq == 3), info = "clone fails to get $seq modified")
+      expect_equal(c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info= "original combi gets incorrect modification of $seq data")
+      expect_equal(c(cloned_c$get_singleStr(1)$get_seq(),cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="first clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="clone from clone gets incorrect modification of $seq data")
+      
+      # Check modifications in $neighbSt second singleStr
+      modified_2ndStr_neighbSt <- cloned2_c$get_singleStr(2)$get_neighbSt()
+      expect_true(all(modified_2ndStr_neighbSt == 9), info = "clone fails to get $neighbSt modified at second singleStr")
+      
+      expect_equal(c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(2)$get_neighbSt(),
+                   old_2ndStr_NeighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at second singleStr")
+      
+      # Check modifications in $neighbSt last position first singleStr
+      modified_lastPosFirstStr <- cloned2_c$get_singleStr(1)$get_neighbSt()[13]
+      expect_true(modified_lastPosFirstStr == 9, info = "clone fails to get $neighbSt modified at last position first singleStr")
+      
+      expect_equal(c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(1)$get_neighbSt()[13],
+                   lastPosFirstStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      
+      # Check modifications in $neighbSt first position last singleStr
+      modified_firstPosLastStr <- cloned2_c$get_singleStr(3)$get_neighbSt()[1]
+      expect_true(modified_firstPosLastStr == 9, info = "clone fails to get $neighbSt modified at first position last singleStr")
+      expect_equal(c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_from_cloned_c$get_singleStr(3)$get_neighbSt()[1],
+                   firstPosLastStr_original_neighbSt, 
+                   info="clone from clone gets incorrect modification of $neighbSt data at first position last singleStr")
+    }
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
+test_that("combiStructureGenerator set_singleStr() and copy() check modification with self reference only affects clone calling modification (cloned_from_cloned_c)", {
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  cloned_c <- c$copy()
+  cloned2_c <- c$copy()
+  cloned_from_cloned_c <- cloned_c$copy()
+  
+  # Check after cloning sequences are the same
+  original_seq <- get_private(c$get_singleStr(2))$seq
+  copied_seq <- get_private(cloned_c$get_singleStr(2))$seq
+  copied_seq2 <- get_private(cloned2_c$get_singleStr(2))$seq
+  copied_from_copied_seq <- get_private(cloned_from_cloned_c$get_singleStr(2))$seq
+  expect_equal(original_seq, copied_seq, info="first clone fails to copy $seq data")
+  expect_equal(original_seq, copied_seq2, info="second clone fails to copy $seq data")
+  expect_equal(original_seq, copied_from_copied_seq, info="clone from clone fails to copy $seq data")
+  
+  # Check after cloning neighbSt are the same
+  original_neighbSt <- get_private(c$get_singleStr(2))$neighbSt
+  copied_neighbSt <- get_private(cloned_c$get_singleStr(2))$neighbSt
+  copied_neighbSt2 <- get_private(cloned2_c$get_singleStr(2))$neighbSt
+  copied_from_copied_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(2))$neighbSt
+  expect_equal(original_neighbSt, copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_neighbSt2, info="first clone fails to copy $neighbSt data")
+  expect_equal(original_neighbSt, copied_from_copied_neighbSt, info="first clone fails to copy $neighbSt data")
+  
+  # Check modifications only applied to combi calling the change
+  lastPosFirstStr_original_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(1))$neighbSt[13]
+  firstPosLastStr_original_neighbSt <- get_private(cloned_from_cloned_c$get_singleStr(3))$neighbSt[1]
+  old_completeSeq <- c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq())
+  old_2ndStr_NeighbSt <- cloned_from_cloned_c$get_singleStr(2)$get_neighbSt()
+  
+  if (lastPosFirstStr_original_neighbSt != 9 && firstPosLastStr_original_neighbSt != 9){
+    if(!all(old_completeSeq == 3)){ # this also ensures that all old_2ndStr_NeighbSt are not equal to 9
+      
+      # Modify all $seq positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned_from_cloned_c$get_singleStr(str)$cftp_all_equal(state = "M")
+      }
+      
+      # Update neighbSt for all positions
+      for(str in 1:3){
+        # Set the sequences for each structure as all m 
+        cloned_from_cloned_c$get_singleStr(str)$init_neighbSt()
+      }
+      
+      # Check modifications in $seq
+      modified_completeSeq <- c(cloned_from_cloned_c$get_singleStr(1)$get_seq(), cloned_from_cloned_c$get_singleStr(2)$get_seq(), cloned_from_cloned_c$get_singleStr(3)$get_seq())
+      expect_true(all(modified_completeSeq == 3), info = "clone fails to get $seq modified")
+      expect_equal(c(c$get_singleStr(1)$get_seq(), c$get_singleStr(2)$get_seq(), c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info= "original combi gets incorrect modification of $seq data")
+      expect_equal(c(cloned_c$get_singleStr(1)$get_seq(),cloned_c$get_singleStr(2)$get_seq(), cloned_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="first clone gets incorrect modification of $seq data")
+      expect_equal(c(cloned2_c$get_singleStr(1)$get_seq(), cloned2_c$get_singleStr(2)$get_seq(), cloned2_c$get_singleStr(3)$get_seq()), 
+                   old_completeSeq, 
+                   info="second clone gets incorrect modification of $seq data")
+      
+      # Check modifications in $neighbSt second singleStr
+      modified_2ndStr_neighbSt <- cloned_from_cloned_c$get_singleStr(2)$get_neighbSt()
+      expect_true(all(modified_2ndStr_neighbSt == 9), info = "clone fails to get $neighbSt modified at second singleStr")
+      
+      expect_equal(c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned_c$get_singleStr(2)$get_neighbSt(), 
+                   old_2ndStr_NeighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at second singleStr")
+      expect_equal(cloned2_c$get_singleStr(2)$get_neighbSt(),
+                   old_2ndStr_NeighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at second singleStr")
+      
+      # Check modifications in $neighbSt last position first singleStr
+      modified_lastPosFirstStr <- cloned_from_cloned_c$get_singleStr(1)$get_neighbSt()[13]
+      expect_true(modified_lastPosFirstStr == 9, info = "clone fails to get $neighbSt modified at last position first singleStr")
+      
+      expect_equal(c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned_c$get_singleStr(1)$get_neighbSt()[13], 
+                   lastPosFirstStr_original_neighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      expect_equal(cloned2_c$get_singleStr(1)$get_neighbSt()[13],
+                   lastPosFirstStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at last position first singleStr")
+      
+      # Check modifications in $neighbSt first position last singleStr
+      modified_firstPosLastStr <- cloned_from_cloned_c$get_singleStr(3)$get_neighbSt()[1]
+      expect_true(modified_firstPosLastStr == 9, info = "clone fails to get $neighbSt modified at first position last singleStr")
+      expect_equal(c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info= "original combi gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned_c$get_singleStr(3)$get_neighbSt()[1], 
+                   firstPosLastStr_original_neighbSt, 
+                   info="first clone gets incorrect modification of $neighbSt data at first position last singleStr")
+      expect_equal(cloned2_c$get_singleStr(3)$get_neighbSt()[1],
+                   firstPosLastStr_original_neighbSt, 
+                   info="second clone gets incorrect modification of $neighbSt data at first position last singleStr")
+    }
+  }
+  # Reset combi instance counter
+  c$reset_sharedCounter()
+})
+
 
 test_that("singleStructureGenerator SSE_evol()", {
   ################# singleStructure instance ##
@@ -1693,6 +2877,634 @@ test_that("combiStructureGenerator interval_evol()",{
   expect_null(output)
 })
 
+
+test_that("singleStructureGenerator $get_transMat() errors/warnings", {
+  
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Expect error when one or both frequency vectors are not given
+  expect_error(obj$get_transMat(info = "test"),
+               info = "method fails to throw error when no frequency vector is given")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when argument 'new_eqFreqs' is not given")
+  expect_error(obj$get_transMat(new_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when argument 'old_eqFreqs' is not given")
+  
+  # Expect error when no info is given or when it is not a character string
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.1, .4, .5)),
+               info = "method fails to throw error when argument 'info' is not given")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.1, .4, .5), info = 2),
+               info = "method fails to throw error when argument 'info' is not a character string")
+  
+  # Expect error when any of the frequency vectors is not a numeric vector of length 3
+  expect_error(obj$get_transMat(old_eqFreqs = "M", new_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when 'old_eqFreqs' is not numeric vector")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = "M", info = "test"),
+               info = "method fails to throw error when 'new_eqFreqs' is not numeric vector")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = 1, info = "test"),
+               info = "method fails to throw error when 'new_eqFreqs' is not vector with 3 values")
+  expect_error(obj$get_transMat(old_eqFreqs = 1, new_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when 'old_eqFreqs' is not numeric vector")
+  
+  # Expect error when any of the frequency vectors has values <0 or >1
+  expect_error(obj$get_transMat(old_eqFreqs = c(-.1, .4, .5), new_eqFreqs = c(.1, .4, .5), info = "test"),
+               info = "method fails to throw error when 'old_eqFreqs' has values <0 or >1")
+  expect_error(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.1, .4, 1.1), info = "test"),
+               info = "method fails to throw error when 'new_eqFreqs' has values <0 or >1")
+  
+  # Expect warning when the sum of the frequency vectors is not 1
+  expect_warning(obj$get_transMat(old_eqFreqs = c(.005, .4, .5), new_eqFreqs = c(.1, .4, .5), info = "test"),
+                 info = "method fails to throw warning when 'old_eqFreqs' dont sum 1")
+  expect_warning(obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.005, .4, .5), info = "test"),
+                 info = "method fails to throw warning when 'new_eqFreqs' dont sum 1")
+  
+  # Expect only matrix output when testing is (as default) FALSE
+  output <- obj$get_transMat(old_eqFreqs = c(.1, .4, .5), new_eqFreqs = c(.1, .4, .5), info = "test")
+  expect_true(is.matrix(output),
+              info = "with testing FALSE method fails to output matrix")
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. u bigger", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. u bigger or equal"
+  
+  # Case 1. u bigger. p and m smaller
+  info_subcase <- "p and m smaller."
+  o_eqFreqs <- c(.6, .2, .2)
+  n_eqFreqs <- c(.8, .1, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. p smaller and m equal
+  info_subcase <- "p smaller and m equal."
+  o_eqFreqs <- c(.6, .2, .2)
+  n_eqFreqs <- c(.7, .1, .2)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. p equal and m smaller
+  info_subcase <- "p equal and m smaller."
+  o_eqFreqs <- c(.6, .2, .2)
+  n_eqFreqs <- c(.7, .2, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. old u was 0
+  info_subcase <- "old u was 0."
+  o_eqFreqs <- c(0, .5, .5)
+  n_eqFreqs <- c(.2, .4, .4)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. p is 0
+  info_subcase <- "p is 0."
+  o_eqFreqs <- c(.4, 0, .6)
+  n_eqFreqs <- c(.6, 0, .4)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. u bigger. m is 0
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.4, .6, 0)
+  n_eqFreqs <- c(.6, .4, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. u equal", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. u bigger or equal"
+  
+  # Case 1. u bigger. p and m smaller
+  info_subcase <- "u stays 0. p and m smaller."
+  o_eqFreqs <- c(0, .5, .5)
+  n_eqFreqs <- c(0, .5, .5) - c(0, 1e-10, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "u stays non-0. p and m smaller."
+  o_eqFreqs <- c(.2, .4, .4)
+  n_eqFreqs <- c(.2, .4, .4) - c(0, 1e-10, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case. u equal. p smaller and m equal
+  info_subcase <- "u stays 0. p smaller and m equal."
+  o_eqFreqs <- c(0, .5, .5)
+  n_eqFreqs <- c(0, .5, .5) - c(0, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "u stays non-0. p smaller and m equal."
+  o_eqFreqs <- c(.1, .4, .5)
+  n_eqFreqs <- c(.1, .4, .5) - c(0, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  
+  # Case. u equal. p equal and m smaller
+  info_subcase <- "u stays 0. p equal and m smaller."
+  o_eqFreqs <- c(0, .5, .5)
+  n_eqFreqs <- c(0, .5, .5) - c(0, 0, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "u stays non-0. p equal and m smaller."
+  o_eqFreqs <- c(.1, .4, .5)
+  n_eqFreqs <- c(.1, .4, .5) - c(0, 0,1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case. u equal. p is 0
+  info_subcase <- "p is 0."
+  o_eqFreqs <- c(.5, 0, .5)
+  n_eqFreqs <- c(.5, 0, .5) - c(0, 0, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case. u equal. m is 0
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.5, .5, 0)
+  n_eqFreqs <- c(.5, .5, 0) - c(0, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. p bigger", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. p bigger or equal"
+  
+  # Case 1. p bigger. u and m smaller
+  info_subcase <- "u and m smaller."
+  o_eqFreqs <- c(.2, .6, .2)
+  n_eqFreqs <- c(.1, .8, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. u smaller and m equal
+  info_subcase <- "u smaller and m equal."
+  o_eqFreqs <- c(.2, .6, .2)
+  n_eqFreqs <- c(.1, .7, .2)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. u equal and m smaller
+  info_subcase <- "u equal and m smaller."
+  o_eqFreqs <- c(.2, .6, .2)
+  n_eqFreqs <- c(.2, .7, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. old p was 0
+  info_subcase <- "old p was 0."
+  o_eqFreqs <- c(.5, 0, .5)
+  n_eqFreqs <- c(.4, .2, .4)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. u is 0
+  info_subcase <- "u is 0."
+  o_eqFreqs <- c(0, .4, .6)
+  n_eqFreqs <- c(0, .6, .4)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. p bigger. m is 0
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.6, .4, 0)
+  n_eqFreqs <- c(.4, .6, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. p equal", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. p bigger or equal"
+  
+  # Case 1. p equal. u and m smaller
+  info_subcase <- "p stays 0. u and m smaller."
+  o_eqFreqs <- c(.5, 0, .5)
+  n_eqFreqs <- c(.5, 0, .5) - c(1e-10, 0, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "p equal but non-0. u and m smaller."
+  o_eqFreqs <- c(.4, .2, .4)
+  n_eqFreqs <- c(.4, .2, .4) - c(1e-10, 0, 1e-10)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 1. p equal. u smaller and m equal
+  info_subcase <- "p stays 0. u smaller and m equal."
+  o_eqFreqs <- c(.5, 0, .5)
+  n_eqFreqs <- c(.5, 0, .5) - c(1e-10, 0, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "p equal but non-0. u smaller and m equal."
+  o_eqFreqs <- c(.4, .2, .4)
+  n_eqFreqs <- c(.4, .2, .4) - c(1e-10, 0, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 1. p equal. u equal and m smaller. Enters first if (u equal)
+  
+  # Case 1. p equal. u is 0. Enters first if (u equal or bigger)
+  
+  # Case. p equal. m is 0. 
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.5, .5, 0)
+  n_eqFreqs <- c(.5, .5, 0) - c(1e-10, 0, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. m bigger", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. m bigger or equal"
+  
+  # Case 1. m bigger. u and p smaller
+  info_subcase <- "u and p smaller."
+  o_eqFreqs <- c(.2, .2, .6)
+  n_eqFreqs <- c(.1, .1, .8)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. u smaller and p equal
+  info_subcase <- "u smaller and p equal."
+  o_eqFreqs <- c(.2, .2, .6)
+  n_eqFreqs <- c(.1, .2, .7)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. u equal and p smaller
+  info_subcase <- "u equal and p smaller."
+  o_eqFreqs <- c(.2, .2, .6)
+  n_eqFreqs <- c(.2, .1, .7)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. old m was 0
+  info_subcase <- "old m was 0."
+  o_eqFreqs <- c(.5, .5, 0)
+  n_eqFreqs <- c(.4, .4, .2)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. u is 0
+  info_subcase <- "u is 0."
+  o_eqFreqs <- c(0, .6, .4)
+  n_eqFreqs <- c(0, .4, .6)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  # Case 1. m bigger. p is 0
+  info_subcase <- "p is 0."
+  o_eqFreqs <- c(.6, 0, .4)
+  n_eqFreqs <- c(.4, 0, .6)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 1. m equal", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 1. m bigger or equal"
+  
+  # Case 1. m equal. u and p smaller
+  info_subcase <- "m stays 0. u and p smaller."
+  o_eqFreqs <- c(.5, .5, 0)
+  n_eqFreqs <- c(.5, .5, 0) - c(1e-10, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "m stays non-0. u and p smaller."
+  o_eqFreqs <- c(.5, .4, .1)
+  n_eqFreqs <- c(.5, .4, .1) - c(1e-10, 1e-10, 0)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 1. m equal. u smaller and p equal: Enters Case 1. p bigger or equal
+  
+  # Case 1. m equal. u equal and p smaller: Enters Case 1. u bigger or equal
+ 
+  # Case 1. m equal. u is 0: Enters Case 1. u bigger or equal
+  
+  # Case 1. m equal. p is 0: Enters Case 1. p bigger or equal
+})
+
+test_that("singleStructureGenerator $get_transMat() test output Case 2. u smaller", {
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  t = TRUE
+  i = "test"
+  
+  # Set expected case
+  exp_case <- "Case 2. u smaller"
+  
+  # Case 2. u smaller. p and m bigger
+  info_subcase <- "p and m bigger"
+  o_eqFreqs <- c(.8, .1, .1)
+  n_eqFreqs <- c(.6, .2, .2)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 2. u smaller. p bigger and m equal: Enters Case 1. p bigger or equal
+  
+  # Case 2. u smaller. p equal and m bigger: Enters Case 1. m bigger or equal
+  
+  # Case 2. u smaller. new u is 0
+  info_subcase <- "new u is 0."
+  o_eqFreqs <- c(.2, .4, .4)
+  n_eqFreqs <- c(0, .5, .5)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 2. u smaller. p is 0
+  info_subcase <- "p is 0."
+  o_eqFreqs <- c(.6, 0, .4)
+  n_eqFreqs <- c(.4, .1, .5)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  # Case 2. u smaller. m is 0
+  info_subcase <- "m is 0."
+  o_eqFreqs <- c(.6, .4, 0)
+  n_eqFreqs <- c(.4, .5, .1)
+  output <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i, t)
+  expect_equal(output$case, exp_case,
+               info = paste(info_subcase, "Method fails to output correct case"))
+  expect_false(any(is.na(output$transMat) | is.nan(output$transMat) | is.infinite(output$transMat)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% output$transMat), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+test_that("singleStructureGenerator $get_transMat() test output for debugged errors", {
+  
+  # Initialize singleStructureGenerator instance
+  obj <- singleStructureGenerator$new("U", 100)
+  
+  # Set values for arguments testing and info
+  i = "test"
+  
+  # Set test cases that led to producing matrices with NaN values
+  info_subcase <- "subcase id 1."
+  o_eqFreqs <- c(0.0000000000, 0.0001296276, 0.9998703724)
+  n_eqFreqs <- c(0.0000000, 0.3757835, 0.6242165)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "subcase id 2."
+  o_eqFreqs <- c(0.0000000000, 0.0009138619, 0.9990861381)
+  n_eqFreqs <- c(0.0000000, 0.4442138, 0.5557862)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "subcase id 3."
+  o_eqFreqs <- c(0.0000000, 0.3582264, 0.6417736)
+  n_eqFreqs <- c(0.0000000000, 0.0002113157, 0.9997886843)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "subcase id 4."
+  o_eqFreqs <- c(0.000000e+00, 1.742531e-09, 1.000000e+00)
+  n_eqFreqs <- c(0.00000e+00, 1.79338e-13, 1.00000e+00)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+  
+  info_subcase <- "subcase id 5."
+  o_eqFreqs <- c(0.00000e+00, 1.20016e-11, 1.00000e+00)
+  n_eqFreqs <- c(0.00000e+00, 6.33789e-10, 1.00000e+00)
+  m <- obj$get_transMat(o_eqFreqs, n_eqFreqs, i)
+  expect_false(any(is.na(m) | is.nan(m) | is.infinite(m)),
+               info = paste(info_subcase, "Method outputs matrix with non-numeric entries"))
+  expect_equal(as.numeric(o_eqFreqs %*% m), n_eqFreqs,
+               info = paste(info_subcase, "Output matrix does not fulfill MC transition property"))
+})
+
+
 test_that("singleStructureGenerator IWE_evol()", {
   ######## singleStructure instance ##
   ### a) with long $seq length
@@ -1717,14 +3529,14 @@ test_that("singleStructureGenerator IWE_evol()", {
       expect_equal(length(test_info[[i]]), 11,
                    info = "IWE output length does not correspond with $eqFreqsChange TRUE in IWE_evol of isolated singleStructure instance a)")
       # Test case matching
-      if (test_info[[i]]$IWE_case == "Case 1. u bigger"){
-        expect_true(test_info[[i]]$new_eqFreqs[1]>test_info[[i]]$old_eqFreqs[1], info = "fails test case matching u bigger in IWE_evol of isolated singleStructure instance a)")
+      if (test_info[[i]]$IWE_case == "Case 1. u bigger or equal"){
+        expect_true(test_info[[i]]$new_eqFreqs[1]>=test_info[[i]]$old_eqFreqs[1], info = "fails test case matching u bigger in IWE_evol of isolated singleStructure instance a)")
       }
-      if (test_info[[i]]$IWE_case == "Case 1. p bigger"){
-        expect_true(test_info[[i]]$new_eqFreqs[2]>test_info[[i]]$old_eqFreqs[2], info = "fails test case matching p bigger in IWE_evol of isolated singleStructure instance a)")
+      if (test_info[[i]]$IWE_case == "Case 1. p bigger or equal"){
+        expect_true(test_info[[i]]$new_eqFreqs[2]>=test_info[[i]]$old_eqFreqs[2], info = "fails test case matching p bigger in IWE_evol of isolated singleStructure instance a)")
       }
-      if (test_info[[i]]$IWE_case == "Case 1. m bigger"){
-        expect_true(test_info[[i]]$new_eqFreqs[3]>test_info[[i]]$old_eqFreqs[3], info = "fails test case matching m bigger in IWE_evol of isolated singleStructure instance a)")
+      if (test_info[[i]]$IWE_case == "Case 1. m bigger or equal"){
+        expect_true(test_info[[i]]$new_eqFreqs[3]>=test_info[[i]]$old_eqFreqs[3], info = "fails test case matching m bigger in IWE_evol of isolated singleStructure instance a)")
       }
       if (test_info[[i]]$IWE_case == "Case 2. u smaller"){
         expect_true(test_info[[i]]$new_eqFreqs[1]<test_info[[i]]$old_eqFreqs[1], info = "fails test case matching u smaller in IWE_evol of isolated singleStructure instance a)")
@@ -1822,7 +3634,7 @@ test_that("singleStructureGenerator IWE_evol()", {
       expect_equal(length(test_info[[i]]), 11,
                    info = "IWE output length does not correspond with $eqFreqsChange TRUE in IWE_evol of isolated singleStructure instance b)")
       # Test case matching
-      if (test_info[[i]]$IWE_case == "Case 1. u bigger"){
+      if (test_info[[i]]$IWE_case == "Case 1. u bigger or equal"){
         expect_true(test_info[[i]]$new_eqFreqs[1]>test_info[[i]]$old_eqFreqs[1], info = "fails test case matching u bigger in IWE_evol of isolated singleStructure instance b)")
       }
       if (test_info[[i]]$IWE_case == "Case 1. p bigger"){
@@ -2216,6 +4028,77 @@ test_that("treeMultiRegionSimulator", {
       expect_equal(length(treeData$Branch[[branch]]$get_singleStr(str)$get_seq()), 100, info ="Incorrect sequence length")
     }
   }
+  
+  # Expect objects with correct combiStructure ID
+  # Initiate an instance to reset shared counter
+  infoStr <- data.frame(n = c(100, 100, 100),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  # Reset shared counter
+  c$reset_sharedCounter()
+  # Expected id when Class is initiated for a given infoStr
+  message <- capture.output(treeData <- treeMultiRegionSimulator$new(infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"), type = "message")
+  expect_equal(treeData$Branch[[1]]$get_id(), 1, 
+               info = "root ID not equal to one after resetting counter")
+  expect_equal(treeData$Branch[[2]]$get_id(), 2,
+               info = "branch 2 ID not equal to 2")
+  expect_equal(treeData$Branch[[3]]$get_id(), 3,
+               info = "branch 3 ID not equal to 3")
+  expect_equal(treeData$Branch[[4]]$get_id(), 4,
+               info = "branch 4 ID not equal to 4")
+  expect_equal(treeData$Branch[[5]]$get_id(), 5,
+               info = "branch 5 ID not equal to 5")
+  expect_equal(treeData$Branch[[6]]$get_id(), 6,
+               info = "branch 6 ID not equal to 6")
+  for (i in 1:3){
+    expect_equal(get_private(treeData$Branch[[1]]$get_singleStr(i))$my_combiStructure$get_id(), 1,
+                 info = paste("root singleStr", i, "does not point to correct my_combiStructure"))
+    expect_equal(get_private(treeData$Branch[[2]]$get_singleStr(i))$my_combiStructure$get_id(), 2,
+                 info = paste("branch 2 singleStr", i, "does not point to correct my_combiStructure"))
+    expect_equal(get_private(treeData$Branch[[3]]$get_singleStr(i))$my_combiStructure$get_id(), 3,
+                 info = paste("branch 3 singleStr", i, "does not point to correct my_combiStructure"))
+    expect_equal(get_private(treeData$Branch[[4]]$get_singleStr(i))$my_combiStructure$get_id(), 4,
+                 info = paste("branch 4 singleStr", i, "does not point to correct my_combiStructure"))
+    expect_equal(get_private(treeData$Branch[[5]]$get_singleStr(i))$my_combiStructure$get_id(), 5,
+                 info = paste("branch 5 singleStr", i, "does not point to correct my_combiStructure"))
+    expect_equal(get_private(treeData$Branch[[6]]$get_singleStr(i))$my_combiStructure$get_id(), 6,
+                 info = paste("branch 6 singleStr", i, "does not point to correct my_combiStructure"))
+  }
+  # Initiate an instance to reset shared counter
+  infoStr <- data.frame(n = c(100, 100, 100),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  # Reset shared counter
+  c$reset_sharedCounter()
+  c <- combiStructureGenerator$new(infoStr)
+  # Expected id when Class is initiated for a given rootData
+  message <- capture.output(treeData <- treeMultiRegionSimulator$new(rootData = c, tree = "(a:1, c:2, (d:3.7, e:4):5);"), type = "message")
+  expect_equal(treeData$Branch[[1]]$get_id(), 2, 
+               info = "root ID not equal to one after resetting counter and initiating with given rootData")
+  expect_equal(treeData$Branch[[2]]$get_id(), 3,
+               info = "branch 2 ID not equal to 3 after initiating with given rootData")
+  expect_equal(treeData$Branch[[3]]$get_id(), 4,
+               info = "branch 3 ID not equal to 4 after initiating with given rootData")
+  expect_equal(treeData$Branch[[4]]$get_id(), 5,
+               info = "branch 4 ID not equal to 5 after initiating with given rootData")
+  expect_equal(treeData$Branch[[5]]$get_id(), 6,
+               info = "branch 5 ID not equal to 6 after initiating with given rootData")
+  expect_equal(treeData$Branch[[6]]$get_id(), 7,
+               info = "branch 6 ID not equal to 7 after initiating with given rootData")
+  for (i in 1:3){
+    expect_equal(get_private(treeData$Branch[[1]]$get_singleStr(i))$my_combiStructure$get_id(), 2,
+                 info = paste("root singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[2]]$get_singleStr(i))$my_combiStructure$get_id(), 3,
+                 info = paste("branch 2 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[3]]$get_singleStr(i))$my_combiStructure$get_id(), 4,
+                 info = paste("branch 3 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[4]]$get_singleStr(i))$my_combiStructure$get_id(), 5,
+                 info = paste("branch 4 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[5]]$get_singleStr(i))$my_combiStructure$get_id(), 6,
+                 info = paste("branch 5 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+    expect_equal(get_private(treeData$Branch[[6]]$get_singleStr(i))$my_combiStructure$get_id(), 7,
+                 info = paste("branch 6 singleStr", i, "does not point to correct my_combiStructure after initiating with given rootData"))
+  }
 })
 
 test_that("customized params", {
@@ -2294,6 +4177,448 @@ test_that("fixed eqFreqs",{
                info = "fails throwing an error when eqFreqs wrong frequencies. Generated from combiStructureGenerator")
   expect_error(capture.output(treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1, c:2, (d:3.7, e:4):5);"), type = "message"),
                info = "fails throwing an error when eqFreqs wrong frequencies. Generated from treeMultiRegionSimulator")
+})
+
+test_that("CFTP: singleStructureGenerator $get_Qi()",{
+  
+  # Initialize singleStructureGenerator instance
+  single_obj <- singleStructureGenerator$new("U",10)
+  
+  # Get list of 3 SSEi rate matrices
+  SSEi_3mat <- single_obj$get_Qi()
+  
+  expect_equal(length(SSEi_3mat), 3,
+               info = "method with null arguments does not return 3 objects")
+  expect_true(is.matrix(SSEi_3mat[[1]]),
+              info = "method with null arguments does not return a list of matrices")
+  expect_true(is.matrix(SSEi_3mat[[2]]),
+              info = "method with null arguments does not return a list of matrices")
+  expect_true(is.matrix(SSEi_3mat[[3]]),
+              info = "method with null arguments does not return a list of matrices")
+  
+  # Get rate for serveral cases
+  SSEi_111 <- single_obj$get_Qi(siteR = 1, oldSt = 1, newSt = 1)
+  SSEi_213 <- single_obj$get_Qi(siteR = 2, oldSt = 1, newSt = 3)
+  SSEi_323 <- single_obj$get_Qi(siteR = 3, oldSt = 2, newSt = 3)
+  
+  expect_equal(SSEi_111, SSEi_3mat[[1]][1,1],
+               info = "method with arguments does not return rate as in matrices")
+  expect_equal(SSEi_213, SSEi_3mat[[2]][1,3],
+               info = "method with arguments does not return rate as in matrices")
+  expect_equal(SSEi_323, SSEi_3mat[[3]][2,3],
+               info = "method with arguments does not return rate as in matrices")
+})
+
+test_that("CFTP: singleStructureGenerator $get_seqSt_leftneighb() and $get_seqSt_rightneighb()",{
+  
+  # Initialize singleStructureGenerator instance
+  single_obj <- singleStructureGenerator$new("U",100)
+  
+  # Expect error when function is called without giving a value for the index 
+  expect_error(single_obj$get_seqSt_leftneighb(),
+               info = "method fails to throw error when no value for 'index' argument is given")
+  expect_error(single_obj$get_seqSt_rightneighb(),
+               info = "method fails to throw error when no value for 'index' argument is given")
+  
+  # Expect error when function is called with a non-valid index value
+  expect_error(single_obj$get_seqSt_leftneighb(index = "U"),
+               info = "method fails to throw error when 'index' argument is not one integer value")
+  expect_error(single_obj$get_seqSt_rightneighb(index = "U"),
+               info = "method fails to throw error when 'index' argument is not one integer value")
+  expect_error(single_obj$get_seqSt_leftneighb(index = c(1,2)),
+               info = "method fails to throw error when 'index' argument is not one integer value")
+  expect_error(single_obj$get_seqSt_rightneighb(index = c(1,2)),
+               info = "method fails to throw error when 'index' argument is not one integer value")
+  expect_error(single_obj$get_seqSt_leftneighb(index = 1.5),
+               info = "method fails to throw error when 'index' argument is not one integer value")
+  expect_error(single_obj$get_seqSt_rightneighb(index = 1.5),
+               info = "method fails to throw error when 'index' argument is not one integer value")
+  
+  # Expect error when function is called with an index value not within sequence length
+  expect_error(single_obj$get_seqSt_leftneighb(index = -1),
+               info = "method fails to throw error when 'index' argument is not within sequence length")
+  expect_error(single_obj$get_seqSt_rightneighb(index = 200),
+               info = "method fails to throw error when 'index' argument is not within sequence length")
+  
+  # Test that the sequence state for each site's left and right neighbor is correct
+  for (s in 2:10){
+    expect_equal(single_obj$get_seqSt_leftneighb(s), single_obj$get_seq()[s-1],
+                 info = "sequence methylation state obtained with get_leftneighbSt is not correct")
+  }
+  for (s in 1:9){
+    expect_equal(single_obj$get_seqSt_rightneighb(s), single_obj$get_seq()[s+1],
+                 info = "neighbSt obtained with get_rightneighbSt is not correct")
+  }
+})
+
+test_that("singleStructureGenerator $cftp_all_equal()",{
+  
+  # Initialize singleStructureGenerator instance
+  single_obj <- singleStructureGenerator$new("U",10)
+  
+  # Expect error when function is called without giving a value for the 'state' argument
+  expect_error(single_obj$cftp_all_equal(),
+               info = "method fails to throw error when no value for 'state' argument is given")
+  
+  # Expect error when value of argument 'state' is not correct
+  expect_error(single_obj$cftp_all_equal(state=1),
+               info = "method fails to throw error when 'state' value is not correct")
+  
+  # Expect NULL output when state is correct but testing is (as default) FALSE
+  expect_null(single_obj$cftp_all_equal(state="U"),
+              info = "whith testing = FALSE method generates output")
+  
+  # Check generated sequence for both possible states
+  expect_equal(single_obj$cftp_all_equal(state = "U", testing = TRUE), rep(1, 10),
+               info = "method fails to assign sequence of 'u' states")
+  expect_equal(single_obj$cftp_all_equal(state = "M", testing = TRUE), rep(3, 10),
+               info = "method fails to assign sequence of 'm' states")
+  
+})
+
+test_that("singleStructureGenerator $set_seqSt_update_neighbSt",{
+  
+  # Initialize singleStructureGenerator instance
+  single_obj <- singleStructureGenerator$new("U",10)
+  
+  # Expect error when either index or newSt arguments are not given
+  expect_error(single_obj$set_seqSt_update_neighbSt(newSt = 2),
+               info = "method fails to throw error when 'index' argument is not given")
+  expect_error(single_obj$set_seqSt_update_neighbSt(index = 2),
+               info = "method fails to throw error when 'newSt' argument is not given")
+  
+  # Expect error when index is not one numerical value or not a value without decimals
+  expect_error(single_obj$set_seqSt_update_neighbSt(index = c(1,10), newSt = 2),
+               info = "method fails to throw error when 'index' argument is not one numerical value")
+  expect_error(single_obj$set_seqSt_update_neighbSt(index = 1.5, newSt = 2),
+               info = "method fails to throw error when 'index' argument has decimals")
+  
+  # Expect error when newSt is not 1, 2 or 3 (for unmethylated, partially-methylated or methylated)
+  expect_error(single_obj$set_seqSt_update_neighbSt(index = 1, newSt = 4),
+               info = "method fails to throw error when 'newSt' is not 1, 2 or 3")
+  
+  # Expect error when index given does not exist within the singleStructure instance length
+  expect_error(single_obj$set_seqSt_update_neighbSt(index = 11, newSt = 2),
+               info = "method fails to throw error when 'index' is not within sequence length")
+  
+  # Expect NULL output when arguments are correct but testing is (as default) FALSE
+  expect_null(single_obj$set_seqSt_update_neighbSt(index = 2, newSt = 2),
+              info = "whith testing = FALSE method generates output")
+  
+  # Test sequence state is correctly changed
+  output <- single_obj$set_seqSt_update_neighbSt(index = 4, newSt = 3, testing = TRUE)
+  expect_equal(output$seq[4], 3,
+               info = "method fails to assign new methylaton state to the given index")
+  
+  # Test neighbSt is correctly updated
+  mapNeighbSt_matrix = matrix(c(1L:9L), byrow = TRUE, nrow = 3)
+  exp3rdsite_neighbSt <- mapNeighbSt_matrix[output$seq[2], output$seq[4]]
+  exp5thsite_neighbSt <- mapNeighbSt_matrix[output$seq[4], output$seq[6]]
+  expect_equal(output$neighbSt[3], exp3rdsite_neighbSt,
+               info = "method fails to update neighbSt to left neighbor")
+  expect_equal(output$neighbSt[5], exp5thsite_neighbSt,
+               info = "method fails to update neighbSt to right neighbor")
+})
+
+test_that("combiStructureGenerator $cftp_event_generator()", {
+  
+  # Initialize combiStructureGenerator instance
+  infoStr <- data.frame(n = c(10, 10, 10),
+                        globalState = c("M", "U", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  
+  # Expect error when steps argument is not given
+  expect_error(combi_obj$cftp_event_generator(),
+               info = "method fails to throw error when 'steps' argument is not given")
+  
+  # Expect error when steps argument is not an non-decimal numerical value of min value 1
+  expect_error(combi_obj$cftp_event_generator(steps = "5"),
+               info = "method fails to throw error when 'steps' argument is non-numeric")
+  expect_error(combi_obj$cftp_event_generator(steps = c(1,5)),
+               info = "method fails to throw error when 'steps' argument is not of length 1")
+  expect_error(combi_obj$cftp_event_generator(steps = 0),
+               info = "method fails to throw error when 'steps' argument is < 1")
+  expect_error(combi_obj$cftp_event_generator(steps = 100.5),
+               info = "method fails to throw error when 'steps' argument has decimal numbers")
+  
+  # Expect NULL output when arguments are correct but testing is (as default) FALSE
+  expect_null(combi_obj$cftp_event_generator(steps = 1000),
+              info = "whith testing = FALSE method generates output")
+  
+  # Test proposed event, singleStr and site, and threshold are generated for each CFTP step
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  
+  # 1: Test length of events after calling the method once and twice
+  example_steps <- 1000
+  output <- combi_obj$cftp_event_generator(steps = example_steps, testing = TRUE)
+  expect_equal(length(output$CFTP_chosen_singleStr), example_steps,
+               info = "length of CFTP_chosen_singleStr not equal to number of steps after first event generation")
+  expect_equal(length(output$CFTP_chosen_site), example_steps,
+               info = "length of CFTP_chosen_site not equal to number of steps after first event generation")
+  expect_equal(length(output$CFTP_event), example_steps,
+               info = "length of CFTP_event not equal to number of steps after first event generation")
+  expect_equal(length(output$CFTP_random), example_steps,
+               info = "length of CFTP_random not equal to number of steps after first event generation")
+  # Expect error if called again with smaller number of steps
+  expect_error(combi_obj$cftp_event_generator(steps = 50),
+               info = "method fails to stop when given steps have already been generated")
+  
+  total_steps <- 2000
+  output <- combi_obj$cftp_event_generator(steps = total_steps, testing = TRUE)
+  expect_equal(length(output$CFTP_chosen_singleStr), total_steps,
+               info = "length of CFTP_chosen_singleStr not equal to number of steps after second event generation")
+  expect_equal(length(output$CFTP_chosen_site), total_steps,
+               info = "length of CFTP_chosen_site not equal to number of steps after second event generation")
+  expect_equal(length(output$CFTP_event), total_steps,
+               info = "length of CFTP_event not equal to number of steps after first second generation")
+  expect_equal(length(output$CFTP_random), total_steps,
+               info = "length of CFTP_random not equal to number of steps after first second generation")
+  
+  # 2: Test content of events as expected
+  expect_true(all(output$CFTP_chosen_singleStr %in% c(1,2,3)),
+              info = "CFTP_chosen_singleStr contains singleStr index not in combiStr")
+  expect_true(all(output$CFTP_chosen_site %in% 1:10),
+              info = "CFTP_chosen_site contains site indexes not in combiStr")
+  expect_true(all(output$CFTP_event %in% 1:5),
+              info = "CFTP_event contains events not in 1:5")
+  expect_true(all(output$CFTP_random >= 0 & output$CFTP_random <= 1),
+              info = "CFTP_random contains threshold not between 0 and 1")
+  
+  #3: Test case with one singleStr
+  infoStr <- data.frame(n = c(10),
+                        globalState = c("M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  example_steps <- 100
+  output <- combi_obj$cftp_event_generator(steps = example_steps, testing = TRUE)
+  
+  expect_true(all(output$CFTP_chosen_singleStr == 1),
+              info = "CFTP_chosen_singleStr contains singleStr index not in combiStr")
+  expect_true(all(output$CFTP_chosen_site %in% 1:10),
+              info = "CFTP_chosen_site contains site indexes not in combiStr")
+  
+  
+  #3: Test case with one singleStr with one position
+  infoStr <- data.frame(n = c(1),
+                        globalState = c("M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  example_steps <- 100
+  output <- combi_obj$cftp_event_generator(steps = example_steps, testing = TRUE)
+  
+  expect_true(all(output$CFTP_chosen_singleStr == 1),
+              info = "CFTP_chosen_singleStr contains singleStr index not in combiStr")
+  expect_true(all(output$CFTP_chosen_site ==1),
+              info = "CFTP_chosen_site contains site indexes not in combiStr")
+  
+  
+  
+})
+
+test_that("combiStructureGenerator $cftp_apply_events()", {
+  
+  # Initialize combiStructureGenerator instance
+  infoStr <- data.frame(n = c(10, 10, 10),
+                        globalState = c("M", "U", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  
+  # Expect error when calling method before using $cftp_event_generator() to generate events
+  expect_error(combi_obj$cftp_apply_events(),
+               info = "method fails to throw error when called before generating CFTP events")
+  
+  # Test output
+  
+  # Set correspondence of event number and applied case
+  encoding_case <- data.frame(n = 1:5,
+                              case = c("SSEi_1", "SSEi_2", "SSEi_3", "SSEc_left", "SSEc_right"))
+  
+  combi_obj$cftp_event_generator(steps = 100)
+  output <- combi_obj$cftp_apply_events(testing = TRUE)
+  
+  accepted_indeces <- which(output$event_acceptance == TRUE)
+  if (length(accepted_indeces) > 0){
+    expect_true(all(output$r_jk[accepted_indeces]/output$r_m > output$CFTP_random[accepted_indeces]),
+                info = "Not all accepted events fulfill relative rate higher than sampled threshold")
+    expect_false(any(is.na(output$CFTP_event[accepted_indeces])),
+                 info = "Not all cases of accepted events return non-NA value in testing output applied_event")
+    for(e in 1:length(accepted_indeces)){
+      expect_equal(encoding_case[output$CFTP_event[accepted_indeces][e], "case"], output$applied_event[accepted_indeces][e],
+                   info = "Error in correspondence between CFTP_event encoding and applied event")
+    }
+    
+  }
+  non_accepted_indeces <- which(output$event_acceptance == FALSE)
+  if (length(non_accepted_indeces) > 0){
+    expect_true(all(output$CFTP_event[non_accepted_indeces][is.na(output$r_jk[non_accepted_indeces])] %in% c(1, 2, 3)),
+                info = "Not all cases in which a rate was not sampled because of SSEi newSt and oldSt being equal correspond to SSEi events")
+    expect_true(all(output$r_jk[non_accepted_indeces][!is.na(output$r_jk[non_accepted_indeces])]/output$r_m <= output$CFTP_random[non_accepted_indeces][!is.na(output$r_jk[non_accepted_indeces])]),
+                info = "Not all non_accepted_events with rate fulfill relative rate smaller or equal than sampled threshold")
+    expect_true(all(is.na(output$applied_event[non_accepted_indeces])),
+                info = "Not all cases of non-accepted events return NA in testing output applied_event")
+    
+  }
+  
+  # Expect NULL output when arguments are correct but testing is (as default) FALSE
+  expect_null(combi_obj$cftp_apply_events(),
+              info = "whith testing = FALSE method generates output")
+})
+
+test_that("combiStructureGenerator $cftp", {
+  
+  # Initialize combiStructureGenerator instance
+  infoStr <- data.frame(n = c(10, 10, 10),
+                        globalState = c("M", "U", "M"))
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  
+  # Test total CFTP step number is minimum the given number
+  test_steps <- 100
+  output<- combi_obj$cftp(steps = test_steps, testing = TRUE)
+  expect_true(output$total_steps >= test_steps,
+              info = "method testing output total_steps is smaller than given one")
+  
+  # Extract sequences of combi instances to test they are equal
+  m_seq <- c(output$combi_m$get_singleStr(1)$get_seq(), output$combi_m$get_singleStr(2)$get_seq(), output$combi_m$get_singleStr(3)$get_seq())
+  u_seq <- c(output$combi_u$get_singleStr(1)$get_seq(), output$combi_u$get_singleStr(2)$get_seq(), output$combi_u$get_singleStr(3)$get_seq())
+  expect_true(all(m_seq == u_seq),
+              info = "method testing output with different $seq in combi_u and combi_m")
+  
+  # Expect object of class combiStructureGenerator when testing is (as default) FALSE
+  combi_obj <- combiStructureGenerator$new(infoStr)
+  output<- combi_obj$cftp(steps = test_steps)
+  expect_equal(class(output)[1], "combiStructureGenerator",
+               info = "method fails to return combiStructureGenerator class when testing is FALSE")
+  
+  # Expect objects with correct combiStructure ID
+  # Initiate an instance with a reset shared counter
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  # Reset shared counter
+  c$reset_sharedCounter()
+  c <- combiStructureGenerator$new(infoStr)
+  output <- c$cftp(testing = TRUE)
+  expect_equal(output$self$get_id(), 1, 
+               info = "self ID not equal to one after resetting counter")
+  expect_equal(output$combi_u$get_id(), output$counter*2,
+                 info = "combi_u ID not equal to 2* the counter of cftp cycles before convergence")
+  expect_equal(output$combi_m$get_id(), output$counter*2+1,
+               info = "combi_m ID not equal to (2*the counter of cftp cycles before convergence) + 1")
+  
+  for (i in 1:3){
+    expect_equal(get_private(output$self$get_singleStr(i))$my_combiStructure$get_id(), 1,
+                 info = paste("self singleStr", i, "does not point to correct my_combiStructure according to self ID"))
+    expect_equal(get_private(output$combi_u$get_singleStr(i))$my_combiStructure$get_id(), output$counter*2,
+                 info = paste("combi_u singleStr", i, "does not pont to correct my_combiStructure according to combi_u ID"))
+    expect_equal(get_private(output$combi_m$get_singleStr(i))$my_combiStructure$get_id(), output$counter*2+1,
+                 info = paste("combi_m singleStr", i, "does not ponint to correct my_combiStructure according to combi_m ID"))
+  }
+  
+  # Expect number of cftp steps corresponding to default_steps*2^(counter-1)
+  default_steps <- 10000
+  calculate_total_steps <- function(counter) {
+    10000 * 2^(counter - 1)
+  }
+  expect_equal(output$total_steps, calculate_total_steps(output$counter),
+               info = "incorrect number of steps generated for given number of cftp cycles before convergence")
+  
+
+  # Test case with several singleStr with different lengths
+  infoStr <- data.frame(n = c(10, 35, 1),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  output <- c$cftp(testing = TRUE)
+  
+  expect_true(all(sort(unique(output$CFTP_chosen_site))==1:35),
+              info = "not all possible sites are chosen when singleStructures have different lengths")
+  
+})
+
+test_that("treeMultiRegionSimulator initialize with cftp", {
+  # Initiate a combiStructure instance to reset shared counter
+  infoStr <- data.frame(n = c(13, 13, 13),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  # Reset shared counter
+  c$reset_sharedCounter()
+  
+  # Initialize treeMultiRegionSimulator instance
+  infoStr <- data.frame(n = c(20, 10, 20),
+                        globalState = c("M", "U", "M"))
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);", CFTP = TRUE, testing = TRUE), type = "message")
+  
+  # Extract sequence info
+  root_before_cftp_seq <- c()
+  root_after_cftp_seq <- c()
+  combiU_seq <- c()
+  for (i in 1:3){
+    root_before_cftp_seq <- c(root_before_cftp_seq, t$testing_output$self_before_cftp$get_singleStr(i)$get_seq())
+    combiU_seq <- c(combiU_seq, t$testing_output$cftp_output$combi_u$get_singleStr(i)$get_seq())
+    root_after_cftp_seq <- c(root_after_cftp_seq, t$Branch[[1]]$get_singleStr(i)$get_seq())
+  }
+  
+  # Expect sequence changing after cftp and root sequence to be as in cftp output
+  # Not always
+  #expect_false(all(root_after_cftp_seq == root_before_cftp_seq),
+  #             info = "$seq doesnt change after cftp")
+  expect_true(all(combiU_seq == root_after_cftp_seq),
+              info = "Root $seq doesnt correspond to $seq after cftp")
+  
+  # Expect old ID in root data to be different to new ID in root data
+  expect_false(t$testing_output$self_before_cftp$get_id() == t$Branch[[1]]$get_id(),
+               info = "root ID after CFTP fails to change")
+  
+  # Expect new ID in root data to correspond to cftp's combi_u id
+  expect_equal(t$testing_output$cftp_output$combi_u$get_id(), t$Branch[[1]]$get_id(),
+               info = "$cftp combi_u ID is different from root ID")
+  for (i in 1:3){
+    expect_equal(get_private(t$Branch[[1]]$get_singleStr(i))$my_combiStructure$get_id(), t$Branch[[1]]$get_id(),
+                 info = paste("root singleStr", i, "does not point to correct my_combiStructure according to root ID"))
+  }
+  
+  # Test ID change consistent with testing = FALSE
+  c$reset_sharedCounter()
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);", CFTP = TRUE), type = "message")
+  
+  expect_true(t$Branch[[1]]$get_id() > 1,
+              info = "id with testing = FALSE remains consistent to testing = TRUE")
+  
+  # Test ID doesnt change with CFTP = FALSE
+  c$reset_sharedCounter()
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);"), type = "message")
+  
+  expect_equal(t$Branch[[1]]$get_id(), 1,
+               info = "id with CFTP = FALSE remains 1")
+  
+  # Expect informative message when CFTP = TRUE and no message about CFTP when is, as default, FALSE
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);", CFTP = TRUE), type = "message")
+  
+  expect_true(message[2] == "Calling CFTP algorithm for data at root before letting it evolve along given tree.",
+              info = "Class fails to inform when CFTP is set to TRUE")
+  
+  message <- capture.output(t <- treeMultiRegionSimulator$new(infoStr = infoStr, tree = "(a:1);"), type = "message")
+  
+  expect_true(is.na(message[2]),
+              info = "Class contains informative message when CFTP is set to FALSE")
+})
+
+test_that("treeMultiRegionSimulator errors in input", {
+  infoStr <- data.frame(n = c(20, 10, 20),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  expect_error(treeMultiRegionSimulator$new(rootData = c, infoStr = infoStr, tree = "(a:1);"),
+               info = "Class fails to throw error when both rootData and infoStr are given")
+  params <- get_parameterValues()
+  expect_error(treeMultiRegionSimulator$new(rootData = c, params = params, tree = "(a:1);"),
+               info = "Class fails to throw error when both rootData and params are given")
+  expect_error(treeMultiRegionSimulator$new(params = as.matrix(params), infoStr = infoStr, tree = "(a:1);"),
+               info = "Class fails to throw error when params is not dataframe")
+  expect_error(treeMultiRegionSimulator$new(params = params[,1:3], infoStr = infoStr, tree = "(a:1);"),
+               info = "Class fails to throw error when params is incomplete.")
+  expect_error(treeMultiRegionSimulator$new(tree = "(a:1);"),
+               info = "Class fails to throw error when none of both 'infoStr' and 'rootData' are NULL")
+  expect_error(treeMultiRegionSimulator$new(rootData = c),
+               info = "Class does not throw error when 'tree' is missing")
+  expect_error(treeMultiRegionSimulator$new(infoStr = infoStr),
+               info = "Class does not throw error when 'tree' is missing")
+
 })
 
 
