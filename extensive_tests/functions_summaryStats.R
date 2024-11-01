@@ -53,9 +53,9 @@ get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n){
   return(mean(mean_nonisland))
 }
 
-##### Standard deviation of the mean frequency of partially methylated sites in islands
+##### Mean standard deviation of the frequency of partially methylated sites in islands
 ## index_islands: vector with structural indeces for islands
-## data: list with methylation states at tree tips for each structure 
+## data: list with methylation states at tree tips for each structure (island / non-island)
 ## data[[tip]][[structure]] when the number of tips is >1, 
 ## or data[[structure]] when there is only one tip. Methylation states are vectors
 ## sample_n: number of given tips/samples
@@ -80,9 +80,9 @@ get_islandSDFreqP <- function(index_islands, data, sample_n){
   return(mean(sd_tip))
 }
 
-##### Standard deviation frequency of partially methylated sites in non-islands
+##### Mean standard deviation of the frequency of partially methylated sites in non-islands
 ## index_nonislands: vector with structural indeces for non-islands
-## data: list with methylation states at tree tips for each structure 
+## data: list with methylation states at tree tips for each structure (island / non-island)
 ## data[[tip]][[structure]] when the number of tips is >1, 
 ## or data[[structure]] when there is only one tip. Methylation states are vectors
 ## sample_n: number of given tips/samples
