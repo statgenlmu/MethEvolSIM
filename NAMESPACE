@@ -2,9 +2,11 @@
 
 export(get_islandMeanFreqM)
 export(get_islandMeanFreqP)
+export(get_islandSDFreqM)
 export(get_islandSDFreqP)
 export(get_nonislandMeanFreqM)
 export(get_nonislandMeanFreqP)
+export(get_nonislandSDFreqM)
 export(get_nonislandSDFreqP)
 export(get_parameterValues)
 export(simulate_evolData)

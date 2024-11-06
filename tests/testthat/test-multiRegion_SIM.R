@@ -26,7 +26,6 @@ test_that("singleStructureGenerator initialization",{
     expect_equal(get_private(combi_obj$get_singleStr(i))$combiStructure_index, i,
                  info ="single Str unit initialization by combiStructureGenerator assigns incorrect combiStructure_index")
   }
-
 })
 
 test_that("combiStructureGenerator initialization", {

@@ -661,7 +661,7 @@ singleStructureGenerator <-
                   private$set_Qc()
                   private$set_Q()
                   #undebug(self$init_neighbSt)
-                  #undebug(private$update_neighbSt)
+                  debug(self$SSE_evol)
                   if(is.null(private$my_combiStructure)){
                     self$init_neighbSt()
                     #debug(self$initialize_ratetree)
@@ -820,8 +820,49 @@ singleStructureGenerator <-
                                 old_St <- private$seq[i]
                             }
                             
+                            # Define a global variable to store error information
+                            error_info_global <- NULL
+                            
+                            # Try-catch block with error handling
+                            error_info <- tryCatch({
+                              # Attempt to run sample()
+                              private$seq[i] <<- sample(1:3, size = 1, prob = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0))
+                              NULL # If no error, return NULL
+                            }, error = function(e) {
+                              debug(self$SSE_evol)
+                              self$SSE_evol(dt = dt)
+                              # Capture error information in a list
+                              singleStrcloned <- self$clone()
+                              list(
+                                message = conditionMessage(e),
+                                singleStrcloned = singleStrcloned,
+                                combiStrcloned = private$my_combiStructure,
+                                singleStr_n = private$combiStructure_index,
+                                i = i,
+                                seq_i = private$seq[i],
+                                siteR_i = private$siteR[i],
+                                neighbSt_i = private$neighbSt[i],
+                                prob = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0),
+                                M = M,
+                                dt = dt
+                              )
+                            })
+                            
+                            # If error_info is not NULL, it means an error occurred
+                            if (!is.null(error_info)) {
+                              print("Error occurred:")
+                              print(error_info$message)
+                              
+                              # Save the error information to a global variable
+                              error_info_global <<- error_info
+                              
+                              # Stop execution
+                              stop("Execution stopped due to an error (SSE).")
+                            }
+                            
+                            ## TODO: uncomment when debugging is finished
                             # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
-                            private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
+                            #private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
                             
                             if (testing){
                                 new_St <- private$seq[i]
