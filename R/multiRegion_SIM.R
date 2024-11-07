@@ -810,7 +810,10 @@ singleStructureGenerator <-
                         )
                     }
                     ## get a number of changes to happen in the next time interval of the short length dt
+                    print(paste("id combi:", private$my_combiStructure$get_id()))
+                    print(private$ratetree)
                     M <- private$choose_number_of_changes(dt)
+                    print(paste("M:", M))
                     if (M>0){
                         for(m in 1:M) {
                             i <- private$choose_random_seqpos()
@@ -844,7 +847,8 @@ singleStructureGenerator <-
                                 neighbSt_i = private$neighbSt[i],
                                 prob = sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i], ], max, 0),
                                 M = M,
-                                dt = dt
+                                dt = dt,
+                                ratetree = private$ratetree
                               )
                             })
                             
