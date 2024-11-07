@@ -85,7 +85,7 @@ if (!is.null(opt[["update-file"]])){
   meanFreqM_ni <- rep(NA, n_sim)
   sdFreqM_i <- rep(NA, n_sim)
   sdFreqM_ni <- rep(NA, n_sim)
-  meanFracMoverMU_i <- rep(NA, n_sim)
+  meanFracMoverMU_i <- rep(NA, n_sim) ## TODO: next 4 are pending checking impact on ABC
   meanFracMoverMU_ni <- rep(NA, n_sim)
   sdFracMoverMU_i <- rep(NA, n_sim)
   sdFracMoverMU_ni <- rep(NA, n_sim)

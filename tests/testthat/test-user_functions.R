@@ -9,7 +9,8 @@ test_that("get_parameterValues()",{
                         globalState= c("M", "U", "M"))
   output <- get_parameterValues()
   output$alpha_pI <- 0.5
-  wrongRootData <- simulate_initialData(infoStr = infoStr, params = output)
+  # Set root data to be the list output of simulate_initialData
+  m <- capture.output(wrongRootData <- simulate_initialData(infoStr = infoStr, params = output), type = "message")
   expect_error(get_parameterValues(rootData = wrongRootData), info = "fails to throw error when argument is not combiStructureInstance")
   # Test return default parameter values
   output <- get_parameterValues()
@@ -18,7 +19,7 @@ test_that("get_parameterValues()",{
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
   output$alpha_pI <- 0.5
-  rootData <- simulate_initialData(infoStr = infoStr, params = output)$data
+  m <- capture.output(rootData <- simulate_initialData(infoStr = infoStr, params = output)$data, type = "message")
   output <- get_parameterValues(rootData = rootData)
   expect_equal(output$alpha_pI, 0.5, info ="fails to return rootData parameters when given")
 })
@@ -143,7 +144,7 @@ test_that("simulate_evolData input control",{
   params <- get_parameterValues()
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
-  rootData <- simulate_initialData(infoStr = infoStr)$data
+  m <- capture.output(rootData <- simulate_initialData(infoStr = infoStr)$data, type = "message")
   expect_error(simulate_evolData(rootData = rootData, tree = tree, params = params), info = "fails to throw error when rootData is given and params not NULL")
 
 })
@@ -163,7 +164,7 @@ test_that("simulate_evolData output",{
   expect_equal(output$tree, tree, info ="returns different tree from given one (a1)")
 
   ## a.2) For input without customized eqFreqs or params: input rootData
-  rootData <- simulate_initialData(infoStr = infoStr)$data
+  m <- capture.output(rootData <- simulate_initialData(infoStr = infoStr)$data, type = "message")
   silence <- capture.output(output <- simulate_evolData(rootData = rootData, tree = tree), type = "message")
   expect_equal(class(output$data), "list", info ="does not generate correct output$data list (a2)")
   print <- sub("\\[\\d+\\] \"(.+):.*\"$", "\\1", silence[1])
@@ -207,7 +208,7 @@ test_that("simulate_evolData output",{
   custom_params$alpha_mNI <- 0.5
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
-  rootData <- simulate_initialData(infoStr = infoStr, params = custom_params)$data
+  m <- capture.output(rootData <- simulate_initialData(infoStr = infoStr, params = custom_params)$data, type = "message")
   silence <- capture.output(output <- simulate_evolData(rootData = rootData, tree = tree), type = "message")
   expect_equal(class(output$data), "list", info ="does not generate correct output$data list (d)")
   print <- sub("\\[\\d+\\] \"(.*)\"", "\\1", silence[1])
