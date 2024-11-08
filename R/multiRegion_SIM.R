@@ -813,7 +813,7 @@ singleStructureGenerator <-
                     M <- private$choose_number_of_changes(dt)
                     if (M>0){
                         for(m in 1:M) {
-                          if(private$ratetree[[1]][1] != 0){ # control for the case in which previous
+                          if(private$ratetree[[1]][1] >= 1e-8){ # control for the case in which previous
                             # events m in 1:M have lead the singleStr to update rates of change so that
                             # they are 0
                             
