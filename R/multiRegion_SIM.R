@@ -661,7 +661,7 @@ singleStructureGenerator <-
                   private$set_Qc()
                   private$set_Q()
                   #undebug(self$init_neighbSt)
-                  #undebug(private$update_neighbSt)
+                  debug(self$SSE_evol)
                   if(is.null(private$my_combiStructure)){
                     self$init_neighbSt()
                     #debug(self$initialize_ratetree)
@@ -797,7 +797,7 @@ singleStructureGenerator <-
                 #' @param dt time step length.
                 #' @param testing logical value for testing purposes. Default FALSE.
                 #'
-                #' @return default NULL. If testing TRUE it returns a list with the number of events sampled and a
+                #' @return default NULL. If testing TRUE it returns a list with the debugNov3.outnumber of events sampled and a
                 #' dataframe with the position(s) affected, new state and old methylation state.
                 #'
                 SSE_evol = function(dt, testing = FALSE) {
@@ -813,25 +813,29 @@ singleStructureGenerator <-
                     M <- private$choose_number_of_changes(dt)
                     if (M>0){
                         for(m in 1:M) {
+                          if(private$ratetree[[1]][1] >= 1e-8){ # control for the case in which previous
+                            # events m in 1:M have lead the singleStr to update rates of change so that
+                            # they are 0
+                            
                             i <- private$choose_random_seqpos()
                             if (testing){
-                                event_number <- M
-                                position <- i
-                                old_St <- private$seq[i]
+                              event_number <- M
+                              position <- i
+                              old_St <- private$seq[i]
                             }
                             
                             # assign new sequence position state with probability given by the relative rates of changing to each of the 2 other states
                             private$seq[i] <<- sample(1:3, size=1, prob=sapply(Q[[private$siteR[i]]][[private$neighbSt[i]]][private$seq[i],], max, 0))
                             
                             if (testing){
-                                new_St <- private$seq[i]
-                                SSE_evolInfo <- rbind(SSE_evolInfo, data.frame(position, old_St, new_St))
+                              new_St <- private$seq[i]
+                              SSE_evolInfo <- rbind(SSE_evolInfo, data.frame(position, old_St, new_St))
                             }
                             
                             # update neighbSt and ratetree (both methods update at neighbouring singleStructure instances if i is 1st or last position)
                             private$update_neighbSt(i)
                             private$update_ratetree_allCases(index = i)
-                            
+                          }
                         }
                     }
                     if (testing){
