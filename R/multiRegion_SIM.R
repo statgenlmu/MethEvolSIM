@@ -661,7 +661,7 @@ singleStructureGenerator <-
                   private$set_Qc()
                   private$set_Q()
                   #undebug(self$init_neighbSt)
-                  debug(self$SSE_evol)
+                  #debug(self$SSE_evol)
                   if(is.null(private$my_combiStructure)){
                     self$init_neighbSt()
                     #debug(self$initialize_ratetree)
@@ -931,19 +931,19 @@ singleStructureGenerator <-
                       transMat[2,] <- c(0,0,1)
                     }
                     
-                  } else if (new_eqFreqs[1] < u & new_eqFreqs[2] >= p & new_eqFreqs[3] >= m) { # Check Case 2: 1 new frequency value smaller
+                  } else if (new_eqFreqs[1] <= u & new_eqFreqs[2] >= p & new_eqFreqs[3] >= m) { # Check Case 2: 1 new frequency value smaller
                     case <- "Case 2. u smaller"
                     transMat <- matrix(c(new_eqFreqs[1]/u, (new_eqFreqs[2]-p)/u, (new_eqFreqs[3]-m)/u,
                                          0, 1, 0,
                                          0, 0, 1),
                                        nrow = 3, byrow = TRUE)
-                  } else if (new_eqFreqs[2] < p & new_eqFreqs[1] >= u & new_eqFreqs[3] >= m) {
+                  } else if (new_eqFreqs[2] <= p & new_eqFreqs[1] >= u & new_eqFreqs[3] >= m) {
                     case <- "Case 2. p smaller"
                     transMat <- matrix(c(1, 0, 0,
                                          (new_eqFreqs[1]-u)/p, new_eqFreqs[2]/p, (new_eqFreqs[3]-m)/p,
                                          0, 0, 1),
                                        nrow = 3, byrow = TRUE)
-                  } else if (new_eqFreqs[3] < m & new_eqFreqs[2] >= p & new_eqFreqs[1] >= u) {
+                  } else if (new_eqFreqs[3] <= m & new_eqFreqs[2] >= p & new_eqFreqs[1] >= u) {
                     case <- "Case 2. m smaller"
                     transMat <- matrix(c(1, 0, 0,
                                          0, 1, 0,
