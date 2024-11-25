@@ -1,0 +1,192 @@
+---
+title: "Summary Statistics"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Introduction to MethEvolSIM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, echo=FALSE}
+## TODO: Update 
+library(devtools)
+load_all()
+```
+
+
+Interpretation of arguments: 
+
+ - tip can be interpreted as sample or replicate
+ 
+ - structure can be interpreted as island or non-island
+
+## Frequency of methylation states per genomic structure type
+
+### Global Mean
+
+- **Partially-methylated sites**: Let $x_{i,t}$ and $y_{j,t}$ be the frequency of methylation state $p$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$ at tip $t$, respectively. We define the mean global frequency of $x$ and $y$ as:
+
+\[
+\overline{x}=\frac1I\sum_{i=1}^{I}\frac1T\sum_{t=1}^{T}x_{i,t} \\
+\overline{y}=\frac1J\sum_{j=1}^{J}\frac1T\sum_{t=1}^{T}y_{j,t}
+\]
+
+, where $x_{i,t}$ is the frequency of state $p$ in island $i$ and tip $t$ and $y_{j,t}$ is the frequency of state $p$ in non-island $j$ and tip $t$. 
+
+- **Methylated sites**: Let $w_{i,t}$ and $z_{j,t}$ be the frequency of methylation state $m$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$ at tip $t$, respectively. We define the mean global frequency of $w$ and $z$ as:
+
+\[
+\overline{w}=\frac1I\sum_{i=1}^{I}\frac1T\sum_{t=1}^{T}w_{i,t} \\
+\overline{z}=\frac1J\sum_{j=1}^{J}\frac1T\sum_{t=1}^{T}z_{j,t}
+\]
+
+, where $w_{i,t}$ is the frequency of state $p$ in island $i$ and tip $t$ and $z_{j,t}$ is the frequency of state $m$ in non-island $j$ and tip $t$. 
+
+
+These values can be computed with the functions `get_islandMeanFreqP`, `get_nonislandMeanFreqP`,`get_islandMeanFreqM` and `get_nonislandMeanFreqM` as in the following examples:
+
+```{r}
+# 1 tip / sample / replicate
+sample_n <- 1
+index_islands <- c(1, 3)
+index_nonislands <- c(2, 4)
+data <- list(c(.5, .5, 0, 0, 0, .5), c(.5, 0, 0, .5), c(.5, .5, 0), c(0, 0, .5)) # tip 1
+get_islandMeanFreqP(index_islands, data, sample_n)
+get_nonislandMeanFreqP(index_nonislands, data, sample_n)
+get_islandMeanFreqM(index_islands, data, sample_n)
+get_nonislandMeanFreqM(index_nonislands, data, sample_n)
+```
+
+```{r}
+# 2 tip / sample / replicate
+sample_n <- 2
+index_islands <- c(1, 3)
+index_nonislands <- c(2, 4)
+data <- list(
+  list(c(.5, .5, 0, 0, 0, .5), c(.5, 0, 0, .5), c(.5, .5, 0), c(0, 0, .5)), # tip 1
+  list(c(0, .5, .5, 1, 1, .5), c(1, .5, 1, .5), c(0, .5, .5), c(1, .5, 1)) # tip 2
+  )
+get_islandMeanFreqP(index_islands, data, sample_n)
+get_nonislandMeanFreqP(index_nonislands, data, sample_n)
+get_islandMeanFreqM(index_islands, data, sample_n)
+get_nonislandMeanFreqM(index_nonislands, data, sample_n)
+```
+
+### Mean SD of observed frequencies per structure type at tree tips
+
+- **Partially-methylated sites**: Let $x_{i,t}$ and $y_{j,t}$ be the frequency of methylation state $p$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$, respectively. We define the standard deviation of the frequency of $x$ and $y$ at tip $t$ as:
+
+\[
+\sigma_{t}(x)=\sqrt{\frac{1}{I-1}\sum_{i=1}^{I}(x_{i,t}-\overline{x_{.,t}})^2} \\
+\sigma_{t}(y)=\sqrt{\frac{1}{J-1}\sum_{j=1}^{J}(y_{i,t}-\overline{y_{.,t}})^2}
+\]
+
+
+, where $\overline{x_{.,t}}$ is the mean frequency of state $p$ at tip $t$ in islands and $\overline{y_{.,t}}$ is the mean frequency of state $p$ at tip $t$ in non-islands:
+
+\[
+\overline{x_{.,t}}=\frac{1}{I}\sum_{i=1}^{I}x_{i,t} \\
+\overline{y_{.,t}}=\frac{1}{J}\sum_{j=1}^{J}x_{j,t}
+\] 
+
+Therefore, the mean standard deviation across tips is:
+
+\[
+\hat{\sigma}(x)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(x) \\
+\hat{\sigma}(y)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(y) \\
+\]
+
+
+- **Methylated sites**: Let $w_{i,t}$ and $z_{j,t}$ be the frequency of methylation state $m$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$, respectively. We define the standard deviation of the frequency of $w$ and $z$ at tip $t$ as:
+
+\[
+\sigma_{t}(w)=\sqrt{\frac{1}{I-1}\sum_{i=1}^{I}(x_{i,t}-\overline{x_{.,t}})^2} \\
+\sigma_{t}(z)=\sqrt{\frac{1}{J-1}\sum_{j=1}^{J}(y_{i,t}-\overline{y_{.,t}})^2}
+\]
+
+
+, where $\overline{x_{.,t}}$ is the mean frequency of state $m$ at tip $t$ in islands and $\overline{z_{.,t}}$ is the mean frequency of state $m$ at tip $t$ in non-islands:
+
+\[
+\overline{w_{.,t}}=\frac{1}{I}\sum_{i=1}^{I}w_{i,t} \\
+\overline{z_{.,t}}=\frac{1}{J}\sum_{j=1}^{J}z_{j,t}
+\] 
+
+Therefore, the mean standard deviation across tips is:
+
+\[
+\hat{\sigma}(w)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(w) \\
+\hat{\sigma}(z)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(z) \\
+\]
+
+
+```{r}
+# 1 tip / sample / replicate
+sample_n <- 1
+index_islands <- c(1, 3)
+index_nonislands <- c(2, 4)
+data <- list(c(.5, .5, 0, 1, 1, .5), c(.5, 0, 1, .5), c(.5, .5, 0), c(0, 0, .5)) # tip 1
+get_islandSDFreqP(index_islands, data, sample_n)
+get_nonislandSDFreqP(index_nonislands, data, sample_n)
+get_islandSDFreqM(index_islands, data, sample_n)
+get_nonislandSDFreqM(index_nonislands, data, sample_n)
+```
+
+```{r}
+# 2 tip / sample / replicate
+sample_n <- 2
+index_islands <- c(1, 3)
+index_nonislands <- c(2, 4)
+data <- list(
+  list(c(.5, .5, 0, 0, 0, 1), c(.5, 0, 0, .5), c(1, .5, 0), c(0, 0, .5)), # tip 1
+  list(c(0, .5, .5, 1, 1, .5), c(1, .5, 1, .5), c(0, .5, .5), c(1, .5, 1)) # tip 2
+  )
+get_islandSDFreqP(index_islands, data, sample_n)
+get_nonislandSDFreqP(index_nonislands, data, sample_n)
+get_islandSDFreqM(index_islands, data, sample_n)
+get_nonislandSDFreqM(index_nonislands, data, sample_n)
+```
+
+Note that we average across tips as there can be correlations between the mean sd of tips (e.g. under the case of an event affecting the states at two tips).
+
+# Mean correlation of a segment of methylation states per genomic structure type
+
+Let $s$ be the length of the 2 adjacent segments of central positions to consider.
+Let $l$ represent a number of positions to exclude at the start and end of each island/non-island structure.
+Define the index positions $p=l+1$ and $p' = s-l$.
+Let $x_{i,t,[p,p'-1]}$ and $x_{i,t,[p+1,p']}$ be the methylation states $x \in \{u, p, m\}$ in island $i \in \{1, \cdots ,I\}$ at tip $t$ for the given segments. 
+Let $y_{j,t,[p,p'-1]}$ and $y_{j,t,[p+1,p']}$ be the methylation states $y \in \{u, p, m\}$ in non-island $j \in \{1, \cdots ,J\}$ at tip $t$ for the given segments. 
+
+We define the mean correlation as:
+
+\[
+\overline{Cor(x)_{s,l}}=\frac1I\frac1T\sum_{i=1}^{I}\sum_{t=1}^{T}Cor(x_{i,t,[p:p'-1]}, x_{i,t,[p+1:p']}) \\
+\overline{Cor(y)_{s,l}}=\frac1J\frac1T\sum_{j=1}^{J}\sum_{t=1}^{T}Cor(y_{j,t,[p:p'-1]}, y_{j,t,[p+1:p']})
+\]
+
+where correlations are computed only for segment pairs where the standard deviation of each segment is non-zero:
+
+\[
+\sigma(x_{i,t,[p:p'-1]}) \neq 0 \text{ and } \sigma(x_{i,t,[p+1:p']})\neq 0 \\
+\sigma(y_{j,t,[p:p'-1]}) \neq 0 \text{ and } \sigma(y_{j,t,[p+1:p']})\neq 0
+\]
+
+In this formulation:
+
+- Only structures with a minimum length of $n = s + 2 \cdot l$ are considered.
+
+- If $l = 0$, all the positions are considered.
+
+
+
+
+*Correlation measures how much the state of each site says about the next. So, when there is no variation (e.g. in middle segment state u of a site is followed by state u of the next), there is no correlation. Therefore, avoiding the shores leads to lower correlation values. Maybe we could test with/out borders.*

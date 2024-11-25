@@ -1,0 +1,115 @@
+# Import os for path manipulations
+import os
+
+# Define custom paths for config and scripts
+config_path = os.path.join(os.getcwd(), "config.yaml")
+scripts_dir = os.path.join(os.getcwd(), "scripts")
+
+# Set the configfile directive
+configfile: config_path
+
+# Debugging information
+print(f"Config file: {config_path}")
+print(f"Scripts directory: {scripts_dir}")
+
+# Set the working directory based on the config file
+workdir: config["dir"] 
+print(f"Working directory: {config['dir']}")
+
+
+
+
+# Rule to generate design files
+rule set_design:
+    input:
+        genome_dist=config["methSite_genomicDist"],  # Genomic distribution file
+    output:
+        design_file=config["dir"] + "/design.RData"  # Path for the design file
+    params:
+        sim_number = config["n_sim"],
+        tree=config["tree"],  # Newick tree
+        seed=config["seed"],
+        alpha_pI_shape=config["prior_distributions"]["alpha_pI"]["shape"],
+        alpha_pI_scale=config["prior_distributions"]["alpha_pI"]["scale"],
+        beta_pI_shape=config["prior_distributions"]["beta_pI"]["shape"],
+        beta_pI_scale=config["prior_distributions"]["beta_pI"]["scale"],
+        alpha_pNI_shape=config["prior_distributions"]["alpha_pNI"]["shape"],
+        alpha_pNI_scale=config["prior_distributions"]["alpha_pNI"]["scale"],
+        beta_pNI_shape=config["prior_distributions"]["beta_pNI"]["shape"],
+        beta_pNI_scale=config["prior_distributions"]["beta_pNI"]["scale"],
+        alpha_mI_shape=config["prior_distributions"]["alpha_mI"]["shape"],
+        alpha_mI_scale=config["prior_distributions"]["alpha_mI"]["scale"],
+        beta_mI_shape=config["prior_distributions"]["beta_mI"]["shape"],
+        beta_mI_scale=config["prior_distributions"]["beta_mI"]["scale"],
+        alpha_mNI_shape=config["prior_distributions"]["alpha_mNI"]["shape"],
+        alpha_mNI_scale=config["prior_distributions"]["alpha_mNI"]["scale"],
+        beta_mNI_shape=config["prior_distributions"]["beta_mNI"]["shape"],
+        beta_mNI_scale=config["prior_distributions"]["beta_mNI"]["scale"],
+        alpha_Ri_rate=config["prior_distributions"]["alpha_Ri"]["rate"],
+        mu_rate=config["prior_distributions"]["mu"]["rate"],
+        iota_min=config["prior_distributions"]["iota"]["min"],
+        iota_max=config["prior_distributions"]["iota"]["max"]
+    shell:
+        """
+        Rscript {scripts_dir}/set_sim_design.R \
+            --n-sim {params.sim_number} \
+            --dir {output.design_file} \
+            --genome-dist {input.genome_dist} \
+            --tree '{params.tree}' \
+            --seed {params.seed} \
+            --alpha_pI_shape {params.alpha_pI_shape} \
+            --alpha_pI_scale {params.alpha_pI_scale} \
+            --beta_pI_shape {params.beta_pI_shape} \
+            --beta_pI_scale {params.beta_pI_scale} \
+            --alpha_pNI_shape {params.alpha_pNI_shape} \
+            --alpha_pNI_scale {params.alpha_pNI_scale} \
+            --beta_pNI_shape {params.beta_pNI_shape} \
+            --beta_pNI_scale {params.beta_pNI_scale} \
+            --alpha_mI_shape {params.alpha_mI_shape} \
+            --alpha_mI_scale {params.alpha_mI_scale} \
+            --beta_mI_shape {params.beta_mI_shape} \
+            --beta_mI_scale {params.beta_mI_scale} \
+            --alpha_mNI_shape {params.alpha_mNI_shape} \
+            --alpha_mNI_scale {params.alpha_mNI_scale} \
+            --beta_mNI_shape {params.beta_mNI_shape} \
+            --beta_mNI_scale {params.beta_mNI_scale} \
+            --alpha_Ri_rate {params.alpha_Ri_rate} \
+            --mu_rate {params.mu_rate} \
+            --iota_min {params.iota_min} \
+            --iota_max {params.iota_max}
+        """
+
+# Rule to run the simulations
+rule run_sim:
+    input:
+        design_file=config["dir"] + "/design.RData"  # Path for the design file
+    params:
+        cores_number = config["n_cores"],
+        tip_number = config["n_tips"]
+    output:
+        [expand("abc_dataSIM_{n}.RData", n=[str(i).zfill(len(str(config["n_sim"])) + 1) for i in range(1, config["n_sim"] + 1)])]
+    log:
+        "run_sim.out"
+    shell:
+        """
+        echo "Generating output files: {output}"  # Diagnostic step
+        Rscript {scripts_dir}/run_sim.R --input {input.design_file} --n-tips {params.tip_number} --n-cores {params.cores_number} > {log}
+        """
+
+# Rule to compute the summary statistics
+rule compute_sumStats:
+    input:
+        file_list = [expand("abc_dataSIM_{n}.RData", n=[str(i).zfill(len(str(config["n_sim"])) + 1) for i in range(1, config["n_sim"] + 1)])]
+    params:
+        sim_number = config["n_sim"]
+    log:
+        "compute_sumStats.out"
+    shell:
+        """
+        echo "Generating output files: {output}"  # Diagnostic step
+        Rscript {scripts_dir}/compute_sumStats.R --n-sim {params.sim_number} > {log}
+        """
+
+
+
+
