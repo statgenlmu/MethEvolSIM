@@ -35,9 +35,9 @@ option_list <- list(
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
+# List the simulated files
 pad_n <- nchar(as.character(opt[["n-sim"]])) + 1
-
 RData_files <- list.files(pattern = paste0("^abc_dataSIM_\\d{", pad_n, "}\\.RData"))
 
-# Print the input files
-print(RData_files)
+# Check that the number of simulated files is equal to the number of simulations
+if (length(RData_files) != opt[["n-sim"]]) stop("Number of simulated files not equal to number of simulations")

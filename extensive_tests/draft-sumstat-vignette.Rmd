@@ -156,7 +156,7 @@ get_islandSDFreqM(index_islands, data, sample_n)
 get_nonislandSDFreqM(index_nonislands, data, sample_n)
 ```
 
-Note that we average across tips as there can be correlations between the mean sd of tips (e.g. under the case of an event affecting the states at two tips).
+Note that we average across tips as there can be correlations between the mean standard deviation of tips (e.g. under the case of an event affecting the states at two tips).
 
 # Mean correlation of a segment of methylation states per genomic structure type
 
@@ -186,7 +186,39 @@ In this formulation:
 
 - If $l = 0$, all the positions are considered.
 
+```{r}
+# 1 tip / sample / replicate
+sample_n <- 1
+index_islands <- c(1, 3)
+index_nonislands <- c(2, 4) 
+data <- list(c(.5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1), # 30 sites
+               c(.5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5), # 25 sites
+               c(.5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1), # 40 sites
+               c(1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, .5, 0, 0, 0, .5)) # 35 sites
+compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 5, data, sample_n = 1)
+compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, sample_n = 1)
+```
+
+```{r}
+# 2 tip / sample / replicate
+sample_n <- 2
+index_islands <- c(1, 3)
+index_nonislands <- c(2, 4)
+data <- list(
+  # tip 1
+    list(c(.5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1), # 30 sites
+         c(.5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5), # 25 sites
+         c(.5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1), # 40 sites
+         c(1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, .5, 0, 0, 0, .5)), # 35 sites
+  # tip 2
+    list(c(.5, 0, 0, .5, .5, .5, 0, 0, .5, 1, .5, 0, 0, 0, 0, .5, .5, 1, 1, 1, .5, 0, 0, 0, .5, .5, 1, 1, 1, 1), # 30 sites
+         c(.5, .5, 1, 1, .5, .5, 1, 1, 1, .5, .5, 0, 0, 0, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5), # 25 sites
+         c(.5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, .5, .5, 0, 0, .5, 1, 1, 1, 1, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1), # 40 sites
+         c(1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, 1, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, .5, .5, 0, .5, .5, .5, .5, 0, .5)) # 35 sites
+  )
+compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 5, data, sample_n = 2)
+compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, sample_n = 2)
+```
 
 
-
-*Correlation measures how much the state of each site says about the next. So, when there is no variation (e.g. in middle segment state u of a site is followed by state u of the next), there is no correlation. Therefore, avoiding the shores leads to lower correlation values. Maybe we could test with/out borders.*
+*Correlation measures how much the state of each site says about the next. So, when there is no variation (e.g. in middle segment state u of a site is followed by state u of the next), there is no correlation.*
