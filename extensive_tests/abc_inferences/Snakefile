@@ -106,7 +106,6 @@ rule compute_sumStats:
         "compute_sumStats.out"
     shell:
         """
-        echo "Generating output files: {output}"  # Diagnostic step
         Rscript {scripts_dir}/compute_sumStats.R --n-sim {params.sim_number} > {log}
         """
 

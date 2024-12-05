@@ -1,4 +1,4 @@
-seed: 123456
+﻿seed: 123456
 
 n_sim: 2
 
@@ -9,7 +9,7 @@ dir:
 methSite_genomicDist: 
   /home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/spatial_str.RData
   
-tree: ((a:1, b:1):1, c:2);
+tree: ((a:1, b:1):1, c:0.5);
 
 n_tips: 3
 

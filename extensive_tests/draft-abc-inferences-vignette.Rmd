@@ -31,11 +31,13 @@ This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the s
 
 - Snakemake installed (`conda create -c conda-forge -c bioconda -n snakemake snakemake`)
 
-- R packages: optparse (add to dependencies), parallel
+- R packages: optparse (add to dependencies), parallel, ape
 
 - Access to the provided `Snakefile` and associated scripts.
 
 - An .RData file with a dataframe specifying the distribution of methylation sites in the genomic region.
+
+- An .RData file with a tree in ape format (TODO: modify this and check whether scrm is also producing trees in the same format)
 
 ## Steps in the Workflow
 
