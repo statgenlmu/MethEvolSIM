@@ -879,4 +879,34 @@ test_that("meanCor", {
                info = "MeanCor_ni returns non-correct value (shore 10 2 tips non-equal sizes)")
 })
 
+test_that("get_cherryDist", {
+  expect_error(get_cherryDist(testing = T),
+               info = "function fails to throw an error when no tree is given")
+  newick_tree <- "((1:1,2:1):1,3:2);"
+  expect_true(class(get_cherryDist(newick_tree, testing = T)$tree) == "phylo",
+              info = "fails to convert newick tree into ape's class phylo")
+  
+  # Test case single cherry
+  expect_true(all(get_cherryDist(newick_tree)[[1]] == c(1,2,2)),
+              info = "incorrect output for newick tree with single cherry")
+  ape_tree <- ape::read.tree(text = newick_tree)
+  expect_true(all(get_cherryDist(ape_tree)[[1]] == c(1,2,2)),
+              info = "incorrect output for ape tree with single cherry")
+  
+  # Test case 2 cherries
+  newick_tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
+  ape_tree <- ape::read.tree(text = newick_tree)
+  expect_true(all(get_cherryDist(newick_tree)[[1]] == c(1,2,3)),
+              info = "incorrect output for newick tree with two cherries (1st cherry)")
+  expect_true(all(get_cherryDist(newick_tree)[[2]] == c(3,4,4)),
+              info = "incorrect output for newick tree with two cherries (2nd cherry)")
+  expect_true(all(get_cherryDist(ape_tree)[[1]] == c(1,2,3)),
+              info = "incorrect output for ape tree with two cherries (1st cherry)")
+  expect_true(all(get_cherryDist(ape_tree)[[2]] == c(3,4,4)),
+              info = "incorrect output for ape tree with two cherries (2nd cherry)")
+})
 
+
+if(FALSE){
+  debug(get_cherryDist)
+}

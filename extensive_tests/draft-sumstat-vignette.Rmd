@@ -222,3 +222,11 @@ compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, samp
 
 
 *Correlation measures how much the state of each site says about the next. So, when there is no variation (e.g. in middle segment state u of a site is followed by state u of the next), there is no correlation.*
+
+## Comparison of tree tips
+
+### Frequency of Methylation State Changes at Single Sites
+
+We compare the methylation state of single sites at the tree cherries. A cherry is a pair of leaf nodes (also called tips or terminal nodes) in a phylogenetic tree that share a direct common ancestor. In other words, if two leaves are connected to the same internal node and no other leaves are connected to that internal node, they form a cherry.
+
+get_FChange_cherryData (uses find_cherries and cherry_diffs)

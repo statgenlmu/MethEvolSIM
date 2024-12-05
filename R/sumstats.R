@@ -1,3 +1,5 @@
+#### #### #### Frequency of methylation states per structure type #### #### ####
+
 #' Calculate the Mean Frequency of Partially Methylated Sites in Islands
 #'
 #' This function computes the mean frequency of partially methylated sites (with methylation state 0.5) 
@@ -404,6 +406,8 @@ compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sampl
   return(mean(cor))
 }
 
+#### #### #### Mean correlation per structure type #### #### ####
+
 #' Compute the Mean Correlation of Methylation State in Non-islands
 #'
 #' This function calculates the mean correlation of methylation states within 
@@ -465,4 +469,96 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
   return(mean(cor))
 }
 
+#### #### #### Tree cherries comparisons #### #### ####
 
+find_cherries <- function(tree) {
+  ## tree must be an ape tree whose tip labels are numbers.
+  ## returns a list of vectors (a, b, x), where  (a, b) are a cherry of tree,
+  ## that is a pair of leaves that are sisters in the tree,
+  ## and x is their distance, that is, sum of the branch lengths between them 
+  outlist <- list()
+  d <- cophenetic.phylo(tree)
+  n <- nrow(d)
+  for(i in 1:n) {
+    j <- which(d[i,]==min(d[i, -i]))
+    if(length(j)==1) {
+      k <- which(d[j,]==min(d[j, -j]))
+      if(length(k)==1) {
+        if(k==i & i<j) {
+          ## outlist[[length(outlist)+1]] <- c(as.integer(rownames(d)[i]), as.integer(colnames(d)[j]), d[i,j])
+          outlist[[length(outlist)+1]] <- c(i, j, d[i,j])
+        }
+      }
+    }
+  }
+  outlist
+}
+
+
+
+## TODO: come back here and check whether the tree needs to
+## have the tips with numeric labels or that can be internally controlled. 
+## For that check previous (old) function 
+## tree needs to be an object of ape's phylo class or a character string in
+## parenthetic format known as the Newick or New Hampshire format
+get_cherryDist <- function(tree, testing = FALSE){
+  if(class(tree) != "phylo") tree <- ape::read.tree(text = tree)
+  # compute the pairwise distances between the tips from a phylogenetic tree
+  dist <- ape::cophenetic.phylo(tree)
+  # get the number of tips
+  n_tips <- nrow(dist)
+  # set list to store the cherry info
+  cherry_list <- list()
+  for (tip in 1:n_tips){
+    # find the closest tip
+    tip_a <- which(dist[tip,] == min(dist[tip, -tip]))
+    # if there is one single closest tip
+    if(length(tip_a)==1){
+      # find the closes tip 
+      tip_b <- which(dist[tip_a,] == min(dist[tip_a, -tip_a]))
+      # if there is one single closest tip
+      if (length(tip_b)==1){
+        # if both are mutually closest tips and
+        # tip < tip_a is used to avoid identifying the cherry twice (dist is symmetric)
+        if(tip_b == tip & tip < tip_a){
+          cherry_list[[length(cherry_list)+1]] <- c(tip, tip_a, dist[tip,tip_a])
+        }
+      }
+    }
+  }
+  if(testing){
+    list(tree = tree,
+         cherry_list = cherry_list)
+  } else {
+    cherry_list
+  }
+  
+}
+
+
+#undebug(get_cherryDist)
+
+get_cherryMethDiff <- function(cherries, data) {
+  ## returns a data frame with one line for each cherry, containing the branch distance between the
+  ## cherries and for each structure two numbers: that of the number of sites that are m in one in
+  ## u in the other tip and the number of sites that are p in one and m or u in the other tip.
+  n <- length(data)[[1]] # set the number of structures
+  df <- data.frame(tips=character(), dist=numeric()) # start df
+  for(j in 1:n) {
+    # e.g. df 3 structures: tips dist 1_f 1_h 2_f 2_h 3_f 3_h
+    df <- cbind(df, integer(), integer())
+    names(df)[c(ncol(df)-1, ncol(df))] <- paste0(j,"_",c("f", "h"))
+  }
+  for(i in 1:length(cherries)) {
+    ch <- cherries[[i]]
+    df[i, 1] <- paste0(ch[1],"-",ch[2]) # add tips info
+    df[i, 2] <- ch[3] # add dist between tips
+    for(j in 1:n) {
+      df[i, (j+1)*2-1] <- sum(abs(data[[ch[1]]][[j]]-data[[ch[2]]][[j]])==1)
+      df[i, (j+1)*2] <- sum(abs(data[[ch[1]]][[j]]-data[[ch[2]]][[j]])==0.5)
+    }
+  }
+  df
+}
+
+debug(get_cherryMethDiff)
