@@ -907,6 +907,12 @@ test_that("get_cherryDist", {
 })
 
 
-if(FALSE){
-  debug(get_cherryDist)
-}
+test_that("get_cherryMethDiff", {
+  newick_tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)))
+  cherries <- get_cherryDist(newick_tree)
+  get_cherryMethDiff(cherries, data)
+})
