@@ -501,7 +501,8 @@ find_cherries <- function(tree) {
 ## For that check previous (old) function 
 ## tree needs to be an object of ape's phylo class or a character string in
 ## parenthetic format known as the Newick or New Hampshire format
-get_cherryDist <- function(tree, testing = FALSE){
+get_cherryDist <- function(tree, sample_n, testing = FALSE){
+  if(sample_n < 2){stop("Minimum number of tips/samples needed: 2")}
   if(class(tree) != "phylo") tree <- ape::read.tree(text = tree)
   # compute the pairwise distances between the tips from a phylogenetic tree
   dist <- ape::cophenetic.phylo(tree)
@@ -537,28 +538,74 @@ get_cherryDist <- function(tree, testing = FALSE){
 
 
 #undebug(get_cherryDist)
-
-get_cherryMethDiff <- function(cherries, data) {
+## TODO: Assumes that each str has the same number of sites at the different tips
+## Think about how to control for pop cases in which there may be insertions/deletions
+## or whether this should be controlled by the user
+count_cherryMethDiff <- function(cherries, data) {
   ## returns a data frame with one line for each cherry, containing the branch distance between the
   ## cherries and for each structure two numbers: that of the number of sites that are m in one in
   ## u in the other tip and the number of sites that are p in one and m or u in the other tip.
-  n <- length(data)[[1]] # set the number of structures
+
+  str_n <- length(data[[1]]) # set the number of structures
   df <- data.frame(tips=character(), dist=numeric()) # start df
-  for(j in 1:n) {
+  for(str in 1:str_n) {
     # e.g. df 3 structures: tips dist 1_f 1_h 2_f 2_h 3_f 3_h
     df <- cbind(df, integer(), integer())
-    names(df)[c(ncol(df)-1, ncol(df))] <- paste0(j,"_",c("f", "h"))
+    names(df)[c(ncol(df)-1, ncol(df))] <- paste0(str,"_",c("f", "h"))
   }
   for(i in 1:length(cherries)) {
     ch <- cherries[[i]]
     df[i, 1] <- paste0(ch[1],"-",ch[2]) # add tips info
     df[i, 2] <- ch[3] # add dist between tips
-    for(j in 1:n) {
-      df[i, (j+1)*2-1] <- sum(abs(data[[ch[1]]][[j]]-data[[ch[2]]][[j]])==1)
-      df[i, (j+1)*2] <- sum(abs(data[[ch[1]]][[j]]-data[[ch[2]]][[j]])==0.5)
+    for(str in 1:str_n) {
+      # count number of sites with full methylation change (from u to m or m to u)
+      df[i, (str+1)*2-1] <- sum(abs(data[[ch[1]]][[str]]-data[[ch[2]]][[str]])==1)
+      # count number of sites with half methylation change (p in one tip and m or u in the other)
+      df[i, (str+1)*2] <- sum(abs(data[[ch[1]]][[str]]-data[[ch[2]]][[str]])==0.5)
     }
   }
   df
 }
 
-debug(get_cherryMethDiff)
+#undebug(count_cherryMethDiff)
+
+##TODO: n_CpG not given but calculated. Each structure is assumed to have the same number of sites at all tips
+get_FChange_cherryData <- function(tree, data, sample_n, testing = FALSE){
+  if(sample_n < 2){stop("Minimum number of tips/samples needed: 2")}
+  cherries <- get_cherryDist(tree, sample_n)
+  FChange_cherryData <- count_cherryMethDiff(cherries = cherries, data = data)
+  str_n <- length(data[[1]]) # set the number of structures
+  sites_n <- numeric(length = str_n)
+  for(str in 1:str_n) sites_n[str] <- length(data[[1]][[str]])
+  # Each value is a count number of full methylation changes _f or changes in one strand _h.
+  # Each structure has a number of CpGs. Then, if we wanna count the proportion
+  # of sites, we divide each value by the number of CpGs. 
+  # Explicitly match sites_n to the columns of FChange_cherryData
+  sites_n_repeated <- rep(sites_n, each = 2)
+  
+  # Debugging: Check alignment
+  print(sites_n_repeated)  # Should match the number of numeric columns in FChange_cherryData
+  print(colnames(FChange_cherryData)[3:ncol(FChange_cherryData)])  # Corresponding columns
+  
+  # Perform division
+  FChange_cherryData[, 3:ncol(FChange_cherryData)] <- 
+    FChange_cherryData[, 3:ncol(FChange_cherryData)] / sites_n_repeated
+  
+  
+  
+  #FChange_cherryData[,c(3:ncol(FChange_cherryData))] <- FChange_cherryData[,c(3:ncol(FChange_cherryData))]/rep(sites_n, each=2)
+  FChange_cherryData[, 3:ncol(FChange_cherryData)] <- 
+    FChange_cherryData[, 3:ncol(FChange_cherryData)] / rep(sites_n, each=2)
+  if (testing){
+    return(FChange_cherryData)
+  }
+  # Then, as each _f case means a change in the 2 strands and each _h case in one,
+  # we multiply each _f value by 2.
+  #FChange_cherryData[,c(3:ncol(FChange_cherryData))] <- FChange_cherryData[,c(3:ncol(FChange_cherryData))]/n_CpG
+  #FChange_cherryData[,grep("f", colnames(FChange_cherryData))] <- FChange_cherryData[,grep("f", colnames(FChange_cherryData))]*2
+  #return(FChange_cherryData)
+  
+}
+
+#debug(get_FChange_cherryData)
+

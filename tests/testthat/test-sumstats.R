@@ -880,39 +880,121 @@ test_that("meanCor", {
 })
 
 test_that("get_cherryDist", {
-  expect_error(get_cherryDist(testing = T),
-               info = "function fails to throw an error when no tree is given")
+  # Set tree
   newick_tree <- "((1:1,2:1):1,3:2);"
-  expect_true(class(get_cherryDist(newick_tree, testing = T)$tree) == "phylo",
+  
+  # Test wrong input
+  expect_error(get_cherryDist(),
+               info = "function fails to throw an error when no tree/sample_n is given")
+  expect_error(get_cherryDist(sample_n = 2),
+               info = "function fails to throw an error when no tree is given")
+  expect_error(get_cherryDist(tree = newick_tree),
+               info = "function fails to throw an error when no sample_n is given")
+  
+  
+  # Test error when tree has only one tip
+  newick_tree <- "(1:1);"
+  expect_error(get_cherryDist(tree = newick_tree, sample_n = 1),
+               info = "fails to throw an error when number of tips is < 2")
+  
+  # Test conversion from newick tree to ape tree
+  newick_tree <- "((1:1,2:1):1,3:2);"
+  expect_true(class(get_cherryDist(newick_tree, sample_n = 3, testing = T)$tree) == "phylo",
               info = "fails to convert newick tree into ape's class phylo")
   
   # Test case single cherry
-  expect_true(all(get_cherryDist(newick_tree)[[1]] == c(1,2,2)),
+  expect_true(all(get_cherryDist(newick_tree, sample_n = 3)[[1]] == c(1,2,2)),
               info = "incorrect output for newick tree with single cherry")
   ape_tree <- ape::read.tree(text = newick_tree)
-  expect_true(all(get_cherryDist(ape_tree)[[1]] == c(1,2,2)),
+  expect_true(all(get_cherryDist(ape_tree, sample_n = 3)[[1]] == c(1,2,2)),
               info = "incorrect output for ape tree with single cherry")
   
   # Test case 2 cherries
   newick_tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
   ape_tree <- ape::read.tree(text = newick_tree)
-  expect_true(all(get_cherryDist(newick_tree)[[1]] == c(1,2,3)),
+  expect_true(all(get_cherryDist(newick_tree, sample_n = 4)[[1]] == c(1,2,3)),
               info = "incorrect output for newick tree with two cherries (1st cherry)")
-  expect_true(all(get_cherryDist(newick_tree)[[2]] == c(3,4,4)),
+  expect_true(all(get_cherryDist(newick_tree, sample_n = 4)[[2]] == c(3,4,4)),
               info = "incorrect output for newick tree with two cherries (2nd cherry)")
-  expect_true(all(get_cherryDist(ape_tree)[[1]] == c(1,2,3)),
+  expect_true(all(get_cherryDist(ape_tree, sample_n = 4)[[1]] == c(1,2,3)),
               info = "incorrect output for ape tree with two cherries (1st cherry)")
-  expect_true(all(get_cherryDist(ape_tree)[[2]] == c(3,4,4)),
+  expect_true(all(get_cherryDist(ape_tree, sample_n = 4)[[2]] == c(3,4,4)),
               info = "incorrect output for ape tree with two cherries (2nd cherry)")
+  
 })
 
 
-test_that("get_cherryMethDiff", {
+test_that("count_cherryMethDiff", {
+  # Test case one cherry
   newick_tree <- "((1:1,2:1):1,3:2);"
   data <- list(
     list(rep(1,10), rep(0,10), rep(1,10)),
     list(rep(1,10), rep(0.5,10), rep(0,10)),
     list(rep(1,10), rep(0.5,10), rep(0,10)))
-  cherries <- get_cherryDist(newick_tree)
-  get_cherryMethDiff(cherries, data)
+  cherries <- get_cherryDist(newick_tree, sample_n = 3)
+  count_cherryMethDiff(cherries, data)
+  ##TODO: test content output:
+  #tips dist 1_f 1_h 2_f 2_h 3_f 3_h
+  #1  1-2    2   0   0   0  10  10   0
+  
+  # Test case two cherries
+  newick_tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)),
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1, rep(0.5, 5)), c(0.5, 1, rep(0, 8))))
+  cherries <- get_cherryDist(newick_tree, sample_n = 4)
+  count_cherryMethDiff(cherries, data)
+  ##TODO: test content output:
+  #  tips dist 1_f 1_h 2_f 2_h 3_f 3_h
+  #1  1-2    3   0   0   0  10  10   0
+  #2  3-4    4   5   5   0   5   1   1
+  
+})
+
+test_that("get_FChange_cherryData", {
+  
+  # Test error when tree has only one tip
+  newick_tree <- "(1:1);"
+  data <- list(rep(1,10), rep(0,10), rep(1,10))
+  expect_error(get_FChange_cherryData(tree = newick_tree, data = data, sample_n = 1),
+               info = "fails to throw an error when number of tips is < 2")
+  
+  # Test error when arguments are missing
+  newick_tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)))
+  expect_error(get_FChange_cherryData(data = data, sample_n = 3),
+               info = "fails to throw an error when argument 'tree' is not given")
+  expect_error(get_FChange_cherryData(tree = newick_tree, sample_n = 3),
+               info = "fails to throw an error when argument 'data' is not given")
+  expect_error(get_FChange_cherryData(tree = newick_tree, data = data),
+               info = "fails to throw an error when argument 'sample_n' is not given")
+  
+  # Test counts are transformed into frequencies correctly
+  tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
+  data <- list(
+    list(rep(1,10), rep(0,5), rep(1,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
+  o <- get_FChange_cherryData(tree = tree, data = data, sample_n = 4, testing = T)
+  expect_equal(o$tips[1], "1-2",
+               info = "incorrect tips id in cherry 1")
+  expect_equal(o$tips[2], "3-4",
+               info = "incorrect tips id in cherry 2")
+  expect_equal(o$dist[1], 3,
+               info = "incorrect tips distance in cherry 1")
+  expect_equal(o$dist[2], 4,
+               info = "incorrect tips distance in cherry 2")
+  column_CpGn <- rep(c(10, 5, 8), each=2)
+  f_h_count <- c(0, 0, 0, 5, 8, 0)
+  f_h_freq <- f_h_count/column_CpGn
+  expect_equal(o[1,3:ncol(o)], 3,
+               info = "incorrect tips distance in cherry 1")
+  
+  
 })

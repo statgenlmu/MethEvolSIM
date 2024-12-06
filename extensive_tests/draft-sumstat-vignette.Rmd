@@ -229,4 +229,4 @@ compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, samp
 
 We compare the methylation state of single sites at the tree cherries. A cherry is a pair of leaf nodes (also called tips or terminal nodes) in a phylogenetic tree that share a direct common ancestor. In other words, if two leaves are connected to the same internal node and no other leaves are connected to that internal node, they form a cherry.
 
-get_FChange_cherryData (uses find_cherries and cherry_diffs)
+get_FChange_cherryData (uses find_cherries --get_cherryDist-- and cherry_diffs -- now count_cherryMethDiff )
