@@ -1,13 +1,14 @@
 ﻿seed: 123456
 
-n_sim: 10000
+n_sim: 2
 
 dir:
-  /scratch/saracv/abc/cichlids/test1
-  #/home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/test
+  #/scratch/saracv/abc/cichlids/test1
+  /home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/test
 
 methSite_genomicDist: 
-  /scratch/saracv/abc/cichlids/test1/spatial_str.RData
+  #/scratch/saracv/abc/cichlids/test1/spatial_str.RData
+  /home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/spatial_str.RData
   
 tree: ((1:1,2:1):9,3:10);
 
@@ -61,8 +62,11 @@ prior_distributions:
     min: 0.1
     max: 20
 
+# Use CFTP algorithm at the root of the tree
+CFTP: TRUE
+
 # Number of cores for parallel simulations (rule run_sim)    
-n_cores: 31
+n_cores: 2
 
 
   

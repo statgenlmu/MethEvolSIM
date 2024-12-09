@@ -1,5 +1,6 @@
 library(optparse)
 library(parallel)
+## TODO: Modify how the package is loaded before submitting
 library(devtools); load_all()
 
 # Define command-line options
@@ -9,7 +10,9 @@ option_list <- list(
   make_option("--n-cores", type = "integer", default = NULL,
               help = "Number of cores", metavar = "integer"),
   make_option("--n-tips", type = "integer", default = NULL,
-              help = "Number of tree tips", metavar = "integer")
+              help = "Number of tree tips", metavar = "integer"),
+  make_option("--CFTP", type = "logical", default = FALSE, 
+    metavar = "TRUE/FALSE", help = "Use CFTP algorithm at tree root [default: %default]")
 )
 
 # Parse the arguments
@@ -53,7 +56,7 @@ run_simulation_subset <- function(start_idx, end_idx) {
     set.seed(sim)
     
     # Simulate data
-    output <- simulate_evolData(infoStr = spatial_str, tree = scaled_trees[[sim]], params = sampled_params[sim,])
+    output <- simulate_evolData(infoStr = spatial_str, tree = scaled_trees[[sim]], params = sampled_params[sim,], CFTP = opt[["CFTP"]])
     
     # Extract methylation data at the tree tips
     data <- list()

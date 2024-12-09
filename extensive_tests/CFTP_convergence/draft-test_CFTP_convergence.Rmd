@@ -1,0 +1,47 @@
+---
+title: "CFTP Convergence"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Test for CFTP Convergence}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, echo=FALSE}
+## TODO: Update 
+library(devtools)
+load_all()
+```
+
+
+# Worflow for simulation-based inferences
+
+This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the steps for simulating DNA methylation patterns, assessing ABC accuracy, and inferring model parameters.
+
+## Requirements
+
+- Snakemake installed (`conda create -c conda-forge -c bioconda -n snakemake snakemake`)
+
+- R packages: 
+
+- Access to the provided `Snakefile` and associated scripts.
+
+- An .RData file with a dataframe specifying the distribution of methylation sites in the genomic region.
+
+
+## Steps in the Workflow
+
+1. Bla
+
+### Scripts
+
+- `run_sim.R`. TODO: Update way in which the package is loaded before submitting.
