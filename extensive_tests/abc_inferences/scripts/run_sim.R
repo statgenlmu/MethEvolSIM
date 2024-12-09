@@ -53,7 +53,7 @@ run_simulation_subset <- function(start_idx, end_idx) {
     set.seed(sim)
     
     # Simulate data
-    output <- simulate_evolData(infoStr = spatial_str, tree = tree, params = sampled_params[sim,])
+    output <- simulate_evolData(infoStr = spatial_str, tree = scaled_trees[[sim]], params = sampled_params[sim,])
     
     # Extract methylation data at the tree tips
     data <- list()

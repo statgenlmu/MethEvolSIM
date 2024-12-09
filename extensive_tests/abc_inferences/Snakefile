@@ -48,7 +48,9 @@ rule set_design:
         alpha_Ri_rate=config["prior_distributions"]["alpha_Ri"]["rate"],
         mu_rate=config["prior_distributions"]["mu"]["rate"],
         iota_min=config["prior_distributions"]["iota"]["min"],
-        iota_max=config["prior_distributions"]["iota"]["max"]
+        iota_max=config["prior_distributions"]["iota"]["max"],
+        tree_scale_min=config["prior_distributions"]["tree_scale"]["min"],
+        tree_scale_max=config["prior_distributions"]["tree_scale"]["max"]
     shell:
         """
         Rscript {scripts_dir}/set_sim_design.R \
@@ -76,7 +78,9 @@ rule set_design:
             --alpha_Ri_rate {params.alpha_Ri_rate} \
             --mu_rate {params.mu_rate} \
             --iota_min {params.iota_min} \
-            --iota_max {params.iota_max}
+            --iota_max {params.iota_max} \
+            --tree_scale_min {params.tree_scale_min} \
+            --tree_scale_max {params.tree_scale_max}
         """
 
 # Rule to run the simulations
