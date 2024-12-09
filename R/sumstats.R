@@ -541,7 +541,7 @@ get_cherryDist <- function(tree, sample_n, testing = FALSE){
 ## TODO: Assumes that each str has the same number of sites at the different tips
 ## Think about how to control for pop cases in which there may be insertions/deletions
 ## or whether this should be controlled by the user
-count_cherryMethDiff <- function(cherries, data) {
+countSites_cherryMethDiff <- function(cherries, data) {
   ## returns a data frame with one line for each cherry, containing the branch distance between the
   ## cherries and for each structure two numbers: that of the number of sites that are m in one in
   ## u in the other tip and the number of sites that are p in one and m or u in the other tip.
@@ -567,45 +567,74 @@ count_cherryMethDiff <- function(cherries, data) {
   df
 }
 
-#undebug(count_cherryMethDiff)
+#undebug(countSites_cherryMethDiff)
+#undebug(get_cherryDist)
 
 ##TODO: n_CpG not given but calculated. Each structure is assumed to have the same number of sites at all tips
-get_FChange_cherryData <- function(tree, data, sample_n, testing = FALSE){
+get_siteFChange_cherry_perMethDiffType <- function(tree, data, sample_n){
   if(sample_n < 2){stop("Minimum number of tips/samples needed: 2")}
-  cherries <- get_cherryDist(tree, sample_n)
-  FChange_cherryData <- count_cherryMethDiff(cherries = cherries, data = data)
+  cherries <- get_cherryDist(tree = tree, sample_n = sample_n)
+  siteFChange_cherry_perMethDiffType <- countSites_cherryMethDiff(cherries = cherries, data = data)
   str_n <- length(data[[1]]) # set the number of structures
   sites_n <- numeric(length = str_n)
   for(str in 1:str_n) sites_n[str] <- length(data[[1]][[str]])
   # Each value is a count number of full methylation changes _f or changes in one strand _h.
   # Each structure has a number of CpGs. Then, if we wanna count the proportion
   # of sites, we divide each value by the number of CpGs. 
-  # Explicitly match sites_n to the columns of FChange_cherryData
+  # Explicitly match sites_n to the columns of siteFChange_cherry_perMethDiffType
   sites_n_repeated <- rep(sites_n, each = 2)
-  
-  # Debugging: Check alignment
-  print(sites_n_repeated)  # Should match the number of numeric columns in FChange_cherryData
-  print(colnames(FChange_cherryData)[3:ncol(FChange_cherryData)])  # Corresponding columns
-  
-  # Perform division
-  FChange_cherryData[, 3:ncol(FChange_cherryData)] <- 
-    FChange_cherryData[, 3:ncol(FChange_cherryData)] / sites_n_repeated
-  
-  
-  
-  #FChange_cherryData[,c(3:ncol(FChange_cherryData))] <- FChange_cherryData[,c(3:ncol(FChange_cherryData))]/rep(sites_n, each=2)
-  FChange_cherryData[, 3:ncol(FChange_cherryData)] <- 
-    FChange_cherryData[, 3:ncol(FChange_cherryData)] / rep(sites_n, each=2)
-  if (testing){
-    return(FChange_cherryData)
-  }
-  # Then, as each _f case means a change in the 2 strands and each _h case in one,
-  # we multiply each _f value by 2.
-  #FChange_cherryData[,c(3:ncol(FChange_cherryData))] <- FChange_cherryData[,c(3:ncol(FChange_cherryData))]/n_CpG
-  #FChange_cherryData[,grep("f", colnames(FChange_cherryData))] <- FChange_cherryData[,grep("f", colnames(FChange_cherryData))]*2
-  #return(FChange_cherryData)
-  
+  siteFChange_cherry_perMethDiffType[,3:ncol(siteFChange_cherry_perMethDiffType)] <- sweep(siteFChange_cherry_perMethDiffType[,3:ncol(siteFChange_cherry_perMethDiffType)], 2, column_CpGn, "/")
+  siteFChange_cherry_perMethDiffType
 }
 
-#debug(get_FChange_cherryData)
+get_siteFChange_cherry <- function(tree, data, sample_n){
+  if(sample_n < 2){stop("Minimum number of tips/samples needed: 2")}
+  siteFChange_cherry_perMethDiffType <- get_siteFChange_cherry_perMethDiffType(tree = tree, data = data, sample_n = sample_n)
+  # Identify the unique structures in the column names
+  structures <- unique(sub("_[fh]$", "", names(siteFChange_cherry_perMethDiffType)[-c(1, 2)]))
+  # Create the new dataframe
+  siteFChange_cherry <- data.frame(
+    tips = siteFChange_cherry_perMethDiffType$tips,
+    dist = siteFChange_cherry_perMethDiffType$dist
+  )
+  # Add the summed columns
+  for (str in structures){
+    siteFChange_cherry[[str]] <- rowSums(siteFChange_cherry_perMethDiffType[, grep(paste0("^", str, "_"), names(siteFChange_cherry_perMethDiffType))])
+  }
+  siteFChange_cherry
+}
 
+## For something like before:
+# There are 2 columns per structure in siteFChange_cherry_perMethDiffType
+# _f represents the frequency of full changes (both DNA strands)
+# _h represents the frequency of half changes (one DNA strand)
+#siteFChange_cherry_perMethDiffType[,grep("h", colnames(siteFChange_cherry_perMethDiffType))] <- siteFChange_cherry_perMethDiffType[,grep("h", colnames(siteFChange_cherry_perMethDiffType))]/2
+
+#index islands: vector
+
+SDandMean_SiteFChange_cherry <- function(siteFChange_cherry, index_islands, index_nonislands){
+  siteFChange <- siteFChange_cherry[-c(1,2)]
+  if(length(index_nonislands)>0){
+    mean_NI <- rowMeans(as.data.frame(siteFChange[,index_nonislands]))
+    sd_NI <- apply(as.data.frame(siteFChange[,index_nonislands]), 1, sd)
+  } else {
+    mean_NI = sd_NI <- NA
+  }
+  if(length(index_islands)>0){
+    mean_I <- rowMeans(as.data.frame(siteFChange[,index_islands]))
+    sd_I <- apply(as.data.frame(siteFChange[,index_islands]), 1, sd)
+  } else {
+    mean_I = sd_I <- NA
+  }
+  SDandMean_SiteFChange_cherry  <- data.frame(
+    tips = siteFChange_cherry$tips,
+    dist = siteFChange_cherry$dist,
+    mean_I = mean_I,
+    sd_I = sd_I,
+    mean_NI = mean_NI,
+    sd_NI = sd_NI
+  )
+  SDandMean_SiteFChange_cherry
+}
+debug(SDandMean_SiteFChange_cherry)
+##TODO: Add index_nonislands

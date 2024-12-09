@@ -219,7 +219,6 @@ for(sim in 1:n_sim){
   if ( "all" %in% stats_to_compute || "FChangeCherry_ni" %in% stats_to_compute) {
     meanFChangeCherry_fit_ni <- tryCatch({
       fit_meanFChange_cherry_ni(FChange_cherryData = FChange_cherryData, index_nonislands = index_nonislands)
-    }, error = function(e) {
       error_msg <- paste("Simulation", sim, "- Error in fit_meanFChange_cherry_ni:", e$message)
       error_log[[length(error_log) + 1]] <- error_msg
       list(rate = NA, scale = NA)
