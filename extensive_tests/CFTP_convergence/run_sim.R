@@ -58,6 +58,8 @@ simul_CFTP_branch <- function(custom_params, index_params, b_length, start, end,
   
   if(start == 1){
     
+    ##TODO: Maybe this alternative should be better: simulate_evolData(infoStr = spatial_str, tree = tree, CFTP = TRUE) with tree like "(1:0);"
+    
     print("Generating combiStructureGenerator instance")
     combi <- combiStructureGenerator$new(infoStr = spatial_str, params = custom_params)
     
