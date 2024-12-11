@@ -44,4 +44,4 @@ This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the s
 
 ### Scripts
 
-- `run_sim.R`. TODO: Update way in which the package is loaded before submitting.
+- `run_sim.R`. TODO: Update way in which the package is loaded before submitting. Uses as many cores as the config param n_sim

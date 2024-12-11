@@ -1,22 +1,20 @@
 ﻿seed: 123456
 
-n_sim: 2
+n_sim: 10
 
 branch_length: 0.1
 
 start: 1
 
-end: 3
+end: 251
 
 replicate_n: 10
 
 dir:
-  #/scratch/saracv/abc/cichlids/test1
-  /home/sara/methylation/MethEvolSIM/extensive_tests/CFTP_convergence/test
+  /scratch/saracv/CFTP_test/test
 
 methSite_genomicDist: 
-  #/scratch/saracv/abc/cichlids/test1/spatial_str.RData
-  /home/sara/methylation/MethEvolSIM/extensive_tests/CFTP_convergence/spatial_str.RData
+  spatial_str.RData
 
 prior_distributions:
   # Gamma distribution
@@ -67,8 +65,6 @@ prior_distributions:
     max: 20
 
 
-# Number of cores for parallel simulations (rule run_sim)    
-n_cores: 2
 
 
   
