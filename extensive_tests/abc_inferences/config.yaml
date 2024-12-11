@@ -10,7 +10,7 @@ methSite_genomicDist:
   #/scratch/saracv/abc/cichlids/test1/spatial_str.RData
   /home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/spatial_str.RData
   
-tree: ((1:1,2:1):9,3:10);
+tree: ((1:0.5,2:1):9,3:10);
 
 n_tips: 3
 
