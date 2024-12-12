@@ -50,3 +50,14 @@ This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the s
 4. Assess ABC accuracy using cross-validation.
 
 5. Infer parameters from empirical DNA methylation data.
+
+## Selection of the genomic region
+
+1. [Download](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000238955.4/) the *M. zebra* reference genome (GCF_000238955.4_M_zebra_UMD2a_genomic.fa) from the NCBI Assembly database. This genome is part of the M. zebra UMD2a assembly, which includes associated data such as gene annotations and other resources.
+
+2. Transform CGI annotation (add citation) in txt format to BED
+
+```{bash, eval = FALSE}
+awk 'NR > 1 {print $1 "\t" $2-1 "\t" $3}' CGI-Mzebra.txt > CGI-Mzebra.bed
+```
+
