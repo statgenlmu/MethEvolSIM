@@ -1,7 +1,8 @@
 # Import os for path manipulations
 import os
 
-# Define custom paths for config and scripts
+# Define custom paths for base, config and scripts
+base_path = os.getcwd()
 config_path = os.path.join(os.getcwd(), "config.yaml")
 scripts_dir = os.path.join(os.getcwd(), "scripts")
 
@@ -11,12 +12,26 @@ configfile: config_path
 # Debugging information
 print(f"Config file: {config_path}")
 print(f"Scripts directory: {scripts_dir}")
+print(f"Base path: {base_path}")
 
 # Set the working directory based on the config file
 workdir: config["dir"] 
 print(f"Working directory: {config['dir']}")
 
 
+# Rule to get the CpG counts in island and non-island regions
+rule get_CpG_count:
+    input:
+        reference_genome = os.path.join(base_path, config["methSite_genomicDist"]["reference_genome"]),
+        CGI_annotation = os.path.join(base_path, config["methSite_genomicDist"]["CGI_annotation"])
+    output:
+    	CpG_counts = os.path.join(base_path, config["methSite_genomicDist"]["CpG_count"])
+    log:
+        "get_CpG_count.out"
+    shell:
+        """
+        Rscript {scripts_dir}/get_CpG_count.R --reference-genome {input.reference_genome} --CGI-annotation {input.CGI_annotation} --output {output.CpG_counts} > {log}
+        """
 
 
 # Rule to generate design files

@@ -1,0 +1,219 @@
+---
+title: "ABC inferences"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{ABC Inferences with MethEvolSIM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, echo=FALSE}
+## TODO: Update 
+library(devtools)
+load_all()
+```
+
+# Selection of genomic region(s)
+
+-Requires: CGI annotation file (.txt file obtained with makeCGI) **Add reference**
+
+```{r}
+# Load data
+file_path <- "CGI-Mzebra.txt" # Adjust the path if necessary
+cgi_data <- read.table(file_path, header = TRUE, sep = "\t")
+
+# View the first lines
+head(cgi_data)
+# View the last lines
+tail(cgi_data)
+```
+
+The prefixes `NC_` and `NW_` in chromosome or genomic sequence identifiers come from the RefSeq database and indicate different types of assembly or annotation status for genomic sequences:
+
+- `NC_` refers to non-redundant complete genomic molecules, which typically represent well-characterized, curated, and assembled sequences.
+
+- `NW_` refers to scaffolds or unplaced sequences that are part of the genome assembly but cannot yet be confidently assigned to a specific chromosome or region.
+
+
+```{r}
+# Count the number of CGIs per chromosome
+cgi_count <- table(cgi_data$chr)
+
+# View results grouped by type of chromosome assembly
+
+# Split into groups based on chromosome prefix
+groups <- ifelse(grepl("^NC_", names(cgi_count)), "NC", "NW")
+
+# Create a dataframe
+cgi_data <- data.frame(
+  group = groups,
+  count = as.numeric(cgi_count)
+)
+
+# Plot boxplots
+boxplot(count ~ group, data = cgi_data,
+        col = c("skyblue", "salmon"),
+        main = "Distribution of Counts for NC_ and NW_ Chromosomes",
+        xlab = "Chromosome Type",
+        ylab = "Counts")
+
+```
+
+
+
+- *Smad4a*: LOC101481185. Fixed but not associated with differential expression.
+
+Genes reported as fixed DMR with significant transcriptional downregulation in benthic livers and associated with fixed benthic-specific hypermethylated levels at their promoters, suggesting retained epigenetic divergence associated with different diets. 
+
+- *Dpp4*: Part of the insulin methabolic pathway. Location according to NCBI annotation release 104 (LOC101483164): NC_036801.1 (29502362..29517382) 
+
+- *Ces2*: Liver carboxylesterase 2, part of the fatty acid methabolic pathway. Location according to NCBI annotation release 104 (LOC101473569):  	NW_020192811.1 (49164..53741, complement) 
+
+```{r}
+head(cgi_data[cgi_data$chr == "NC_036801.1",])
+```
+
+
+
+
+## How to generate the structural distribution .RData file from the reference genome and the CGI annotation
+
+Requires the following packages (already included in environment.yaml):
+```{r, eval = FALSE}
+install.packages("BiocManager")
+BiocManager::install("Biostrings")
+```
+
+
+
+
+
+```{r}
+load("genomic_dist/CpG_count.RData")
+
+```
+29502362..29517382
+
+```{r}
+# Filter the data for the given chromosome and region
+dpp4_chr <- "NC_036801.1"
+filtered_data <- CpG_count[CpG_count$chr == dpp4_chr & CpG_count$start > 2.8e7 & CpG_count$end < 3e7, ]
+
+# Set up the plot area
+plot(filtered_data$start, filtered_data$CpG_count, 
+     type = "n", # No points, just the axis
+     xlab = "Position (bp)", ylab = "CpG Count", 
+     main = "CpG Count by Island/Non-Island Regions", 
+     xlim = c(min(filtered_data$start), max(filtered_data$end)), 
+     ylim = c(0, max(filtered_data$CpG_count) * 1.1))
+
+# Add bars with color based on 'str' (island vs non-island)
+for (i in 1:nrow(filtered_data)) {
+  # Calculate the width of each region (difference between start and end)
+  region_width <- filtered_data$end[i] - filtered_data$start[i]
+  
+  if (filtered_data$str[i] == 0) {
+    # Non-island (blue)
+    rect(filtered_data$start[i], 0, filtered_data$end[i], 
+         filtered_data$CpG_count[i], col = "blue", border = "blue")
+  } else {
+    # Island (red)
+    rect(filtered_data$start[i], 0, filtered_data$end[i], 
+         filtered_data$CpG_count[i], col = "red", border = "red")
+  }
+}
+
+# Add a legend
+legend("topright", legend = c("Non-Island", "Island"), 
+       fill = c("blue", "red"), title = "Island Type")
+
+```
+
+```{r}
+
+# Filter the data for the given chromosome and region
+dpp4_chr <- "NC_036801.1"
+dpp4_start <- 29502362
+dpp4_end <- 29517382
+filtered_data <- CpG_count[CpG_count$chr == dpp4_chr & CpG_count$start > dpp4_start - 5e5 & CpG_count$end < dpp4_end + 5e5, ]
+
+# Calculate the CpG density for each region (CpG count / region length)
+filtered_data$CpG_density <- filtered_data$CpG_count / (filtered_data$end - filtered_data$start)
+
+# Plot CpG density vs. position (using 'start' as x-axis)
+
+# Set up the plot area with no points initially
+plot(filtered_data$start, filtered_data$CpG_density, 
+     type = "n", # No points, just the axis
+     xlab = "Position (bp)", ylab = "CpG Density", 
+     main = "CpG Density by Island/Non-Island Regions", 
+     xlim = c(min(filtered_data$start), max(filtered_data$end)), 
+     ylim = c(0, max(filtered_data$CpG_density) * 1.1))
+
+# Add points colored by 'str' (0 for non-island, 1 for island)
+points(filtered_data$start, filtered_data$CpG_density, 
+       col = ifelse(filtered_data$str == 1, "red", "blue"), 
+       pch = 16)  # pch=16 gives filled circles
+
+# Add vertical lines showing where the gene is
+abline(v = dpp4_start)
+abline(v = dpp4_end)
+
+# Add a legend
+legend("topright", legend = c("Non-Island", "Island"), 
+       fill = c("blue", "red"), title = "Type")
+
+
+```
+
+If using this region the number of CpG sites to simulate would be:
+
+```{r}
+sum(filtered_data$CpG_count)
+```
+
+with number of non-island (0) and island (1) structures:
+
+```{r}
+# Count the number of occurrences of each factor level in the 'str' column
+table(filtered_data$str)
+```
+
+
+
+# Worflow for simulation-based inferences
+
+This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the steps for simulating DNA methylation patterns, assessing ABC accuracy, and inferring model parameters.
+
+## Requirements
+
+- Snakemake installed (`conda create -c conda-forge -c bioconda -n snakemake snakemake`)
+
+- R packages: optparse (add to dependencies), parallel, ape
+
+- Access to the provided `Snakefile` and associated scripts.
+
+- An .RData file with a dataframe specifying the distribution of methylation sites in the genomic region.
+
+- An .RData file with a tree in ape format (TODO: modify this and check whether scrm is also producing trees in the same format)
+
+## Steps in the Workflow
+
+1. Save as simulation design the genomic structure, tree(s) -- GIVEN -- and sampled parameter combinations.
+
+2. Run the simulations. TODO: Before submitting load package without devtools
+
+3. Compute the selected summary statistics. TODO: When added sumStats functions to package, stop sourcing script.
+
+4. Assess ABC accuracy using cross-validation.
+
+5. Infer parameters from empirical DNA methylation data.
