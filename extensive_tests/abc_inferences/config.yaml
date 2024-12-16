@@ -1,11 +1,11 @@
 ﻿seed: 123456
 
-n_sim: 2
+n_sim: 10000
 
 # Absolute path (starts with /):
 dir:
-  #/scratch/saracv/abc/cichlids/test1
-  /home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/test
+  /scratch/saracv/abc/cichlids
+  #/home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/test
 
 # Relative paths:
 methSite_genomicDist:
@@ -23,7 +23,7 @@ selected_region:
   side_bp: 500000 # to select structures starting after start - side_bp and ending before end + side_bp
   
   
-tree: ((1:0.5,2:1):9,3:10);
+tree: ((1:1,2:1):9,3:10);
 
 n_tips: 3
 
@@ -79,7 +79,7 @@ prior_distributions:
 CFTP: TRUE
 
 # Number of cores for parallel simulations (rule run_sim)    
-n_cores: 2
+n_cores: 32
 
 
   
