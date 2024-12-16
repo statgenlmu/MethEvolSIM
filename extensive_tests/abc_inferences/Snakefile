@@ -23,6 +23,10 @@ region_workdir = os.path.join(
     config["selected_region"]["name"]
 )
 
+# Global environment definition
+conda:
+    os.path.join(base_path, "environment.yaml")
+
 
 # Set the working directory based on the config file
 workdir: region_workdir
@@ -145,8 +149,6 @@ rule run_sim:
         [expand("abc_dataSIM_{n}.RData", n=[str(i).zfill(len(str(config["n_sim"])) + 1) for i in range(1, config["n_sim"] + 1)])]
     log:
         "run_sim.out"
-    conda:
-        os.path.join(base_path, "environment.yaml")
     shell:
         """
         Rscript {scripts_dir}/run_sim.R --input {input.design_file} --n-tips {params.tip_number} --n-cores {params.cores_number} --CFTP {params.cftp} > {log}

@@ -56,6 +56,16 @@ conda activate abc_inferences
 snakemake --use-conda
 ```
 
+I also got the following error when trying to run the rule `run_sim`:
+
+```{bash, eval = FALSE}
+Conda must be version 24.7.1 or later, found version 22.11.1. Please update conda to the latest version. Note that you can also install conda into the snakemake environment without modifying your main conda installation.
+# Then I installed conda into the snakemake environment with
+conda activate abc_inferences
+conda install -c conda-forge conda 
+```
+
+
 
 # Selection of genomic region(s)
 
