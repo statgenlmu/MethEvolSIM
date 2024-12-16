@@ -35,8 +35,14 @@ if (length(missing_options) > 0) {
 load(opt[["input"]])
 
 # Filter the data for the given chromosome and region
-spatial_str <- CpG_count[CpG_count$chr == opt[["chr"]] & CpG_count$start >= opt[["start"]] - opt[["side-bp"]] & CpG_count$start <= opt[["end"]] + opt[["side-bp"]], ]
+filtered_data <- CpG_count[CpG_count$chr == opt[["chr"]] & CpG_count$start >= opt[["start"]] - opt[["side-bp"]] & CpG_count$start <= opt[["end"]] + opt[["side-bp"]], ]
 
-# Save filtered data
+# Create the data frame spatial_str
+spatial_str <- data.frame(n = filtered_data$CpG_count)
+
+# Add the globalState column based on filtered_data$str values
+spatial_str$globalState <- ifelse(filtered_data$str == "Island", "U", "M")
+
+# Save spatial structure
 output_name <- paste0(paste(opt[["chr"]], opt[["start"]] - opt[["side-bp"]], opt[["end"]] + opt[["side-bp"]], opt[["name-selected-region"]], sep = "_"), ".RData")
 save(spatial_str, file = output_name)

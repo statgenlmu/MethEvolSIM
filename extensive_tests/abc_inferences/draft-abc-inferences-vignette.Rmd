@@ -3,6 +3,7 @@ title: "ABC inferences"
 output: 
   rmarkdown::html_vignette:
     toc: true
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{ABC Inferences with MethEvolSIM}
   %\VignetteEngine{knitr::rmarkdown}
@@ -12,7 +13,10 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 7,  # Set the figure width to match the text width
+  fig.height = 5, # Set the figure height
+  out.width = "100%"  # Ensure it takes up 100% of the available width in HTML
 )
 ```
 
@@ -33,9 +37,10 @@ conda env create -n abc_inferences -f environment.yaml
 
 # Selection of genomic region(s)
 
-Add info on how to download the reference genome from progress report.
 
--Requires: CGI annotation file (.txt file obtained with makeCGI) **Add reference**
+-Requires: CGI annotation file (`.txt` file) obtained with makeCGI v1.3.4 [@hiddenMarkov]
+
+- The genome assembly file: Obtain the FASTA file ([GCF_000238955.4_M_zebra_UMD2a_genomic.fa](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000238955.4/)) from NCBI (file source *RefSeq*, file type *Genome Sequences (FASTA)*)
 
 Both under subdirectory genomic_dist
 
@@ -149,9 +154,8 @@ legend("topright", legend = c("Non-Island", "Island"),
 
 ```
 
-X-axis corresponds to the positions in chromosome `r dpp4_chr`
-dpp4_start
-dpp4_end
+Genomic region close to gene *dpp4*. X-axis corresponds to the positions in chromosome `r dpp4_chr`. Y-axis corresponds to CpG counts at each genomic region. Each genomic region is represented by a bar starting and ending in the corresponding chromosome position. Vertical black lines represent start and end of gene *dpp4*.
+
 
 ```{r}
 
@@ -187,13 +191,15 @@ legend("topright", legend = c("Non-Island", "Island"),
 
 ```
 
-If using this region the number of CpG sites to simulate would be:
+Genomic region close to gene *dpp4*. X-axis corresponds to the positions in chromosome `r dpp4_chr`. Y-axis corresponds to CpG density at each genomic region. Each genomic region is represented by a dot at its corresponding genome start position. Vertical black lines represent start and end of gene *dpp4*.
+
+When using this region the number of CpG sites to simulate would be:
 
 ```{r}
 sum(filtered_data$CpG_count)
 ```
 
-with number of non-island (0) and island (1) structures:
+with number of non-island and island structures:
 
 ```{r}
 # Count the number of occurrences of each factor level in the 'str' column
@@ -229,3 +235,6 @@ This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the s
 4. Assess ABC accuracy using cross-validation.
 
 5. Infer parameters from empirical DNA methylation data.
+
+# References
+
