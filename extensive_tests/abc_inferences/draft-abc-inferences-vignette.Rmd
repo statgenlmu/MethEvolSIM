@@ -22,9 +22,22 @@ library(devtools)
 load_all()
 ```
 
+# Workflow dependencies
+
+Are listed under the file `environment.yaml`. Before running the workflow, a conda environment can be created with:
+
+```{bash, eval = FALSE}
+conda env create -n abc_inferences -f environment.yaml
+```
+
+
 # Selection of genomic region(s)
 
+Add info on how to download the reference genome from progress report.
+
 -Requires: CGI annotation file (.txt file obtained with makeCGI) **Add reference**
+
+Both under subdirectory genomic_dist
 
 ```{r}
 # Load data
@@ -91,12 +104,6 @@ dpp4_end <- 29517382
 
 ## Explore the CpG counts in islands and non islands generated from the reference genome and the CGI annotation
 
-Requires the following packages (already included in environment.yaml):
-```{r, eval = FALSE}
-install.packages("BiocManager")
-BiocManager::install("Biostrings")
-```
-
 
 ```{r}
 load("genomic_dist/CpG_count.RData")
@@ -105,7 +112,7 @@ load("genomic_dist/CpG_count.RData")
 
 ```{r}
 # Filter the data for the given chromosome and region
-filtered_data <- CpG_count[CpG_count$chr == dpp4_chr & CpG_count$start > dpp4_start - 5e5 & CpG_count$start < dpp4_end + 5e5, ]
+filtered_data <- CpG_count[CpG_count$chr == dpp4_chr & CpG_count$start >= dpp4_start - 5e5 & CpG_count$start <= dpp4_end + 5e5, ]
 
 # Set up the plot area
 plot(filtered_data$start, filtered_data$CpG_count, 
@@ -141,6 +148,10 @@ legend("topright", legend = c("Non-Island", "Island"),
        fill = c("blue", "red"), title = "Island Type")
 
 ```
+
+X-axis corresponds to the positions in chromosome `r dpp4_chr`
+dpp4_start
+dpp4_end
 
 ```{r}
 
