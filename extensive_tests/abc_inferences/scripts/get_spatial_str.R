@@ -3,6 +3,8 @@ library(optparse)
 option_list <- list(
   make_option(c("--input"), type = "character", default = NULL,
               help = "Input CpG_count.RData path", metavar = "character"),
+  make_option(c("--output"), type = "character", default = NULL,
+              help = "Output full path with file name", metavar = "character"),
   make_option(c("--name-selected-region"), type = "character", default = NULL,
               help = "Name of selected genomic region", metavar = "character"),
   make_option(c("--chr"), type = "character", default = NULL,
@@ -21,7 +23,7 @@ opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
 # Get the names of required options (you can update this based on what's mandatory)
-required_options <- c("input", "name-selected-region", "chr", "start", "end", "side-bp")
+required_options <- c("input", "output","name-selected-region", "chr", "start", "end", "side-bp")
 
 # Check that all required options are not NULL
 missing_options <- required_options[sapply(required_options, function(x) is.null(opt[[x]]))]
@@ -44,5 +46,5 @@ spatial_str <- data.frame(n = filtered_data$CpG_count)
 spatial_str$globalState <- ifelse(filtered_data$str == "Island", "U", "M")
 
 # Save spatial structure
-output_name <- paste0(paste(opt[["chr"]], opt[["start"]] - opt[["side-bp"]], opt[["end"]] + opt[["side-bp"]], opt[["name-selected-region"]], sep = "_"), ".RData")
-save(spatial_str, file = output_name)
+#output_name <- paste0(paste(opt[["chr"]], opt[["start"]] - opt[["side-bp"]], opt[["end"]] + opt[["side-bp"]], opt[["name-selected-region"]], sep = "_"), ".RData")
+save(spatial_str, file = opt[["output"]])
