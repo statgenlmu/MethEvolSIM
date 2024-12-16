@@ -60,11 +60,39 @@ I also got the following error when trying to run the rule `run_sim`:
 
 ```{bash, eval = FALSE}
 Conda must be version 24.7.1 or later, found version 22.11.1. Please update conda to the latest version. Note that you can also install conda into the snakemake environment without modifying your main conda installation.
-# Then I installed conda into the snakemake environment with
+# Then I tried to install conda into the snakemake environment with
 conda activate abc_inferences
-conda install -c conda-forge conda 
+(abc_inferences) saracv@australia:~/MasterThesis/MethEvolSIM/extensive_tests/abc_inferences$ conda install conda=24.11.0                                                                                                                      
+Collecting package metadata (current_repodata.json): done                                                                                                                                                                                 
+Solving environment: done                                                                                                                                                                                                              
+==> WARNING: A newer version of conda exists. <==                                                                                                                          
+  current version: 22.11.1                                                                                                               
+  latest version: 24.11.0                                                                                                                                                                                                     
+Please update conda by running                                                                                                                                                                                                           
+    $ conda update -n base -c conda-forge conda                                                                                                                                                                                          
+Or to minimize the number of packages updated during conda update use                                                                                                                                                                         
+     conda install conda=24.11.0
+
+# All requested packages already installed.
+
+(abc_inferences) saracv@australia:~/MasterThesis/MethEvolSIM/extensive_tests/abc_inferences$ conda --version
+conda 22.11.1
+
 ```
 
+**This does not seem to work. I tried it out with**:
+
+```{bash, eval = FALSE}
+conda activate snakemake
+nohup nice snakemake --use-conda run_sim > run_sim.out &
+```
+
+and seems to be stuck in:
+
+```{bash, eval = FALSE}
+cat run_sim.out 
+Injecting conda environment /home/saracv/MasterThesis/MethEvolSIM/extensive_tests/abc_inferences/environment.yaml.
+```
 
 
 # Selection of genomic region(s)

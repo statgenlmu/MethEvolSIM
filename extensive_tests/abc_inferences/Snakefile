@@ -24,8 +24,8 @@ region_workdir = os.path.join(
 )
 
 # Global environment definition
-conda:
-    os.path.join(base_path, "environment.yaml")
+#conda:
+#    os.path.join(base_path, "environment.yaml")
 
 
 # Set the working directory based on the config file
