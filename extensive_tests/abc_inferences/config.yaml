@@ -15,6 +15,13 @@ methSite_genomicDist:
   # /home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/spatial_str.RData
   #/scratch/saracv/abc/cichlids/test1/spatial_str.RData
   
+selected_region:
+  name: dpp4
+  chr: NC_036801.1
+  start: 29502362
+  end: 29502362
+  side_bp: 500000 # to select structures starting after start - side_bp and ending before end + side_bp
+  
   
 tree: ((1:0.5,2:1):9,3:10);
 

@@ -14,9 +14,27 @@ print(f"Config file: {config_path}")
 print(f"Scripts directory: {scripts_dir}")
 print(f"Base path: {base_path}")
 
+# Define the working directory for the selected region
+region_workdir = os.path.join(
+    config["dir"],
+    config["selected_region"]["chr"] + "_" +
+    str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" +
+    str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" +
+    config["selected_region"]["name"]
+)
+
+
 # Set the working directory based on the config file
-workdir: config["dir"] 
-print(f"Working directory: {config['dir']}")
+workdir: region_workdir
+print(f"Working directory: {region_workdir}")
+
+rule setup_workdir:
+    output:
+        region_dir=region_workdir
+    shell:
+        """
+        mkdir -p {output.region_dir}
+        """
 
 
 # Rule to get the CpG counts in island and non-island regions
@@ -33,6 +51,23 @@ rule get_CpG_count:
         Rscript {scripts_dir}/get_CpG_count.R --reference-genome {input.reference_genome} --CGI-annotation {input.CGI_annotation} --output {output.CpG_counts} > {log}
         """
 
+# Rule to get the spatial_str.RData file for the genomic region to simulate
+rule get_spatial_str:
+    input:
+        CpG_counts = os.path.join(base_path, config["methSite_genomicDist"]["CpG_count"])
+    output:
+        spatial_str = os.path.join(region_workdir, config["selected_region"]["chr"] + "_" + str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" + str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" + config["selected_region"]["name"] + ".RData")
+    params:
+    	region_name = config["selected_region"]["name"],
+    	region_chr = config["selected_region"]["chr"],
+    	region_start = config["selected_region"]["start"],
+    	region_end = config["selected_region"]["end"],
+    	region_side_bp = config["selected_region"]["side_bp"]
+    shell:
+        """
+        Rscript {scripts_dir}/get_spatial_str.R --input {input.CpG_counts} --name-selected-region {params.region_name} --chr {params.region_chr} --start {params.region_start} --end {params.region_end} --side-bp {params.region_side_bp} 
+        """
+    	
 
 # Rule to generate design files
 rule set_design:

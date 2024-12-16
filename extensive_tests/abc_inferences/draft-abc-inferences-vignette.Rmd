@@ -28,7 +28,7 @@ load_all()
 
 ```{r}
 # Load data
-file_path <- "CGI-Mzebra.txt" # Adjust the path if necessary
+file_path <- "genomic_dist/CGI-Mzebra.txt" # Adjust the path if necessary
 cgi_data <- read.table(file_path, header = TRUE, sep = "\t")
 
 # View the first lines
@@ -68,7 +68,9 @@ boxplot(count ~ group, data = cgi_data,
 
 ```
 
+## Fixed DMR found in paper: Associated genes
 
+Add reference
 
 - *Smad4a*: LOC101481185. Fixed but not associated with differential expression.
 
@@ -78,14 +80,16 @@ Genes reported as fixed DMR with significant transcriptional downregulation in b
 
 - *Ces2*: Liver carboxylesterase 2, part of the fatty acid methabolic pathway. Location according to NCBI annotation release 104 (LOC101473569):  	NW_020192811.1 (49164..53741, complement) 
 
+Lets explore *Dpp4*, as it is associated with differential gene expression and it is located in a better characterized genomic region:
+
 ```{r}
-head(cgi_data[cgi_data$chr == "NC_036801.1",])
+dpp4_chr <- "NC_036801.1"
+dpp4_start <- 29502362
+dpp4_end <- 29517382
 ```
 
 
-
-
-## How to generate the structural distribution .RData file from the reference genome and the CGI annotation
+## Explore the CpG counts in islands and non islands generated from the reference genome and the CGI annotation
 
 Requires the following packages (already included in environment.yaml):
 ```{r, eval = FALSE}
@@ -94,19 +98,14 @@ BiocManager::install("Biostrings")
 ```
 
 
-
-
-
 ```{r}
 load("genomic_dist/CpG_count.RData")
-
 ```
-29502362..29517382
+
 
 ```{r}
 # Filter the data for the given chromosome and region
-dpp4_chr <- "NC_036801.1"
-filtered_data <- CpG_count[CpG_count$chr == dpp4_chr & CpG_count$start > 2.8e7 & CpG_count$end < 3e7, ]
+filtered_data <- CpG_count[CpG_count$chr == dpp4_chr & CpG_count$start > dpp4_start - 5e5 & CpG_count$start < dpp4_end + 5e5, ]
 
 # Set up the plot area
 plot(filtered_data$start, filtered_data$CpG_count, 
@@ -121,7 +120,7 @@ for (i in 1:nrow(filtered_data)) {
   # Calculate the width of each region (difference between start and end)
   region_width <- filtered_data$end[i] - filtered_data$start[i]
   
-  if (filtered_data$str[i] == 0) {
+  if (filtered_data$str[i] == "Non-island") {
     # Non-island (blue)
     rect(filtered_data$start[i], 0, filtered_data$end[i], 
          filtered_data$CpG_count[i], col = "blue", border = "blue")
@@ -132,6 +131,11 @@ for (i in 1:nrow(filtered_data)) {
   }
 }
 
+# Add vertical lines showing where the gene is
+abline(v = dpp4_start)
+abline(v = dpp4_end)
+
+
 # Add a legend
 legend("topright", legend = c("Non-Island", "Island"), 
        fill = c("blue", "red"), title = "Island Type")
@@ -141,9 +145,6 @@ legend("topright", legend = c("Non-Island", "Island"),
 ```{r}
 
 # Filter the data for the given chromosome and region
-dpp4_chr <- "NC_036801.1"
-dpp4_start <- 29502362
-dpp4_end <- 29517382
 filtered_data <- CpG_count[CpG_count$chr == dpp4_chr & CpG_count$start > dpp4_start - 5e5 & CpG_count$end < dpp4_end + 5e5, ]
 
 # Calculate the CpG density for each region (CpG count / region length)
