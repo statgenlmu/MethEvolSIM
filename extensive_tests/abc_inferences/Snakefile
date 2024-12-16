@@ -29,10 +29,10 @@ region_workdir = os.path.join(
 
 
 # Set the working directory based on the config file
-workdir: region_workdir
-print(f"Working directory: {region_workdir}")
+#workdir: region_workdir
+#print(f"Working directory: {region_workdir}")
 
-rule setup_workdir:
+rule setup_output_dir:
     output:
         region_dir=region_workdir
     shell:
