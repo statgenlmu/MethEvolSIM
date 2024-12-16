@@ -72,7 +72,7 @@ rule get_spatial_str:
 # Rule to generate design files
 rule set_design:
     input:
-        genome_dist=config["methSite_genomicDist"],  # Genomic distribution file
+        spatial_str = os.path.join(region_workdir, config["selected_region"]["chr"] + "_" + str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" + str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" + config["selected_region"]["name"] + ".RData")
     output:
         design_file=config["dir"] + "/design.RData"  # Path for the design file
     params:
