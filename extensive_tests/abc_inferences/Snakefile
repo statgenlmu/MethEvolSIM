@@ -147,8 +147,7 @@ rule run_sim:
         "run_sim.out"
     shell:
         """
-        echo "Generating output files: {output}"  # Diagnostic step
-        Rscript {scripts_dir}/run_sim.R --input {input.design_file} --n-tips {params.tip_number} --n-cores {params.cores_number} --CFTP {params.cftp}> {log}
+        Rscript {scripts_dir}/run_sim.R --input {input.design_file} --n-tips {params.tip_number} --n-cores {params.cores_number} --CFTP {params.cftp} > {log}
         """
 
 # Rule to compute the summary statistics
