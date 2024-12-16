@@ -74,7 +74,7 @@ rule set_design:
     input:
         spatial_str = os.path.join(region_workdir, config["selected_region"]["chr"] + "_" + str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" + str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" + config["selected_region"]["name"] + ".RData")
     output:
-        design_file=config["dir"] + "/design.RData"  # Path for the design file
+        design_file= os.path.join(region_workdir, design.RData)  # Path for the design file
     params:
         sim_number = config["n_sim"],
         tree=config["tree"],  # Newick tree
