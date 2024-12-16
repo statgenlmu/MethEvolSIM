@@ -44,6 +44,8 @@ But it can be alternativelly installed by:
 conda activate abc_inferences
 R
 install.packages("parallel")
+## Another package it is still dependent on is
+install.packages("devtools")
 ```
 
 
