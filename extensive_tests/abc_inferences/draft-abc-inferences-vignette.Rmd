@@ -34,6 +34,26 @@ Are listed under the file `environment.yaml`. Before running the workflow, a con
 conda env create -n abc_inferences -f environment.yaml
 ```
 
+I got error with:
+
+- `r-parallel`         # parallel for R
+
+But it can be alternativelly installed by:
+
+```{bash, eval = FALSE}
+conda activate abc_inferences
+R
+install.packages("parallel")
+```
+
+
+Then, the workflow can be run by:
+
+```{bash, eval = FALSE}
+conda activate abc_inferences
+snakemake --use-conda
+```
+
 
 # Selection of genomic region(s)
 

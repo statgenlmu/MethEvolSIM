@@ -136,7 +136,7 @@ rule set_design:
 # Rule to run the simulations
 rule run_sim:
     input:
-        design_file=config["dir"] + "/design.RData"  # Path for the design file
+        design_file= os.path.join(region_workdir, "design.RData")
     params:
         cores_number = config["n_cores"],
         tip_number = config["n_tips"],

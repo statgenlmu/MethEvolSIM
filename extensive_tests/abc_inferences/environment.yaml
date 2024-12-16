@@ -11,6 +11,8 @@ dependencies:
   - r-devtools         # devtools for R
   - r-optparse         # optparse for R
   - bioconductor-biostrings  # Biostrings from Bioconductor
+  - r-ape	       # ape for R
+  - r-parallel	       # parallel for R
 
 
 
