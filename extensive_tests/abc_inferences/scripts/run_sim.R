@@ -21,17 +21,9 @@ opt <- parse_args(opt_parser)
 
 # Load the simulation design file
 load(opt[["input"]])
-print("here")
-print(head(sampled_params))
-print(scaled_trees)
-print(spatial_str)
 
 # Define the number of runs and cores
 n_sim <- nrow(sampled_params)
-n_cores <- opt[["n-cores"]]
-print("here 2")
-print(opt[["n-cores"]])
-print(opt[["CFTP"]])
 
 # Generate pad_n based on the number of digits in n_sim
 # To save the files with padded numbers so that are later listed in order with list.files()
@@ -84,7 +76,6 @@ run_simulation_subset <- function(start_idx, end_idx) {
 }
 
 
-print("here3")
 
 # Calculate the number of runs per chore
 runs_per_chore <- ceiling(n_sim / n_cores)
