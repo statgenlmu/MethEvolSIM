@@ -106,7 +106,7 @@ rule set_design:
         Rscript {scripts_dir}/set_sim_design.R \
             --n-sim {params.sim_number} \
             --dir {output.design_file} \
-            --genome-dist {input.genome_dist} \
+            --genome-dist {input.spatial_str} \
             --tree '{params.tree}' \
             --seed {params.seed} \
             --alpha_pI_shape {params.alpha_pI_shape} \
