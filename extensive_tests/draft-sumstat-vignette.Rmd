@@ -232,3 +232,5 @@ We compare the methylation state of single sites at the tree cherries. A cherry 
 We calculate the frequency of sites that changes for each structure.
 
 get_FChange_cherryData (uses find_cherries --get_cherryDist-- and cherry_diffs -- now count_cherryMethDiff )
+
+NOTE: Summary statistics related with tree cherries will require a 
