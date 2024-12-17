@@ -80,7 +80,7 @@ run_simulation_subset <- function(start_idx, end_idx) {
 
 
 # Calculate the number of runs per chore
-runs_per_chore <- ceiling(n_sim / n_cores)
+runs_per_chore <- ceiling(n_sim / opt[["n-cores"]])
 
 # Divide the runs among the cores
 run_indices <- split(seq_len(n_sim), ceiling(seq_along(seq_len(n_sim)) / runs_per_chore))
@@ -89,4 +89,4 @@ run_indices <- split(seq_len(n_sim), ceiling(seq_along(seq_len(n_sim)) / runs_pe
 chunks <- lapply(run_indices, function(idx) c(min(idx), max(idx)))
 
 # Run the simulation subsets in parallel
-mclapply(chunks, function(chunk) run_simulation_subset(chunk[1], chunk[2]), mc.cores = n_cores)
+mclapply(chunks, function(chunk) run_simulation_subset(chunk[1], chunk[2]), mc.cores = opt[["n-cores"]])
