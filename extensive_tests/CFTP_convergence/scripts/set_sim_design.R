@@ -56,6 +56,7 @@ sampled_params <- data.frame(
   iota = runif(opt[["n-sim"]], min = opt[["iota_min"]], max = opt[["iota_max"]])
 )
 
+
 # Due to numerical limitations, the smallest value of iota and alpha_Ri used by MethEvolSIM is 0.01
 # Therefore we correct the sampled values to represent the ones that will be used to simulate data
 sampled_params$alpha_Ri[sampled_params$alpha_Ri<1e-2] <- 1e-2
@@ -65,6 +66,6 @@ sampled_params$iota[sampled_params$iota<1e-2] <- 1e-2
 load(file = opt[["genome-dist"]])
 
 # Save the sampled parameters, the tree and the distribution of methylation sites in the design file
-save(spatial_str, sampled_params, file = opt[["dir"]])
+save(spatial_str, sampled_params, file = opt[["output"]])
 
 

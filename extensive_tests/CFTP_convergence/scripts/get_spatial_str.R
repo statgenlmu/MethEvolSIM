@@ -22,5 +22,5 @@ spatial_str <- data.frame(n = rep(opt[["CpG-n"]], 2*opt[["str-n"]]),
                           globalState = rep(c("U", "M"), opt[["str-n"]]))
 
 # Save the spatial structure
-file_path <- file.path(opt[["CpG-n"]], opt[["file-name"]])
+file_path <- file.path(opt[["dir"]], opt[["file-name"]])
 save(spatial_str, file = file_path)

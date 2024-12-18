@@ -10,3 +10,4 @@ dependencies:
   - r-base>=4.0        # R version >= 4.0
   - r-devtools         # devtools for R
   - r-optparse         # optparse for R
+  - r-parallel

@@ -53,7 +53,7 @@ rule set_design:
         Rscript scripts/set_sim_design.R \
             --n-sim {params.sim_number} \
             --output {output.design_file} \
-            --genome-dist {input.genome_dist} \
+            --genome-dist {input.spatial_str} \
             --seed {params.seed} \
             --alpha_pI_shape {params.alpha_pI_shape} \
             --alpha_pI_scale {params.alpha_pI_scale} \
@@ -82,27 +82,27 @@ rule run_sim:
     input:
         design_file=config["dir"] + "/design.RData"  # Path for the design file
     params:
+        out_dir = config["dir"],
         branch_length = config["branch_length"],
         start = config["start"],
         end = config["end"],
         rep_n = config["replicate_n"]
     output:
         expand(
-            "CFTP_testConvergence_paramsID_{n}_rep_{r}_{s}.RData",
+            config["dir"] + "/CFTP_testConvergence_paramsID_{n}_rep_{r}_{s}.RData",
             n=[str(i).zfill(len(str(config["n_sim"]))) for i in range(1, config["n_sim"] + 1)],
             r=[str(i).zfill(len(str(config["replicate_n"]))) for i in range(1, config["replicate_n"] + 1)],
             s=[str(i).zfill(len(str(config["end"])) + 1) for i in range(config["start"] - 1, config["end"] + 1)]
         ),
         expand(
-            "CFTP_testConvergence_paramsID_{n}_rep_{r}_cftp.RData",
+            config["dir"] + "/CFTP_testConvergence_paramsID_{n}_rep_{r}_cftp.RData",
             n=[str(i).zfill(len(str(config["n_sim"]))) for i in range(1, config["n_sim"] + 1)],
             r=[str(i).zfill(len(str(config["replicate_n"]))) for i in range(1, config["replicate_n"] + 1)]
         )
-    log:
-        "run_sim.out"
+
     shell:
         """	
-        Rscript {scripts_dir}/run_sim.R --design-file {input.design_file} --branch-length {params.branch_length} --start {params.start} --end {params.end} --replicate-n {params.rep_n} > {log}
+        Rscript scripts/run_sim.R --design-file {input.design_file} --dir {params.out_dir} --branch-length {params.branch_length} --start {params.start} --end {params.end} --replicate-n {params.rep_n} 
         """
 
 

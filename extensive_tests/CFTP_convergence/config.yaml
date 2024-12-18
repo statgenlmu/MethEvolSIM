@@ -11,7 +11,7 @@ end: 251
 replicate_n: 10
 
 dir:
-  /scratch/saracv/CFTP_testConvergence
+  /scratch/saracv/CFTP_testConvergence/SSE_imp
 
 methSite_genomicDist: 
   spatial_str.RData
