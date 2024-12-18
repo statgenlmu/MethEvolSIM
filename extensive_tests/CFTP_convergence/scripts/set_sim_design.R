@@ -1,9 +1,8 @@
 library(optparse)
-library(ape)
 
 # Define command-line options with unique letters
 option_list <- list(
-  make_option("--dir", type = "character", default = NULL,
+  make_option("--output", type = "character", default = NULL,
               help = "Full path to save the design file", metavar = "character"),
   make_option("--genome-dist", type = "character", default = NULL,
               help = "Distribution of methylation sites in the genomic region", metavar = "character"),

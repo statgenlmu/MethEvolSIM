@@ -4,12 +4,26 @@ import os
 # Set the configfile directive
 configfile: "config.yaml"
 
+# Rule to get the spatial_str.RData file for the genomic region to simulate
+rule get_spatial_str:
+    output:
+        spatial_str = os.path.join(config["dir"], config["methSite_genomicDist"])
+    params:
+    	out_dir = config["dir"],
+    	out_name = config["methSite_genomicDist"],
+    	n_CpG = config["CpG_n"],
+    	n_str = config["Str_n"]
+    shell:
+        """
+        Rscript scripts/get_spatial_str.R --dir {params.out_dir} --file-name {params.out_name} --CpG-n {params.n_CpG} --str-n {params.n_str}
+        """
+
 # Rule to generate design files
 rule set_design:
     input:
-        genome_dist=genome_dist_path  # Use resolved path for the genomic distribution file
+        spatial_str = os.path.join(config["dir"], config["methSite_genomicDist"])
     output:
-        design_file=config["dir"] + "/design.RData"  # Path for the design file
+        design_file= config["dir"] + "/design.RData"  # Path for the design file
     params:
         sim_number = config["n_sim"],
         seed=config["seed"],
@@ -38,7 +52,7 @@ rule set_design:
         """
         Rscript scripts/set_sim_design.R \
             --n-sim {params.sim_number} \
-            --dir {output.design_file} \
+            --output {output.design_file} \
             --genome-dist {input.genome_dist} \
             --seed {params.seed} \
             --alpha_pI_shape {params.alpha_pI_shape} \
