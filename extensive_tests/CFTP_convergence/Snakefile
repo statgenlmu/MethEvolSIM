@@ -1,26 +1,8 @@
+# Import os for path manipulations
 import os
 
-# Define the base path as the directory where the config file is located
-base_path = os.getcwd()  # Assuming Snakemake is executed from this directory
-config_path = os.path.join(base_path, "config.yaml")
-scripts_dir = os.path.join(base_path, "scripts")
-
 # Set the configfile directive
-configfile: config_path
-
-# Debugging information
-print(f"Config file: {config_path}")
-print(f"Scripts directory: {scripts_dir}")
-
-# Resolve the genome_dist file path
-genome_dist_path = os.path.join(base_path, config["methSite_genomicDist"])
-
-# Debugging the genome_dist path
-print(f"Genome distribution file path: {genome_dist_path}")
-
-# Set the working directory based on the config file
-workdir: config["dir"]
-print(f"Working directory: {config['dir']}")
+configfile: "config.yaml"
 
 # Rule to generate design files
 rule set_design:
@@ -54,7 +36,7 @@ rule set_design:
         
     shell:
         """
-        Rscript {scripts_dir}/set_sim_design.R \
+        Rscript scripts/set_sim_design.R \
             --n-sim {params.sim_number} \
             --dir {output.design_file} \
             --genome-dist {input.genome_dist} \

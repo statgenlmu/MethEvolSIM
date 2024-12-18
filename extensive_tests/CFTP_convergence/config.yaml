@@ -11,7 +11,7 @@ end: 251
 replicate_n: 10
 
 dir:
-  /scratch/saracv/CFTP_test/test
+  /scratch/saracv/CFTP_testConvergence
 
 methSite_genomicDist: 
   spatial_str.RData
@@ -63,6 +63,12 @@ prior_distributions:
   tree_scale:
     min: 0.1
     max: 20
+
+# Number of CpGs per structure
+CpG_n: 100
+
+# Number of structures of each type
+Str_n: 20
 
 
 
