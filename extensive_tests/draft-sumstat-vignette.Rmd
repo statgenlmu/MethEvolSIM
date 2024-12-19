@@ -229,8 +229,31 @@ compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, samp
 
 We compare the methylation state of single sites at the tree cherries. A cherry is a pair of leaf nodes (also called tips or terminal nodes) in a phylogenetic tree that share a direct common ancestor. In other words, if two leaves are connected to the same internal node and no other leaves are connected to that internal node, they form a cherry.
 
-We calculate the frequency of sites that changes for each structure.
+We calculate the frequency of sites that changes for each structure (island and non-island structures).
+
+Let $S_k$ be the set of sites in the cherry structure of interest, where $k$ represents the index of the cherry structure. For each site in $S_k$, let the methylation state at a given tip $t$ be denoted as $m_{k,s,t}$, where $s \in S_k$ is the index of the site, and $m_{k,s,t} \in {0, 0.5, 1}$ represents the methylation state at tip $t$ (unmethylated, partially-methylated, or methylated, respectively).
+
+For a given cherry structure, we compute in the proportion of sites that have a different methylation state between two tips, say $t_1$ and $t_2$.
+
+Define the indicator variable:
+\[
+\delta_{k,s,t_1,t_2} =
+\begin{cases}
+1, & \text{if } m_{k,s,t_1} \neq m_{k,s,t_2}, \\
+0, & \text{if } m_{k,s,t_1} = m_{k,s,t_2}.
+\end{cases}
+\]
+
+Then, the summary statistic for the proportion of sites with different methylation states between tips $t_1$ and $t_2$ in the cherry structure $k$ is:
+\[
+\text{Proportion}_k(t_1, t_2) = \frac{1}{|S_k|} \sum_{s \in S_k} \delta_{k,s,t_1,t_2}
+\]
+
+where $|S_k|$ is the total number of sites in the cherry structure $k$, and the sum counts the number of sites with different methylation states between tips $t_1$ and $t_2$.
+
+This statistic gives the proportion of sites in the cherry structure $k$ where the methylation state differs between the two tips of interest.
+
 
 get_FChange_cherryData (uses find_cherries --get_cherryDist-- and cherry_diffs -- now count_cherryMethDiff )
 
-NOTE: Summary statistics related with tree cherries will require a 
+NOTE: Summary statistics related with tree cherries require a tree with tip labels as:
