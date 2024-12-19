@@ -94,6 +94,8 @@ cat run_sim.out
 Injecting conda environment /home/saracv/MasterThesis/MethEvolSIM/extensive_tests/abc_inferences/environment.yaml.
 ```
 
+**IMPORTANT: BOTH HERE AND IN CFTP ENVIRONMENT.YAML BEFORE SUBMITTING CHANGE DEVTOOLS BY METHEVOLSIM**
+
 
 # Selection of genomic region(s)
 
@@ -237,7 +239,7 @@ plot(filtered_data$start, filtered_data$CpG_density,
 
 # Add points colored by 'str' (0 for non-island, 1 for island)
 points(filtered_data$start, filtered_data$CpG_density, 
-       col = ifelse(filtered_data$str == 1, "red", "blue"), 
+       col = ifelse(filtered_data$str == "Island", "red", "blue"), 
        pch = 16)  # pch=16 gives filled circles
 
 # Add vertical lines showing where the gene is
