@@ -144,4 +144,31 @@ rule compute_meanCor:
         Rscript scripts/compute_meanCor.R --design-file {params.design_file} --dir {params.dir} --n-sim {params.n_sim} --start {params.start} --end {params.end} --replicate-n {params.rep_n} 
         """
 
+# Rule to compute the mean Correlation
+rule plot_results:
+    input:
+        expand(
+            config["dir"] + "/summaryStats_CFTP_testConvergence_paramsID_{n}_rep_{r}.RData",
+            n=[str(i).zfill(len(str(config["n_sim"]))) for i in range(1, config["n_sim"] + 1)],
+            r=[str(i).zfill(len(str(config["replicate_n"]))) for i in range(1, config["replicate_n"] + 1)]
+        ),
+        expand(
+            config["dir"] + "/summaryStats_CFTP_testConvergence_paramsID_{n}_cftp.RData",
+            n=[str(i).zfill(len(str(config["n_sim"]))) for i in range(1, config["n_sim"] + 1)]
+        )
+    output:
+        expand(
+            "Figures/CFTP_testConvergence_paramsID_{n}.pdf",
+            n=[str(i).zfill(len(str(config["n_sim"]))) for i in range(1, config["n_sim"] + 1)]
+        )
+    params:
+        dir = config["dir"],
+        design_file = "/design.RData",
+        n_sim = config["n_sim"],
+        rep_n = config["replicate_n"]
+    shell:
+        """
+        mkdir -p Figures
+        Rscript scripts/plot.R --dir {params.dir} --design-file-name {params.design_file} --n-sim {params.n_sim} --replicate-n {params.replicate_n}
+        """
 

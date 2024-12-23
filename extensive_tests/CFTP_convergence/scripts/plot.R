@@ -9,10 +9,6 @@ option_list <- list(
               help = "Name of the simulation design file", metavar = "character"),
   make_option("--n-sim", type = "integer", default = NULL,
               help = "Number of simulations", metavar = "integer"),
-  make_option(c("-s", "--start"), type = "integer", default = NULL,
-              help = "start step number for simulating evol", metavar = "integer"),
-  make_option(c("-e", "--end"), type = "integer", default = NULL,
-              help = "end step number for simulating evol", metavar = "integer"),
   make_option(c("-r", "--replicate-n"), type = "integer", default = NULL,
               help = "number of data replicates to simulate", metavar = "integer")
 )
@@ -23,7 +19,7 @@ opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
 # Get the names of required options (you can update this based on what's mandatory)
-required_options <- c("dir", "design-file", "branch-length", "start", "end", "replicate-n")
+required_options <- c("dir", "design-file-name", "n-sim", "replicate-n")
 
 # Check that all required options are not NULL
 missing_options <- required_options[sapply(required_options, function(x) is.null(opt[[x]]))]
