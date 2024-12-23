@@ -71,7 +71,7 @@ simul_CFTP_branch <- function(custom_params, params_pad_n, index_params, b_lengt
   print(custom_params)
   
   # Set seed
-  set.seed(index_params)
+  set.seed(index_params * 1000 + replicate_n)
   
   if(start == 1){
     
@@ -157,7 +157,7 @@ simul_CFTP_tests <- function(index_params){
 
 # Run in parallel using mclapply
 
-mclapply(1:(opt[["end"]]- opt[["start"]]), function(index_params) simul_CFTP_tests(index_params), mc.cores = n_sim)
+mclapply(1:n_sim, simul_CFTP_tests, mc.cores = n_sim)
 
 
 
