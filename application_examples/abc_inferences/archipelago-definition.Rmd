@@ -1,0 +1,97 @@
+---
+title: "Definition of Archipelagos"
+author: "Sara"
+date: "`r Sys.Date()`"
+output: html_document
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# If missing, install required packages
+
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+if (!requireNamespace("rtracklayer", quietly = TRUE)) {
+  BiocManager::install("rtracklayer")
+}
+
+library(rtracklayer)
+```
+
+
+# Archipelago definition
+
+We define archipelagos as genomic regions containing clusters of CGIs. We can interpret archipelagos as regions of the genome larger than CGI that together may regulate a gene or set of genes. Therefore, an approach to define archipelagos can be to choose thresholds that lead to clustering CGI in a way so that each archipelago overlaps with a promoter region (or maximizes cases of overlap single-archipelago and promoter).
+
+Our approach then has the following steps:
+
+1. Definition of promoter regions.
+2. Filtering of CGI by promoter overlap.
+
+
+## Definition of promoter regions
+
+As in [@vernaz2022epigenetic], since no functional annotation exists for Lake Malawi cichlid genomes, we define promoter regions in silico as regions ±1 kbp around the TSS.
+
+For that, we use [Annotation Features File (GTF) from the NCBI RefSeq Assembly](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000238955.4/)
+
+```{r}
+# Load the GTF file
+gtf_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/genomic.gtf" 
+gtf <- import(gtf_file)
+head(gtf)
+```
+
+The gtf file is structured as a GRanges object containing genomic annotation information with the following key components (columns):
+
+- `seqnames`: Chromosome or scaffold name (e.g., NC_036780.1).
+
+- `ranges`: Start and end positions of the genomic feature.
+
+- `strand`: Strand of the feature (+ for forward strand, - for reverse strand).
+
+- `source`: Annotation source (e.g., Gnomon).
+
+- `type`: Feature type (e.g., gene, transcript, exon).
+
+- `Metadata`: Additional columns include gene_id, transcript_id, gene, product, gene_biotype, exon_number, etc., which describe the feature in detail.
+
+Example Entries:
+
+- Row 1: A gene on the + strand, identified as LOC106676409, classified as lncRNA.
+
+- Row 2: A transcript corresponding to the same gene.
+
+- Rows 3-5: Exons belonging to the transcript.
+
+- Row 6: A gene on the - strand, classified as protein_coding.
+
+We filter for transcripts:
+
+```{r}
+# Filter for transcripts
+gtf_transcripts <- gtf[gtf$type == "transcript", ]
+head(gtf_transcripts)
+```
+
+And define the TSS by accounting for the strand orientation so that:
+
+- For Features on the + Strand: The TSS is the smallest genomic coordinate (start).
+
+- For Features on the - Strand: The TSS is the largest genomic coordinate (end), as transcription occurs in the reverse direction.
+
+```{r}
+# Extract TSS (assuming + strand)
+promoters <- data.frame(
+  chr = seqnames(gtf_transcripts),
+  tss = ifelse(strand(gtf_transcripts) == "+", start(gtf_transcripts), end(gtf_transcripts)),
+  strand = strand(gtf_transcripts)
+)
+```
+
