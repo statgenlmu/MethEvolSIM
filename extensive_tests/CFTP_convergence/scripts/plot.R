@@ -82,14 +82,17 @@ for(index_params in 1:n_sim){
   
   # Plot non-island correlations
   plot(branchEvol_sumstats[[1]]$meanCor_ni, main = "Mean Cor. Non-Island", xlab = "Step Number", ylab = "Value", pch = 1, col = transparent_colors[1])
-  abline(h = cftp_sumstats$meanCor_i[1], col = colors[1], lty = 2, lwd = 2)
+  abline(h = cftp_sumstats$meanCor_ni[1], col = colors[1], lty = 2, lwd = 2)
   for (i in 2:n_rep){
-    points(branchEvol_sumstats[[i]]$meanCor_in, pch = i, col = transparent_colors[i])
-    abline(h = cftp_sumstats$meanCor_i[i], col = colors[i], lty = 2, lwd = 2)
+    points(branchEvol_sumstats[[i]]$meanCor_ni, pch = i, col = transparent_colors[i])
+    abline(h = cftp_sumstats$meanCor_ni[i], col = colors[i], lty = 2, lwd = 2)
   }
   
   # Add global title for all plots after the first plot is created
   mtext("Local correlations", outer = TRUE, line = 1, cex = 1.5)
+
+  # Add global subtitle
+  mtext(paste("Relative proportion of correlated single-site changes:", round(1 - sampled_params$iota[index_params], 3)), outer = TRUE, line = 0, cex = 1)
   
   dev.off()
 }

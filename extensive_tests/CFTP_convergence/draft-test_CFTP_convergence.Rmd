@@ -57,3 +57,4 @@ When using nohup one needs to activate the environment in the command.
 nohup conda run -n cftp_testConvergence snakemake run_sim &
 ```
 
+
