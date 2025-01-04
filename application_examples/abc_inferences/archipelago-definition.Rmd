@@ -10,7 +10,7 @@ bibliography: references.bib
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 # If missing, install required packages
 
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
@@ -21,6 +21,11 @@ if (!requireNamespace("rtracklayer", quietly = TRUE)) {
   BiocManager::install("rtracklayer")
 }
 
+if (!requireNamespace("GenomicRanges", quietly = TRUE)) {
+  BiocManager::install("GenomicRanges")
+}
+
+library(GenomicRanges)
 library(rtracklayer)
 ```
 
@@ -35,7 +40,7 @@ Our approach then has the following steps:
 2. Filtering of CGI by promoter overlap.
 
 
-## Definition of promoter regions
+## Step 1: Definition of promoter regions
 
 As in [@vernaz2022epigenetic], since no functional annotation exists for Lake Malawi cichlid genomes, we define promoter regions in silico as regions ±1 kbp around the TSS.
 
@@ -87,11 +92,119 @@ And define the TSS by accounting for the strand orientation so that:
 - For Features on the - Strand: The TSS is the largest genomic coordinate (end), as transcription occurs in the reverse direction.
 
 ```{r}
-# Extract TSS (assuming + strand)
+# Extract TSS
 promoters <- data.frame(
   chr = seqnames(gtf_transcripts),
   tss = ifelse(strand(gtf_transcripts) == "+", start(gtf_transcripts), end(gtf_transcripts)),
   strand = strand(gtf_transcripts)
 )
+head(promoters)
 ```
+
+The promoters data frame contains:
+
+- `chr`: Chromosome names
+
+- `tss`: Transcription start sites
+
+- `strand`: Strand orientation of the transcripts
+
+## Step 2: Filtering of CGI by promoter overlap
+
+CGI annotation file (`.txt` file) obtained with makeCGI v1.3.4 [@hiddenMarkov]
+
+```{r}
+# Load the CGI annotation file
+cgi_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/CGI-Mzebra.txt" 
+cgif <- read.table(cgi_file, header = TRUE, sep = "\t")
+head(cgif)
+```
+
+Convert the promoter and CGI data to `GRanges` objects for genomic interval operations:
+
+```{r}
+# Create GRanges for promoters
+promoter_gr <- GRanges(
+  seqnames = promoters$chr,
+  ranges = IRanges(start = promoters$tss, end = promoters$tss),
+  strand = promoters$strand
+)
+
+# Create GRanges for CGI
+cgi_gr <- GRanges(
+  seqnames = cgif$chr,
+  ranges = IRanges(start = cgif$start, end = cgif$end)
+)
+```
+
+Use `findOverlaps` to find promoters within or near CpG islands:
+
+```{r}
+# Find overlaps
+overlaps <- findOverlaps(promoter_gr, cgi_gr)
+
+# Extract overlapping promoter indices
+promoters_with_cgi <- promoters[queryHits(overlaps), ]
+cgi_overlaps <- cgif[subjectHits(overlaps), ]
+
+# Combine data for output
+promoter_cgi_overlap <- cbind(promoters_with_cgi, cgi_overlaps)
+head(promoter_cgi_overlap)
+```
+
+The `promoter_cgi_overlap` dataset combines information about promoters and CpG islands (CGIs) where they overlap. It contains the following columns:
+
+- `chr`: The chromosome where the promoter is located.
+    
+- `tss`: The transcription start site (TSS) position of the promoter.
+
+- `strand`: The strand of the promoter (+ or -).
+
+- `chr`: The chromosome where the CGI is located (same as the promoter in the overlap context).
+
+- `start`: The start position of the overlapping CGI.
+
+- `end`: The end position of the overlapping CGI.
+
+- `length`: The length of the CGI in base pairs.
+
+- `CpGcount`: The number of CpG dinucleotides within the CGI.
+
+- `GCcount`: The number of G and C nucleotides within the CGI.
+
+- `pctGC`: The percentage of G and C nucleotides within the CGI.
+
+- `obsExp`: The observed-to-expected ratio of CpG dinucleotides in the CGI.
+
+Each row corresponds to an overlap between a promoter and a CGI. For example:
+
+- The first row shows that a promoter at TSS 755,445 on the negative strand overlaps with a CGI on chromosome NC_036780.1 spanning positions 755,397 to 756,689. This CGI has a length of 1,293 bp, contains 123 CpG dinucleotides, and has a GC content of 63.19% with an observed-to-expected CpG ratio of 0.954.
+
+- The overlap is detailed for both the promoter and the CGI, including their respective properties.
+
+```{r}
+#write.table(promoter_cgi_overlap, file = "promoter_cgi_overlap.txt", sep = "\t", row.names = FALSE)
+promoter_cgi_overlap <- read.table("/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/promoter_cgi_overlap.txt")
+```
+
+### Check TSS overlap density
+
+```{r}
+plot(
+  promoter_cgi_overlap$length, 
+  promoter_cgi_overlap$pctGC, 
+  xlab = "CGI Length (bp)", 
+  ylab = "GC Content (%)", 
+  main = "Relationship Between CGI Length and GC Content",
+  pch = 16,  # Solid circle points
+  col = "blue"  # Point color
+)
+
+```
+
+
+```{r}
+
+```
+
 
