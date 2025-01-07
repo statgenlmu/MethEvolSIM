@@ -51,7 +51,35 @@ replicate_pad_n = nchar(as.character(n_rep))
 colors <- rainbow(n_rep)
 transparent_colors <- sapply(colors, function(col) adjustcolor(col, alpha.f = 0.2))  # alpha.f is a transparency factor (0=fully transparent, 1=opaque)
 
+# Function to generate the plot
+generate_plot <- function(branchEvol_sumstats, cftp_sumstats, colors, transparent_colors, sampled_params, index_params, n_rep) {
+  # Set up layout for 1 rows, 2 columns, and space for a global title (oma parameter)
+  par(mfrow = c(1, 2), oma = c(0, 0, 3, 0))  # oma reserves space at the top for the title
+  
+  # Plot island correlations
+  plot(branchEvol_sumstats[[1]]$meanCor_i, main = "Mean Cor. Island", xlab = "Step Number", ylab = "Value", pch = 1, col = transparent_colors[1])
+  abline(h = cftp_sumstats$meanCor_i[1], col = colors[1], lty = 2, lwd = 2)
+  for (i in 2:n_rep) {
+    points(branchEvol_sumstats[[i]]$meanCor_i, pch = i, col = transparent_colors[i])
+    abline(h = cftp_sumstats$meanCor_i[i], col = colors[i], lty = 2, lwd = 2)
+  }
+  
+  # Plot non-island correlations
+  plot(branchEvol_sumstats[[1]]$meanCor_ni, main = "Mean Cor. Non-Island", xlab = "Step Number", ylab = "Value", pch = 1, col = transparent_colors[1])
+  abline(h = cftp_sumstats$meanCor_ni[1], col = colors[1], lty = 2, lwd = 2)
+  for (i in 2:n_rep) {
+    points(branchEvol_sumstats[[i]]$meanCor_ni, pch = i, col = transparent_colors[i])
+    abline(h = cftp_sumstats$meanCor_ni[i], col = colors[i], lty = 2, lwd = 2)
+  }
+  
+  # Add global title for all plots
+  mtext("Local correlations", outer = TRUE, line = 1, cex = 1.5)
+  
+  # Add global subtitle
+  mtext(paste("Relative proportion of correlated single-site changes:", round(1 - sampled_params$iota[index_params], 3)), outer = TRUE, line = 0, cex = 1)
+}
 
+# Loop to generate the plots
 for(index_params in 1:n_sim){
   padded_index_params <- formatC(index_params, width = params_pad_n, format = "d", flag = "0")
   
@@ -62,38 +90,23 @@ for(index_params in 1:n_sim){
     load(file.path(dir, paste0("summaryStats_CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, ".RData")))
     branchEvol_sumstats[[rep]] <- summaryStats
   }
-  # Load the ksummary statistics of the cftp method and save them
+  # Load the summary statistics of the cftp method and save them
   load(file.path(dir, paste0("summaryStats_CFTP_testConvergence_paramsID_", padded_index_params, "_cftp.RData")))
   cftp_sumstats <- summaryStats
   rm(summaryStats)
   
-  pdf(paste0("Figures/CFTP_testConvergence_paramsID_", padded_index_params,".pdf"), width = 8, height = 4)
+  # Define file paths
+  pdf_file <- paste0("Figures/CFTP_testConvergence_paramsID_", padded_index_params, ".pdf")
+  png_file <- paste0("Figures/CFTP_testConvergence_paramsID_", padded_index_params, ".png")
   
-  # Set up layout for 1 rows, 2 columns, and space for a global title (oma parameter)
-  par(mfrow = c(1, 2), oma = c(0, 0, 3, 0))  # oma reserves space at the top for the title
+  # Save as PDF
+  pdf(pdf_file, width = 8, height = 4)
+  generate_plot(branchEvol_sumstats, cftp_sumstats, colors, transparent_colors, sampled_params, index_params, n_rep)
+  dev.off()
   
-  # Plot island correlations
-  plot(branchEvol_sumstats[[1]]$meanCor_i, main = "Mean Cor. Island", xlab = "Step Number", ylab = "Value", pch = 1, col = transparent_colors[1])
-  abline(h = cftp_sumstats$meanCor_i[1], col = colors[1], lty = 2, lwd = 2)
-  for (i in 2:n_rep){
-    points(branchEvol_sumstats[[i]]$meanCor_i, pch = i, col = transparent_colors[i])
-    abline(h = cftp_sumstats$meanCor_i[i], col = colors[i], lty = 2, lwd = 2)
-  }
-  
-  # Plot non-island correlations
-  plot(branchEvol_sumstats[[1]]$meanCor_ni, main = "Mean Cor. Non-Island", xlab = "Step Number", ylab = "Value", pch = 1, col = transparent_colors[1])
-  abline(h = cftp_sumstats$meanCor_ni[1], col = colors[1], lty = 2, lwd = 2)
-  for (i in 2:n_rep){
-    points(branchEvol_sumstats[[i]]$meanCor_ni, pch = i, col = transparent_colors[i])
-    abline(h = cftp_sumstats$meanCor_ni[i], col = colors[i], lty = 2, lwd = 2)
-  }
-  
-  # Add global title for all plots after the first plot is created
-  mtext("Local correlations", outer = TRUE, line = 1, cex = 1.5)
-
-  # Add global subtitle
-  mtext(paste("Relative proportion of correlated single-site changes:", round(1 - sampled_params$iota[index_params], 3)), outer = TRUE, line = 0, cex = 1)
-  
+  # Save as PNG
+  png(png_file, width = 800, height = 400, res = 120)  # Adjust resolution as needed
+  generate_plot(branchEvol_sumstats, cftp_sumstats, colors, transparent_colors, sampled_params, index_params, n_rep)
   dev.off()
 }
 
