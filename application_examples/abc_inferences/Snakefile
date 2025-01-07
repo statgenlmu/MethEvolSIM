@@ -1,30 +1,71 @@
 # Import os for path manipulations
 import os
 
-# Define custom paths for config and scripts
-config_path = os.path.join(os.getcwd(), "config.yaml")
-scripts_dir = os.path.join(os.getcwd(), "scripts")
-
 # Set the configfile directive
-configfile: config_path
+configfile: "config.yaml"
 
-# Debugging information
-print(f"Config file: {config_path}")
-print(f"Scripts directory: {scripts_dir}")
+# Define the working directory for the selected region
+region_workdir = os.path.join(
+    config["dir"],
+    config["selected_region"]["chr"] + "_" +
+    str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" +
+    str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" +
+    config["selected_region"]["name"]
+)
 
-# Set the working directory based on the config file
-workdir: config["dir"] 
-print(f"Working directory: {config['dir']}")
+# Global environment definition
+#conda:
+#    os.path.join(base_path, "environment.yaml")
+
+
+rule setup_output_dir:
+    output:
+        region_dir=directory(region_workdir)
+    shell:
+        """
+        mkdir -p {output.region_dir}
+        """
 
 
 
+# Rule to get the CpG counts in island and non-island regions
+rule get_CpG_count:
+    input:
+        reference_genome = config["methSite_genomicDist"]["reference_genome"],
+        CGI_annotation = config["methSite_genomicDist"]["CGI_annotation"]
+    output:
+    	CpG_counts = config["methSite_genomicDist"]["CpG_count"]
+    log:
+        "get_CpG_count.out"
+    shell:
+        """
+        Rscript scripts/get_CpG_count.R --reference-genome {input.reference_genome} --CGI-annotation {input.CGI_annotation} --output {output.CpG_counts} > {log}
+        """
+
+# Rule to get the spatial_str.RData file for the genomic region to simulate
+rule get_spatial_str:
+    input:
+        CpG_counts = config["methSite_genomicDist"]["CpG_count"]
+    output:
+        spatial_str = os.path.join(region_workdir, config["selected_region"]["chr"] + "_" + str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" + str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" + config["selected_region"]["name"] + ".RData")
+    params:
+    	region_name = config["selected_region"]["name"],
+    	region_chr = config["selected_region"]["chr"],
+    	region_start = config["selected_region"]["start"],
+    	region_end = config["selected_region"]["end"],
+    	region_side_bp = config["selected_region"]["side_bp"]
+    shell:
+        """
+        Rscript scripts/get_spatial_str.R --input {input.CpG_counts} --output {output.spatial_str} --name-selected-region {params.region_name} --chr {params.region_chr} --start {params.region_start} --end {params.region_end} --side-bp {params.region_side_bp} 
+        """
+    	
 
 # Rule to generate design files
 rule set_design:
     input:
-        genome_dist=config["methSite_genomicDist"],  # Genomic distribution file
+        spatial_str = os.path.join(region_workdir, config["selected_region"]["chr"] + "_" + str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" + str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" + config["selected_region"]["name"] + ".RData")
     output:
-        design_file=config["dir"] + "/design.RData"  # Path for the design file
+        design_file= os.path.join(region_workdir, "design.RData")  # Path for the design file
     params:
         sim_number = config["n_sim"],
         tree=config["tree"],  # Newick tree
@@ -53,10 +94,10 @@ rule set_design:
         tree_scale_max=config["prior_distributions"]["tree_scale"]["max"]
     shell:
         """
-        Rscript {scripts_dir}/set_sim_design.R \
+        Rscript scripts/set_sim_design.R \
             --n-sim {params.sim_number} \
             --dir {output.design_file} \
-            --genome-dist {input.genome_dist} \
+            --genome-dist {input.spatial_str} \
             --tree '{params.tree}' \
             --seed {params.seed} \
             --alpha_pI_shape {params.alpha_pI_shape} \
@@ -86,19 +127,20 @@ rule set_design:
 # Rule to run the simulations
 rule run_sim:
     input:
-        design_file=config["dir"] + "/design.RData"  # Path for the design file
+        design_file= os.path.join(region_workdir, "design.RData")
     params:
+        output_path = region_workdir,
         cores_number = config["n_cores"],
         tip_number = config["n_tips"],
         cftp = config["CFTP"]
     output:
-        [expand("abc_dataSIM_{n}.RData", n=[str(i).zfill(len(str(config["n_sim"])) + 1) for i in range(1, config["n_sim"] + 1)])]
+        [os.path.join(region_workdir, f"abc_dataSIM_{str(i).zfill(len(str(config['n_sim'])) + 1)}.RData")
+         for i in range(1, config["n_sim"] + 1)]
     log:
         "run_sim.out"
     shell:
         """
-        echo "Generating output files: {output}"  # Diagnostic step
-        Rscript {scripts_dir}/run_sim.R --input {input.design_file} --n-tips {params.tip_number} --n-cores {params.cores_number} --CFTP {params.cftp}> {log}
+        Rscript scripts/run_sim.R --input {input.design_file} --output-path {params.output_path} --n-tips {params.tip_number} --n-cores {params.cores_number} --CFTP {params.cftp} > {log}
         """
 
 # Rule to compute the summary statistics
@@ -111,7 +153,7 @@ rule compute_sumStats:
         "compute_sumStats.out"
     shell:
         """
-        Rscript {scripts_dir}/compute_sumStats.R --n-sim {params.sim_number} > {log}
+        Rscript scripts/compute_sumStats.R --n-sim {params.sim_number} > {log}
         """
 
 

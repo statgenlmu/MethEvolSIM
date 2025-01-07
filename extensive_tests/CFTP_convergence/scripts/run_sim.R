@@ -4,8 +4,11 @@ load_all()
 library(parallel)
 library(optparse)
 
+
 # Define the command-line options
 option_list <- list(
+  make_option("--dir", type = "character", default = NULL,
+              help = "Full path to save the output file", metavar = "character"),
   make_option(c("-f", "--design-file"), type = "character", default = NULL,
               help = "Full path to the simulation design file", metavar = "character"),
   make_option(c("-b", "--branch-length"), type = "numeric", default = NULL,
@@ -26,7 +29,7 @@ opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
 # Get the names of required options (you can update this based on what's mandatory)
-required_options <- c("design-file", "branch-length", "start", "end", "replicate-n")
+required_options <- c("dir", "design-file", "branch-length", "start", "end", "replicate-n")
 
 # Check that all required options are not NULL
 missing_options <- required_options[sapply(required_options, function(x) is.null(opt[[x]]))]
@@ -49,22 +52,26 @@ params_pad_n <- nchar(as.character(n_sim))
 
 
 
-simul_CFTP_branch <- function(custom_params, params_pad_n, index_params, b_length, start, end, step_pad_n, spatial_str, replicate_n){
+simul_CFTP_branch <- function(custom_params, params_pad_n, index_params, b_length, start, end, step_pad_n, spatial_str, replicate_n, replicate_pad_n){
   
   # Set the name for the output file with the padded parameter index
   padded_index_params <- formatC(index_params, width = params_pad_n, format = "d", flag = "0")
-  rep_pad_n <- nchar(as.character(replicate_n))
-  padded_replicate_n <- formatC(replicate_n, width = rep_pad_n, format = "d", flag = "0")
-  out_file <- paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", replicate_n, ".out")
+  padded_replicate_n <- formatC(replicate_n, width = replicate_pad_n, format = "d", flag = "0")
+  out_file <- file.path(opt[["dir"]], paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, ".out"))
+
+  # Open the log file once for the given parameters and replicate number
+  log_connection <- file(out_file, open = "w")
   
-  # Redirect both the stout and stderr to the same file
-  sink(out_file, type = c("output", "message"), append = TRUE)
+  # Redirect both regular output and message output to the same file
+  sink(log_connection, type = "output")
+  sink(log_connection, type = "message")
+
   print(paste("Running CFTP_testConvergence. paramsID:", padded_index_params, ". Replicate:", padded_replicate_n))
   print("Given customized parameter values:")
   print(custom_params)
   
   # Set seed
-  set.seed(index_params)
+  set.seed(index_params * 1000 + replicate_n)
   
   if(start == 1){
     
@@ -78,8 +85,7 @@ simul_CFTP_branch <- function(custom_params, params_pad_n, index_params, b_lengt
     }
     
     padded_step_n <- formatC(0, width = step_pad_n, format = "d", flag = "0")
-    
-    RData_file <- paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_", padded_step_n, ".RData")
+    RData_file <- file.path(opt[["dir"]], paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_", padded_step_n, ".RData"))
     save(data, combi, file = RData_file)
     
     ## Call cftp method from copy of initial instance, save instance state and methylation data ##
@@ -91,7 +97,7 @@ simul_CFTP_branch <- function(custom_params, params_pad_n, index_params, b_lengt
       data[[str]]<- transform_methStateEncoding(cftp_combi$get_singleStr(str)$get_seq())
     }
     
-    RData_file <- paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_cftp.RData")
+    RData_file <- file.path(opt[["dir"]], paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_cftp.RData"))
     save(data, cftp_combi, file = RData_file)
   }
   
@@ -112,8 +118,7 @@ simul_CFTP_branch <- function(custom_params, params_pad_n, index_params, b_lengt
     
     # Save simulated data
     padded_step_n <- formatC(i, width = step_pad_n, format = "d", flag = "0")
-    padded_replicate_n <- formatC(replicate_n, width = 2, format = "d", flag = "0")
-    RData_file <- paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_", padded_step_n, ".RData")
+    RData_file <- file.path(opt[["dir"]], paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_", padded_step_n, ".RData"))
     
     if (i == end){
       # The last time, save also the combiStructureGenerator instance, to be able to start new simulations from last state
@@ -144,14 +149,15 @@ simul_CFTP_tests <- function(index_params){
                       end = opt[["end"]],
                       step_pad_n = nchar(as.character(opt[["end"]])) + 1, # Set number for maximum width of padded step number 
                       spatial_str = spatial_str,
-                      replicate_n = r)
+                      replicate_n = r,
+                      replicate_pad_n = nchar(as.character(opt[["replicate-n"]])))
   }
   
 }
 
 # Run in parallel using mclapply
 
-mclapply(1:(opt[["end"]]- opt[["start"]]), function(index_params) simul_CFTP_tests(index_params), mc.cores = n_sim)
+mclapply(1:n_sim, simul_CFTP_tests, mc.cores = n_sim)
 
 
 

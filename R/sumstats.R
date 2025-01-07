@@ -496,8 +496,8 @@ find_cherries <- function(tree) {
 
 
 
-## TODO: come back here and check whether the tree needs to
-## have the tips with numeric labels or that can be internally controlled. 
+## TODO: The tree needs to
+## have the tips with numeric labels. ordered from left to as ((1:1,2:1):5,3:6); 
 ## For that check previous (old) function 
 ## tree needs to be an object of ape's phylo class or a character string in
 ## parenthetic format known as the Newick or New Hampshire format
@@ -636,5 +636,5 @@ SDandMean_SiteFChange_cherry <- function(siteFChange_cherry, index_islands, inde
   )
   SDandMean_SiteFChange_cherry
 }
-debug(SDandMean_SiteFChange_cherry)
+#undebug(SDandMean_SiteFChange_cherry)
 ##TODO: Add index_nonislands

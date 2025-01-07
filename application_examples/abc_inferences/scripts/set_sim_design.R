@@ -6,7 +6,7 @@ option_list <- list(
   make_option("--dir", type = "character", default = NULL,
               help = "Full path to save the design file", metavar = "character"),
   make_option("--genome-dist", type = "character", default = NULL,
-              help = "Distribution of methylation sites in the genomic region", metavar = "character"),
+              help = "Distribution of methylation sites in the selected genomic region", metavar = "character"),
   make_option("--tree", type = "character", default = "all",
               help = "Tree in Newick format", metavar = "character"),
   make_option("--n-sim", type = "integer", default = NULL,

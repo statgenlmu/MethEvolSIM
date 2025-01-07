@@ -31,11 +31,13 @@ This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the s
 
 - Snakemake installed (`conda create -c conda-forge -c bioconda -n snakemake snakemake`)
 
-- R packages: 
+- Dependencies are on: `environment.yaml` 
 
 - Access to the provided `Snakefile` and associated scripts.
 
-- An .RData file with a dataframe specifying the distribution of methylation sites in the genomic region.
+- An .RData file with a dataframe specifying the distribution of methylation sites in the genomic region (under the same Snakemake directory)
+
+- 
 
 
 ## Steps in the Workflow
@@ -45,3 +47,14 @@ This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the s
 ### Scripts
 
 - `run_sim.R`. TODO: Update way in which the package is loaded before submitting. Uses as many cores as the config param n_sim
+
+## Running the workflow with nohup
+
+When using nohup one needs to activate the environment in the command.
+
+```{bash, eval = FALSE}
+# E.g. running the run_sim rule
+nohup conda run -n cftp_testConvergence snakemake run_sim &
+```
+
+

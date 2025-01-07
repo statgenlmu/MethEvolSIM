@@ -7,6 +7,8 @@ library(devtools); load_all()
 option_list <- list(
   make_option("--input", type = "character", default = NULL,
               help = "Design file, full path", metavar = "character"),
+  make_option("--output-path", type = "character", default = NULL,
+              help = "Full path for output files", metavar = "character"),
   make_option("--n-cores", type = "integer", default = NULL,
               help = "Number of cores", metavar = "integer"),
   make_option("--n-tips", type = "integer", default = NULL,
@@ -24,7 +26,6 @@ load(opt[["input"]])
 
 # Define the number of runs and cores
 n_sim <- nrow(sampled_params)
-n_cores <- opt[["n-cores"]]
 
 # Generate pad_n based on the number of digits in n_sim
 # To save the files with padded numbers so that are later listed in order with list.files()
@@ -37,7 +38,7 @@ run_simulation_subset <- function(start_idx, end_idx) {
   padded_end <- formatC(end_idx, width = pad_n, format = "d", flag = "0")
   
   # Set the name for the .out file for the entire subset
-  out_file <- paste0("abc_dataSIM_", padded_start, "_to_", padded_end, ".out")
+  out_file <- file.path(opt[["output-path"]], paste0("abc_dataSIM_", padded_start, "_to_", padded_end, ".out"))
   
   # Open the log file once for the entire subset
   log_connection <- file(out_file, open = "w")
@@ -64,7 +65,7 @@ run_simulation_subset <- function(start_idx, end_idx) {
       data[[tip]] <- output$data[[1]][[tip]]$seq
     }
     # Save the simulated data
-    save(data, file = paste0("abc_dataSIM_", padded_index, ".RData"))
+    save(data, file = file.path(opt[["output-path"]], paste0("abc_dataSIM_", padded_index, ".RData")))
     
   }
   
@@ -78,9 +79,8 @@ run_simulation_subset <- function(start_idx, end_idx) {
 
 
 
-
 # Calculate the number of runs per chore
-runs_per_chore <- ceiling(n_sim / n_cores)
+runs_per_chore <- ceiling(n_sim / opt[["n-cores"]])
 
 # Divide the runs among the cores
 run_indices <- split(seq_len(n_sim), ceiling(seq_along(seq_len(n_sim)) / runs_per_chore))
@@ -89,4 +89,4 @@ run_indices <- split(seq_len(n_sim), ceiling(seq_along(seq_len(n_sim)) / runs_pe
 chunks <- lapply(run_indices, function(idx) c(min(idx), max(idx)))
 
 # Run the simulation subsets in parallel
-mclapply(chunks, function(chunk) run_simulation_subset(chunk[1], chunk[2]), mc.cores = n_cores)
+mclapply(chunks, function(chunk) run_simulation_subset(chunk[1], chunk[2]), mc.cores = opt[["n-cores"]])
