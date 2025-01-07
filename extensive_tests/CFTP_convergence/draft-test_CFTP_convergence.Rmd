@@ -16,37 +16,57 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r, echo=FALSE}
-## TODO: Update 
-library(devtools)
-load_all()
-```
+# CFTP
 
+Theoretical intro.
 
-# Worflow for simulation-based inferences
+## Implementation
+
+Currently neglects IWEs but allows to sample a sequence of methylation states from the equilibrium given by the equilibrium frequencies of the genomic regions, the correlated and independent SSE.
+
+## Test
 
 This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the steps for simulating DNA methylation patterns, assessing ABC accuracy, and inferring model parameters.
 
-## Requirements
+**Add summary**
 
-- Snakemake installed (`conda create -c conda-forge -c bioconda -n snakemake snakemake`)
+### Requirements
 
-- Dependencies are on: `environment.yaml` 
+-   Dependencies are listed on the file `environment.yaml`. Before running the workflow, a conda environment can be created with:
 
-- Access to the provided `Snakefile` and associated scripts.
+```{bash, eval = FALSE}
+conda env create -n cftp_testConvergence -f environment.yaml
+```
 
-- An .RData file with a dataframe specifying the distribution of methylation sites in the genomic region (under the same Snakemake directory)
+Then, the workflow can be run by:
 
-- 
+```{bash, eval = FALSE}
+conda activate cftp_testConvergence
+snakemake --use-conda
+```
 
+Or, if using `nohup` by:
+
+```{bash, eval = FALSE}
+conda activate cftp_testConvergence
+nohup nice snakemake --use-conda run_sim > run_sim.out &
+```
+
+-   Provided `Snakefile`, `config.yaml` and associated scripts.
 
 ## Steps in the Workflow
 
-1. Bla
+All the given parameters to the workflow steps are taken from the `config.yaml` file.
+
+1.  Rule `get_spatial_str` run by script `get_spatial_str.R`. The test simulates data on a simplified genomic structure alternating island and non-island regions each a given number of times and each (`Str_n`) with a constant number of CpGs  (`CpG_n`). The output is a file named as `methSite_genomicDist` under the directory `dir`.
+
+2.  Rule `set_design` run by script `set_sim_design.R`. Takes as input the output of the previous rule. For a number of model parameter combinations `n_sim` and setting a seed `seed` for reproducibility, samples the parameter combinations from the prior distributions as defined in `prior_distributions`. The output is a file named "design-RData" under the directory `dir` containing both the spatial structure defined in the first rule and the sampled parameters. *Note that this script already corrects the values of* $\iota$ *and* $\alpha_{R_i}$ *in the sampled parameters to be a minimum of 1e-2*.
+
+
 
 ### Scripts
 
-- `run_sim.R`. TODO: Update way in which the package is loaded before submitting. Uses as many cores as the config param n_sim
+-   `run_sim.R`. TODO: Update way in which the package is loaded before submitting. Uses as many cores as the config param n_sim
 
 ## Running the workflow with nohup
 
@@ -59,5 +79,42 @@ nohup conda run -n cftp_testConvergence snakemake run_sim &
 
 ## Results
 
-![Correlation Results sampled parameter combination 2](Figures/CFTP_testConvergence_paramsID_02.pdf)
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_01.pdf")
+```
 
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_02.pdf")
+```
+
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_03.pdf")
+```
+
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_04.pdf")
+```
+
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_05.pdf")
+```
+
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_06.pdf")
+```
+
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_07.pdf")
+```
+
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_08.pdf")
+```
+
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_09.pdf")
+```
+
+```{r, fig.align='center',  out.width='50%'}
+knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_10.pdf")
+```
