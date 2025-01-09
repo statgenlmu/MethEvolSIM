@@ -18,7 +18,9 @@ knitr::opts_chunk$set(
 
 # CFTP
 
-Theoretical intro.
+The initialization of the DNA methylation data without the CFTP method samples for each genomic structure (island or non-island) the methylation state for each of the CpG sites within from the structure's equilibrium frequencies independently. Therefore, the initial distribution of methylation states lacks the effect of the neighbor correlations introduced by the correlated SSE process. This correlations would then build during evolution along a branch. 
+
+In order to be able to start simulating evolution along a tree with the sequence of states at the tree root accounting for the neighbouring correlations we implemented the CFTP method, which samples a sequence of methylation states from the equilibrium given by the model (accounting for the correlated SSE process while neglecting the IWE process.)
 
 ## Implementation
 
@@ -26,9 +28,12 @@ Currently neglects IWEs but allows to sample a sequence of methylation states fr
 
 ## Test
 
-This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the steps for simulating DNA methylation patterns, assessing ABC accuracy, and inferring model parameters.
+This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the steps to test that the CFTP method samples a sequence of methylation states from the equilibrium given by the model accounting for the correlated SSE process (while neglecting the IWE process).
 
-**Add summary**
+For that it samples a number of parameter combinations and for each it simulates initial data for a number of replicates. It uses as summary statistics the mean correlation of a central segment of methylation states per genomic structure type. We expect that the value of this summary statistics increases with the increase of evolutionary time until it converges towards the equilibrium given by the corresponding parameter combination. We track its value by discretizing the evolution along the branch in small steps (length as config.yaml file value for `branch_length`). Then, we call the CFTP method on the initial data to sample the sequence of methylation states from the equilibrium and compute its corresponding value for the summary statistics. We expect the distribution of the summary statistics obtained by calling the CFTP method to be representative of the equilibrium obtained after the branch evolution has reached the equilibrium.
+
+
+**Add summary and graphical image**
 
 ### Requirements
 
@@ -45,11 +50,11 @@ conda activate cftp_testConvergence
 snakemake --use-conda
 ```
 
-Or, if using `nohup` by:
+When using nohup one needs to activate the environment in the command.
 
 ```{bash, eval = FALSE}
-conda activate cftp_testConvergence
-nohup nice snakemake --use-conda run_sim > run_sim.out &
+# E.g. running the run_sim rule
+nohup conda run -n cftp_testConvergence snakemake run_sim &
 ```
 
 -   Provided `Snakefile`, `config.yaml` and associated scripts.
@@ -60,22 +65,18 @@ All the given parameters to the workflow steps are taken from the `config.yaml` 
 
 1.  Rule `get_spatial_str` run by script `get_spatial_str.R`. The test simulates data on a simplified genomic structure alternating island and non-island regions each a given number of times and each (`Str_n`) with a constant number of CpGs  (`CpG_n`). The output is a file named as `methSite_genomicDist` under the directory `dir`.
 
-2.  Rule `set_design` run by script `set_sim_design.R`. Takes as input the output of the previous rule. For a number of model parameter combinations `n_sim` and setting a seed `seed` for reproducibility, samples the parameter combinations from the prior distributions as defined in `prior_distributions`. The output is a file named "design-RData" under the directory `dir` containing both the spatial structure defined in the first rule and the sampled parameters. *Note that this script already corrects the values of* $\iota$ *and* $\alpha_{R_i}$ *in the sampled parameters to be a minimum of 1e-2*.
+2.  Rule `set_design` run by script `set_sim_design.R`. Takes as input the output of the previous rule. For a number of model parameter combinations `n_sim` and setting a seed `seed` for reproducibility, samples the parameter combinations from the prior distributions as defined in `prior_distributions`. The output is a file named "design.RData" under the directory `dir` containing both the spatial structure defined in the first rule and the sampled parameters. *Note that this script already corrects the values of* $\iota$ *and* $\alpha_{R_i}$ *in the sampled parameters to be a minimum of 1e-2*.
+
+3.  Rule `run_sim` run by script `run_sim.R`. Takes as input the output of the previous rule. For each parameter combination it simulates a number of replicates (`replicate_n`) and (1) simulates evolution along a branch of length `branch_length` a number of times from `start` to `end` and (2) calls the CFTP method on the initial data. Each replicate is simulated with a seed obtained as the index of the corresponding parameter combination * 1000 + the replicate number for reproducibility. The output files are written under the directory `dir` and named "CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_{step_n}.RData" for the output of evolution along the branch and "CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_cftp.RData" for the output of the cftp method. **Need to update the way in which the package is loaded before submitting**
+
+4.  Rule `compute_meanCor` run by script `compute_meanCor.R`. Takes as input the output of the previous rule. For each branch step output and cftp output it computes the mean correlation of a segment of methylation states per genomic structure type (**summary statistics described in the summaryStats vignette**). The output files are written under the directory `dir` and are named as "summaryStats_CFTP_testConvergence_paramsID_{parameter_combination_number}_cftp.RData" for the output of the cftp method and ""summaryStats_CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}.RData" for the output of evolution along the branch.
+
+5.  Rule `plot_results` run by script `plot.R`. Takes as input the output of the previous rule.  The output files are written under a subdirectory `Figures` generated in the same directory of the snakemake workflow, and are named "CFTP_testConvergence_paramsID_{parameter_combination_number}" both in `.pdf` and `.png` format.
 
 
 
-### Scripts
 
--   `run_sim.R`. TODO: Update way in which the package is loaded before submitting. Uses as many cores as the config param n_sim
 
-## Running the workflow with nohup
-
-When using nohup one needs to activate the environment in the command.
-
-```{bash, eval = FALSE}
-# E.g. running the run_sim rule
-nohup conda run -n cftp_testConvergence snakemake run_sim &
-```
 
 ## Results
 
