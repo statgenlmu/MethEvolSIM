@@ -1,0 +1,305 @@
+---
+title: "ABC inferences"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{ABC Inferences with MethEvolSIM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,  # Set the figure width to match the text width
+  fig.height = 5, # Set the figure height
+  out.width = "100%"  # Ensure it takes up 100% of the available width in HTML
+)
+```
+
+```{r, echo=FALSE}
+## TODO: Update 
+library(devtools)
+load_all()
+```
+
+# Workflow dependencies
+
+Are listed under the file `environment.yaml`. Before running the workflow, a conda environment can be created with:
+
+```{bash, eval = FALSE}
+conda env create -n abc_inferences -f environment.yaml
+```
+
+I got error with:
+
+- `r-parallel`         # parallel for R
+
+But it can be alternativelly installed by:
+
+```{bash, eval = FALSE}
+conda activate abc_inferences
+R
+install.packages("parallel")
+## Another package it is still dependent on is
+install.packages("devtools")
+```
+
+
+Then, the workflow can be run by:
+
+```{bash, eval = FALSE}
+conda activate abc_inferences
+snakemake --use-conda
+```
+
+I also got the following error when trying to run the rule `run_sim`:
+
+```{bash, eval = FALSE}
+Conda must be version 24.7.1 or later, found version 22.11.1. Please update conda to the latest version. Note that you can also install conda into the snakemake environment without modifying your main conda installation.
+# Then I tried to install conda into the snakemake environment with
+conda activate abc_inferences
+(abc_inferences) saracv@australia:~/MasterThesis/MethEvolSIM/extensive_tests/abc_inferences$ conda install conda=24.11.0                                                                                                                      
+Collecting package metadata (current_repodata.json): done                                                                                                                                                                                 
+Solving environment: done                                                                                                                                                                                                              
+==> WARNING: A newer version of conda exists. <==                                                                                                                          
+  current version: 22.11.1                                                                                                               
+  latest version: 24.11.0                                                                                                                                                                                                     
+Please update conda by running                                                                                                                                                                                                           
+    $ conda update -n base -c conda-forge conda                                                                                                                                                                                          
+Or to minimize the number of packages updated during conda update use                                                                                                                                                                         
+     conda install conda=24.11.0
+
+# All requested packages already installed.
+
+(abc_inferences) saracv@australia:~/MasterThesis/MethEvolSIM/extensive_tests/abc_inferences$ conda --version
+conda 22.11.1
+
+```
+
+**This does not seem to work. I tried it out with**:
+
+```{bash, eval = FALSE}
+conda activate snakemake
+nohup nice snakemake --use-conda run_sim > run_sim.out &
+```
+
+and seems to be stuck in:
+
+```{bash, eval = FALSE}
+cat run_sim.out 
+Injecting conda environment /home/saracv/MasterThesis/MethEvolSIM/extensive_tests/abc_inferences/environment.yaml.
+```
+
+**IMPORTANT: BOTH HERE AND IN CFTP ENVIRONMENT.YAML BEFORE SUBMITTING CHANGE DEVTOOLS BY METHEVOLSIM**
+
+
+# Selection of genomic region(s)
+
+
+-Requires: CGI annotation file (`.txt` file) obtained with makeCGI v1.3.4 [@hiddenMarkov]
+
+- The genome assembly file: Obtain the FASTA file ([GCF_000238955.4_M_zebra_UMD2a_genomic.fa](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000238955.4/)) from NCBI (file source *RefSeq*, file type *Genome Sequences (FASTA)*)
+
+Both under subdirectory genomic_dist
+
+```{r}
+# Load data
+file_path <- "genomic_dist/CGI-Mzebra.txt" # Adjust the path if necessary
+cgi_data <- read.table(file_path, header = TRUE, sep = "\t")
+
+# View the first lines
+head(cgi_data)
+# View the last lines
+tail(cgi_data)
+```
+
+The prefixes `NC_` and `NW_` in chromosome or genomic sequence identifiers come from the RefSeq database and indicate different types of assembly or annotation status for genomic sequences:
+
+- `NC_` refers to non-redundant complete genomic molecules, which typically represent well-characterized, curated, and assembled sequences.
+
+- `NW_` refers to scaffolds or unplaced sequences that are part of the genome assembly but cannot yet be confidently assigned to a specific chromosome or region.
+
+
+```{r}
+# Count the number of CGIs per chromosome
+cgi_count <- table(cgi_data$chr)
+
+# View results grouped by type of chromosome assembly
+
+# Split into groups based on chromosome prefix
+groups <- ifelse(grepl("^NC_", names(cgi_count)), "NC", "NW")
+
+# Create a dataframe
+cgi_data <- data.frame(
+  group = groups,
+  count = as.numeric(cgi_count)
+)
+
+# Plot boxplots
+boxplot(count ~ group, data = cgi_data,
+        col = c("skyblue", "salmon"),
+        main = "Distribution of Counts for NC_ and NW_ Chromosomes",
+        xlab = "Chromosome Type",
+        ylab = "Counts")
+
+```
+
+## Fixed DMR found in paper: Associated genes
+
+Add reference
+
+- *Smad4a*: LOC101481185. Fixed but not associated with differential expression.
+
+Genes reported as fixed DMR with significant transcriptional downregulation in benthic livers and associated with fixed benthic-specific hypermethylated levels at their promoters, suggesting retained epigenetic divergence associated with different diets. 
+
+- *Dpp4*: Part of the insulin methabolic pathway. Location according to NCBI annotation release 104 (LOC101483164): NC_036801.1 (29502362..29517382) 
+
+- *Ces2*: Liver carboxylesterase 2, part of the fatty acid methabolic pathway. Location according to NCBI annotation release 104 (LOC101473569):  	NW_020192811.1 (49164..53741, complement) 
+
+Lets explore *Dpp4*, as it is associated with differential gene expression and it is located in a better characterized genomic region:
+
+```{r}
+dpp4_chr <- "NC_036801.1"
+dpp4_start <- 29502362
+dpp4_end <- 29517382
+```
+
+
+## Explore the CpG counts in islands and non islands generated from the reference genome and the CGI annotation
+
+
+```{r}
+load("genomic_dist/CpG_count.RData")
+```
+
+
+```{r}
+# Filter the data for the given chromosome and region
+filtered_data <- CpG_count[CpG_count$chr == dpp4_chr & CpG_count$start >= dpp4_start - 5e5 & CpG_count$start <= dpp4_end + 5e5, ]
+
+# Set up the plot area
+plot(filtered_data$start, filtered_data$CpG_count, 
+     type = "n", # No points, just the axis
+     xlab = "Position (bp)", ylab = "CpG Count", 
+     main = "CpG Count by Island/Non-Island Regions", 
+     xlim = c(min(filtered_data$start), max(filtered_data$end)), 
+     ylim = c(0, max(filtered_data$CpG_count) * 1.1))
+
+# Add bars with color based on 'str' (island vs non-island)
+for (i in 1:nrow(filtered_data)) {
+  # Calculate the width of each region (difference between start and end)
+  region_width <- filtered_data$end[i] - filtered_data$start[i]
+  
+  if (filtered_data$str[i] == "Non-island") {
+    # Non-island (blue)
+    rect(filtered_data$start[i], 0, filtered_data$end[i], 
+         filtered_data$CpG_count[i], col = "blue", border = "blue")
+  } else {
+    # Island (red)
+    rect(filtered_data$start[i], 0, filtered_data$end[i], 
+         filtered_data$CpG_count[i], col = "red", border = "red")
+  }
+}
+
+# Add vertical lines showing where the gene is
+abline(v = dpp4_start)
+abline(v = dpp4_end)
+
+
+# Add a legend
+legend("topright", legend = c("Non-Island", "Island"), 
+       fill = c("blue", "red"), title = "Island Type")
+
+```
+
+Genomic region close to gene *dpp4*. X-axis corresponds to the positions in chromosome `r dpp4_chr`. Y-axis corresponds to CpG counts at each genomic region. Each genomic region is represented by a bar starting and ending in the corresponding chromosome position. Vertical black lines represent start and end of gene *dpp4*.
+
+
+```{r}
+
+# Filter the data for the given chromosome and region
+filtered_data <- CpG_count[CpG_count$chr == dpp4_chr & CpG_count$start > dpp4_start - 5e5 & CpG_count$end < dpp4_end + 5e5, ]
+
+# Calculate the CpG density for each region (CpG count / region length)
+filtered_data$CpG_density <- filtered_data$CpG_count / (filtered_data$end - filtered_data$start)
+
+# Plot CpG density vs. position (using 'start' as x-axis)
+
+# Set up the plot area with no points initially
+plot(filtered_data$start, filtered_data$CpG_density, 
+     type = "n", # No points, just the axis
+     xlab = "Position (bp)", ylab = "CpG Density", 
+     main = "CpG Density by Island/Non-Island Regions", 
+     xlim = c(min(filtered_data$start), max(filtered_data$end)), 
+     ylim = c(0, max(filtered_data$CpG_density) * 1.1))
+
+# Add points colored by 'str' (0 for non-island, 1 for island)
+points(filtered_data$start, filtered_data$CpG_density, 
+       col = ifelse(filtered_data$str == "Island", "red", "blue"), 
+       pch = 16)  # pch=16 gives filled circles
+
+# Add vertical lines showing where the gene is
+abline(v = dpp4_start)
+abline(v = dpp4_end)
+
+# Add a legend
+legend("topright", legend = c("Non-Island", "Island"), 
+       fill = c("blue", "red"), title = "Type")
+
+
+```
+
+Genomic region close to gene *dpp4*. X-axis corresponds to the positions in chromosome `r dpp4_chr`. Y-axis corresponds to CpG density at each genomic region. Each genomic region is represented by a dot at its corresponding genome start position. Vertical black lines represent start and end of gene *dpp4*.
+
+When using this region the number of CpG sites to simulate would be:
+
+```{r}
+sum(filtered_data$CpG_count)
+```
+
+with number of non-island and island structures:
+
+```{r}
+# Count the number of occurrences of each factor level in the 'str' column
+table(filtered_data$str)
+```
+
+
+
+# Worflow for simulation-based inferences
+
+This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the steps for simulating DNA methylation patterns, assessing ABC accuracy, and inferring model parameters.
+
+## Requirements
+
+- Snakemake installed (`conda create -c conda-forge -c bioconda -n snakemake snakemake`)
+
+- R packages: optparse (add to dependencies), parallel, ape
+
+- Access to the provided `Snakefile` and associated scripts.
+
+- An .RData file with a dataframe specifying the distribution of methylation sites in the genomic region.
+
+- An .RData file with a tree in ape format (TODO: modify this and check whether scrm is also producing trees in the same format)
+
+## Steps in the Workflow
+
+1. Save as simulation design the genomic structure, tree(s) -- GIVEN -- and sampled parameter combinations.
+
+2. Run the simulations. TODO: Before submitting load package without devtools
+
+3. Compute the selected summary statistics. TODO: When added sumStats functions to package, stop sourcing script.
+
+4. Assess ABC accuracy using cross-validation.
+
+5. Infer parameters from empirical DNA methylation data.
+
+
+
+
+# References
+
