@@ -79,42 +79,6 @@ nohup conda run -n cftp_testConvergence snakemake run_sim &
 
 ## Results
 
-```{r, fig.align='center',  out.width='50%'}
+```{r, out.width="0.8\\linewidth", include=TRUE, fig.align="center", fig.cap=c("your caption"), echo=FALSE}
 knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_01.pdf")
-```
-
-```{r, fig.align='center',  out.width='50%'}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_02.pdf")
-```
-
-```{r, fig.align='center',  out.width='50%'}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_03.pdf")
-```
-
-```{r, fig.align='center',  out.width='50%'}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_04.pdf")
-```
-
-```{r, fig.align='center',  out.width='50%'}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_05.pdf")
-```
-
-```{r, fig.align='center',  out.width='50%'}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_06.pdf")
-```
-
-```{r, fig.align='center',  out.width='50%'}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_07.pdf")
-```
-
-```{r, fig.align='center',  out.width='50%'}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_08.pdf")
-```
-
-```{r, fig.align='center',  out.width='50%'}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_09.pdf")
-```
-
-```{r, fig.align='center',  out.width='50%'}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_10.pdf")
 ```

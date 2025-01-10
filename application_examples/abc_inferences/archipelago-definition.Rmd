@@ -25,6 +25,8 @@ if (!requireNamespace("GenomicRanges", quietly = TRUE)) {
   BiocManager::install("GenomicRanges")
 }
 
+
+
 library(GenomicRanges)
 library(rtracklayer)
 ```
@@ -93,15 +95,15 @@ And define the TSS by accounting for the strand orientation so that:
 
 ```{r}
 # Extract TSS
-promoters <- data.frame(
+tss <- data.frame(
   chr = seqnames(gtf_transcripts),
   tss = ifelse(strand(gtf_transcripts) == "+", start(gtf_transcripts), end(gtf_transcripts)),
   strand = strand(gtf_transcripts)
 )
-head(promoters)
+head(tss)
 ```
 
-The promoters data frame contains:
+The tss data frame contains:
 
 - `chr`: Chromosome names
 
@@ -203,8 +205,153 @@ plot(
 ```
 
 
+# Dirk idea
+
+## Explore the data
+
 ```{r}
+unique(gtf$type)
+```
+
+The gtf contains: gene, transcript, exon, CDS, start_codon and stop_codon
+
+Lets filter the genes:
+
+```{r}
+genes <- gtf[gtf$type == "gene",]
+dim(as.data.frame(genes))
+```
+
+Are the genes duplicated?
+
+```{r}
+length(genes$gene_id)
+length(unique(genes$gene_id))
+```
+
+
+Lets explore the annotation sources:
+
+```{r}
+unique(genes$source)
+```
+
+Summary table:
+
+| Source        | Primary Focus                       | Reliability          | Features                                         |
+|---------------|-------------------------------------|----------------------|--------------------------------------------------|
+| Gnomon        | Computational gene prediction       | Medium               | Predicted genes, transcripts, and exons         |
+| cmsearch      | RNA homology                        | Medium-High          | Non-coding RNAs (e.g., ribosomal RNAs)          |
+| tRNAscan-SE   | tRNA genes                          | High                 | tRNA annotations                                 |
+| BestRefSeq    | High-confidence curated annotations | High                 | Protein-coding and non-coding genes             |
+| BestRefSeq, Gnomon | Combined curated and predicted annotations | Medium-High | Hybrid of RefSeq and Gnomon predictions         |
+| RefSeq        | Broader RefSeq annotations          | Mixed (High to Low)  | Protein-coding and non-coding genes             |
+
+
+
+## Define the 200 kb upstream regions
+
+First, save chromosome lengths:
+
+```{r}
+gbff_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/genomic.gbff" 
+file_lines <- readLines(gbff_file)
+# Extract the LOCUS line
+locus_lines <- file_lines[grep("^LOCUS", file_lines)]
+head(locus_lines)
+```
+
+They dont seem to end with the dot and the number (version) as in the case of the `gtf_genes` data. Lets check if the `gtf_genes` (or the dataframe obtained from it) has several versions:
+
+```{r}
+length(unique(genes_df$seqnames))
+# Remove version suffix from seqnames
+length(unique(sub("\\.\\d+$", "", genes_df$seqnames)))
+```
+
+It does not have several versions.
+
+```{r}
+# Extract chromosome names and lengths
+chrom_info <- gsub("^LOCUS\\s+(\\S+)\\s+(\\d+)\\s+.*$", "\\1,\\2", locus_lines)
+chrom_info <- strsplit(chrom_info, ",")
+chrom_names <- sapply(chrom_info, `[`, 1)
+chrom_lengths <- as.numeric(sapply(chrom_info, `[`, 2))
+# Create a named vector
+chrom_lengths <- setNames(chrom_lengths, chrom_names)
+
+# Remove version numbers from seqnames in genes_df
+genes_df$seqnames <- sub("\\.\\d+$", "", genes_df$seqnames)
 
 ```
+
+
+
+Calculate the upstream start and end to prevent overlap with the previous gene.
+
+```{r}
+# Ensure genes_df is sorted by seqnames and start position
+genes_df <- genes_df[order(genes_df$seqnames, genes_df$start), ]
+
+# Initialize the upstream_start column
+genes_df$upstream_start <- NA
+
+# Iterate over genes to adjust upstream_start
+for (i in 1:nrow(genes_df)) {
+  current_gene <- genes_df[i, ]
+  current_chrom <- current_gene$seqnames
+  current_strand <- current_gene$strand
+  current_start <- current_gene$start
+  current_end <- current_gene$end
+
+  # Find the previous gene on the same chromosome
+  previous_gene <- genes_df[i - 1, ]
+  if (i > 1 && previous_gene$seqnames == current_chrom) {
+    previous_end <- previous_gene$end
+    previous_start <- previous_gene$start
+  } else {
+    previous_end <- NA
+    previous_start <- NA
+  }
+
+  # Adjust upstream_start based on strand and previous gene position
+  if (current_strand == "+") {
+    if (!is.na(previous_end)) {
+      genes_df$upstream_start[i] <- max(current_start - 200000, previous_end)
+    } else {
+      genes_df$upstream_start[i] <- max(current_start - 200000, 1)
+    }
+  } else if (current_strand == "-") {
+    if (!is.na(previous_start)) {
+      genes_df$upstream_start[i] <- min(current_end + 200000, previous_start)
+    } else {
+      genes_df$upstream_start[i] <- min(current_end + 200000, chrom_lengths[current_chrom])
+    }
+  }
+}
+
+```
+
+Filter for "curated" chromosomes:
+
+```{r}
+# Filter genes_df to keep only those rows where seqnames starts with "NC"
+genes_df_filtered <- genes_df[grep("^NC", genes_df$seqnames), ]
+
+# Check the result
+head(genes_df_filtered)
+
+```
+
+Still it seems there is nothing but genes. Maybe I should have filtered for something else.
+
+In a GTF (Gene Transfer Format) file, the gene feature type represents the entire gene, including all its exons, introns, and regulatory regions. The transcript feature type corresponds to a specific transcript variant of the gene, encompassing all exons and introns of that transcript. The exon feature type denotes individual exonic regions within a transcript. The CDS (Coding Sequence) feature type indicates the portion of the gene or transcript that codes for protein. The start_codon and stop_codon feature types mark the beginning and end of the coding sequence, respectively. 
+**Try gff**
+
+
+
+
+
+
 
 
