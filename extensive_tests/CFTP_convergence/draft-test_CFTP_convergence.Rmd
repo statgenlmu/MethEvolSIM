@@ -22,6 +22,10 @@ The initialization of the DNA methylation data without the CFTP method samples f
 
 In order to be able to start simulating evolution along a tree with the sequence of states at the tree root accounting for the neighbouring correlations we implemented the CFTP method, which samples a sequence of methylation states from the equilibrium given by the model (accounting for the correlated SSE process while neglecting the IWE process.)
 
+**Add examples of use**
+
+**Justify why it is given as a snakemake workflow and explain the functions and scripts can be ran separatedly**
+
 ## Implementation
 
 Currently neglects IWEs but allows to sample a sequence of methylation states from the equilibrium given by the equilibrium frequencies of the genomic regions, the correlated and independent SSE.

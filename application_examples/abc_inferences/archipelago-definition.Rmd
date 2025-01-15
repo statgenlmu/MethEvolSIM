@@ -348,6 +348,18 @@ Still it seems there is nothing but genes. Maybe I should have filtered for some
 In a GTF (Gene Transfer Format) file, the gene feature type represents the entire gene, including all its exons, introns, and regulatory regions. The transcript feature type corresponds to a specific transcript variant of the gene, encompassing all exons and introns of that transcript. The exon feature type denotes individual exonic regions within a transcript. The CDS (Coding Sequence) feature type indicates the portion of the gene or transcript that codes for protein. The start_codon and stop_codon feature types mark the beginning and end of the coding sequence, respectively. 
 **Try gff**
 
+```{r}
+gtf_df[gtf_df$seqnames=="NC_036801.1" & gtf_df$type == "gene",]
+gtf_df[gtf_df$gene_id == "LOC101483164",]
+```
+
+```{r}
+dpp4_chr <- "NC_036801.1"
+dpp4_start <- 29502362
+dpp4_end <- 29517382
+gtf_df[gtf_df$seqnames=="NC_036801.1" & gtf_df$type == "gene" & gtf_df$start > dpp4_start - 5e5 & gtf_df$end > dpp4_end + 5e5  ,]
+```
+
 
 
 
