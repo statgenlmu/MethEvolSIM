@@ -16,7 +16,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-# CFTP
+```{r setup}
+#library(MethEvolSIM)
+library(devtools)
+load_all()
+```
+
+**Update way in which MethEvolSIM is loaded**
+
+# Introduction
 
 The initialization of the DNA methylation data without the CFTP method samples for each genomic structure (island or non-island) the methylation state for each of the CpG sites within from the structure's equilibrium frequencies independently. Therefore, the initial distribution of methylation states lacks the effect of the neighbor correlations introduced by the correlated SSE process. This correlations would then build during evolution along a branch. 
 
@@ -24,22 +32,77 @@ In order to be able to start simulating evolution along a tree with the sequence
 
 **Add examples of use**
 
-**Justify why it is given as a snakemake workflow and explain the functions and scripts can be ran separatedly**
+CFTP method is defaulted to FALSE but can be set to TRUE when simulating initial data or data evolution along a tree.
 
-## Implementation
+Sample initial data with the sequence of methylation states according to the equilibrium.
 
-Currently neglects IWEs but allows to sample a sequence of methylation states from the equilibrium given by the equilibrium frequencies of the genomic regions, the correlated and independent SSE.
+```{r}
+# Example with sampled initial methylation frequencies and default parameter values
+custom_infoStr <- data.frame(n = c(100, 100, 100),
+                             globalState = c("M", "U", "M"))
+initialD <- simulate_initialData(infoStr = custom_infoStr, CFTP = TRUE)
+```
 
-## Test
+Simulate evolution of data along a tree calling the CFTP method to sample a sequence of methylation states at the root of the tree from the equilibrium.
 
-This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the steps to test that the CFTP method samples a sequence of methylation states from the equilibrium given by the model accounting for the correlated SSE process (while neglecting the IWE process).
+```{r}
+# Example with customized initial methylation frequencies, customized parameter values 
+# and default dt (0.01)
+tree <- "((a:1, b:1):2, c:2, (d:3.7, (e:4, f:1):3):5);"
+custom_infoStr <- data.frame(n = c(10, 10, 10),
+                             globalState = c("M", "U", "M"),
+                             u_eqFreq = c(0.1, 0.8, 0.1),
+                             p_eqFreq = c(0.1, 0.1, 0.1),
+                             m_eqFreq = c(0.8, 0.1, 0.8))
+custom_params <- get_parameterValues()
+custom_params$mu <- 0.005
 
-For that it samples a number of parameter combinations and for each it simulates initial data for a number of replicates. It uses as summary statistics the mean correlation of a central segment of methylation states per genomic structure type. We expect that the value of this summary statistics increases with the increase of evolutionary time until it converges towards the equilibrium given by the corresponding parameter combination. We track its value by discretizing the evolution along the branch in small steps (length as config.yaml file value for `branch_length`). Then, we call the CFTP method on the initial data to sample the sequence of methylation states from the equilibrium and compute its corresponding value for the summary statistics. We expect the distribution of the summary statistics obtained by calling the CFTP method to be representative of the equilibrium obtained after the branch evolution has reached the equilibrium.
+evolD <- simulate_evolData(infoStr = custom_infoStr, tree = tree, params = custom_params, CFTP = TRUE)
+```
 
 
-**Add summary and graphical image**
 
-### Requirements
+
+
+
+## Visual Examples
+
+To ease understanding of how applying CFTP results in sampling an initial sequence of methylation states from the equilibrium towards which the data would evolve when initial data neglects local correlations, we provide the plots obtained while testing the method. The test was performed on 10 parameter combinations as the model equilibrium is dependent on those. It uses as summary statistics the mean correlation of a central segment of methylation states per genomic structure type (see vignette for summary statistics **add link or reference or exact name here**). When simulating without using CFTP, the initial sequence of methylation states is given by the independent sampling of the methylation state of the sites from the equilibrium frequencies of the genomic structure to which they belong. Then, the local correlations between the sites methylation states build up with evolutionary time.
+
+Therefore, we expect that the value of the increases with the increase of evolutionary time until it converges towards the equilibrium given by the corresponding parameter combination. We track its value by discretizing the evolution along a tree branch (representing linear time) in small steps (of length 0.01). Additionally, we call the CFTP method on the initial data to sample the sequence of methylation states from the equilibrium and compute its corresponding value for the summary statistics. We expect the distribution of the summary statistics obtained by calling the CFTP method to be representative of the equilibrium obtained after the branch evolution has reached the equilibrium.
+
+In the following figures, the y axis represents the value of the mean correlation summary statistics and the x axis represents the number of discretized time steps. Each figure corresponds to one of the 10 sampled parameter combinations and for each parameter combination 10 replicates were simulated, represented with the different colors. Dots (with a different shape for each of the replicates) represent the value of the mean correlation at the given time step and the dashed line represents its value after calling CFTP on the initial data.
+
+
+![Sampled parameter combination 1](Figures/CFTP_testConvergence_paramsID_01.png)
+
+![Sampled parameter combination 2](Figures/CFTP_testConvergence_paramsID_02.png)
+
+![Sampled parameter combination 3](Figures/CFTP_testConvergence_paramsID_03.png)
+
+![Sampled parameter combination 4](Figures/CFTP_testConvergence_paramsID_04.png)
+
+![Sampled parameter combination 5](Figures/CFTP_testConvergence_paramsID_05.png)
+
+![Sampled parameter combination 6](Figures/CFTP_testConvergence_paramsID_06.png)
+
+![Sampled parameter combination 7](Figures/CFTP_testConvergence_paramsID_07.png)
+
+![Sampled parameter combination 8](Figures/CFTP_testConvergence_paramsID_08.png)
+
+![Sampled parameter combination 9](Figures/CFTP_testConvergence_paramsID_09.png)
+
+![Sampled parameter combination 10](Figures/CFTP_testConvergence_paramsID_10.png)
+
+
+
+
+### Reproducibility
+
+The test used to generate the visual example is provided as a workflow, which can be run using [Snakemake](https://snakemake.readthedocs.io) or by running the scripts separatedly. Here, we describe the structure and content of the Snakemake workflow. However, the scripts that comprise the workflow are available under `extensive_tests/CFTP_convergence/scripts`.
+
+
+#### Workflow Requirements
 
 -   Dependencies are listed on the file `environment.yaml`. Before running the workflow, a conda environment can be created with:
 
@@ -54,7 +117,7 @@ conda activate cftp_testConvergence
 snakemake --use-conda
 ```
 
-When using nohup one needs to activate the environment in the command.
+When using nohup one can activate the environment as in the following command.
 
 ```{bash, eval = FALSE}
 # E.g. running the run_sim rule
@@ -63,7 +126,7 @@ nohup conda run -n cftp_testConvergence snakemake run_sim &
 
 -   Provided `Snakefile`, `config.yaml` and associated scripts.
 
-## Steps in the Workflow
+#### Steps in the Workflow
 
 All the given parameters to the workflow steps are taken from the `config.yaml` file.
 
@@ -82,8 +145,3 @@ All the given parameters to the workflow steps are taken from the `config.yaml` 
 
 
 
-## Results
-
-```{r, out.width="0.8\\linewidth", include=TRUE, fig.align="center", fig.cap=c("your caption"), echo=FALSE}
-knitr::include_graphics("Figures/CFTP_testConvergence_paramsID_01.pdf")
-```

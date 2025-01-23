@@ -263,7 +263,7 @@ initialD$params
 initialD$data
 ```
 
-To get the parameter values of a `combiStructureGenerator` object, it can alternativelly be given as argument to the function `get_parameterValues()`.
+To get the parameter values of a `combiStructureGenerator` object, it can alternatively be given as argument to the function `get_parameterValues()`.
 
 ```{r}
 combiStr_object <- initialD$data

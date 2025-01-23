@@ -21,16 +21,9 @@ if (!requireNamespace("rtracklayer", quietly = TRUE)) {
   BiocManager::install("rtracklayer")
 }
 
-if (!requireNamespace("GenomicRanges", quietly = TRUE)) {
-  BiocManager::install("GenomicRanges")
-}
 
-
-
-library(GenomicRanges)
 library(rtracklayer)
 ```
-
 
 # Archipelago definition
 
@@ -41,75 +34,289 @@ Our approach then has the following steps:
 1. Definition of promoter regions.
 2. Filtering of CGI by promoter overlap.
 
+We will perform this steps for the genomic region of interest:
 
-## Step 1: Definition of promoter regions
+```{r}
+dpp4_chr <- "NC_036801.1"
+dpp4_start <- 29502362
+dpp4_end <- 29517382
+region_start <- dpp4_start - 5e5
+region_end <- dpp4_end + 5e5
+```
+
+- DPP4 gene location:
+
+  - Chromosome: NC_036801.1
+  
+      - Start: 29,502,362
+      
+      - End: 29,517,382
+        
+- Extended Region: Includes 500,000 base pairs upstream and downstream of the DPP4 gene.
+
+
+## Step 1: Definition of "promoter/upstream" regions
 
 As in [@vernaz2022epigenetic], since no functional annotation exists for Lake Malawi cichlid genomes, we define promoter regions in silico as regions ±1 kbp around the TSS.
 
-For that, we use [Annotation Features File (GTF) from the NCBI RefSeq Assembly](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000238955.4/)
+
+### Choice of gene annotiation file format
+
+File formats from [NCBI](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000238955.4/). Selected RefSeq only (no Ensembl annotation). More info [here](https://www.biobam.com/differences-between-gtf-and-gff-files-in-genomic-data-analysis/), [here](http://www.ensembl.org/info/website/upload/gff.html) and [here](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-020-6707-9). 
+
+
+- The General Feature Format (GFF): GFF is a standard file format used for storing genomic sequences and annotations, developed by the Sanger Centre (v2) and the Sequence Ontology Project (v3). It describes features and annotations of DNA, RNA, and protein sequences in a plain text format with nine fields separated by tabs. Focuses on the hierarchical structure of genome annotations and is often less verbose.
+
+- The Gene Transfer Format (GTF): GTF, often seen as a derivative of GFF, is more specific in its application. It was generally termed GTF around 2000 and developed as part of collaborative genome annotation projects. GTF borrows from GFF but has additional structures for detailed gene annotations, often used to describe transcripts and their coding sequences.
+
+The `.gtf` file contains more information, but for our purpose we can use the `.gff` file.
 
 ```{r}
-# Load the GTF file
-gtf_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/genomic.gtf" 
-gtf <- import(gtf_file)
-head(gtf)
+# Load the GFF file
+gff_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/genomic.gff" 
+gff <- as.data.frame(import(gff_file))
+
 ```
 
-The gtf file is structured as a GRanges object containing genomic annotation information with the following key components (columns):
+- `seqnames`: Chromosome.
 
-- `seqnames`: Chromosome or scaffold name (e.g., NC_036780.1).
+- `start`, `end`: Coordinates of the gene.
 
-- `ranges`: Start and end positions of the genomic feature.
+- `strand`: Gene orientation.
 
-- `strand`: Strand of the feature (+ for forward strand, - for reverse strand).
+- `type`: Feature type (here filtered for genes).
 
-- `source`: Annotation source (e.g., Gnomon).
+- `Gene`: Gene name or ID.
 
-- `type`: Feature type (e.g., gene, transcript, exon).
+- `gene_biotype`: Functionality (e.g., protein_coding)
 
-- `Metadata`: Additional columns include gene_id, transcript_id, gene, product, gene_biotype, exon_number, etc., which describe the feature in detail.
-
-Example Entries:
-
-- Row 1: A gene on the + strand, identified as LOC106676409, classified as lncRNA.
-
-- Row 2: A transcript corresponding to the same gene.
-
-- Rows 3-5: Exons belonging to the transcript.
-
-- Row 6: A gene on the - strand, classified as protein_coding.
-
-We filter for transcripts:
 
 ```{r}
-# Filter for transcripts
-gtf_transcripts <- gtf[gtf$type == "transcript", ]
-head(gtf_transcripts)
+table(gff$source)
 ```
 
-And define the TSS by accounting for the strand orientation so that:
+- `source`: indicates the source of the annotation for each feature in the file. These sources represent the tools, pipelines, or databases that generated the corresponding annotation.
 
-- For Features on the + Strand: The TSS is the smallest genomic coordinate (start).
+  - `RefSeq`: These annotations come directly from the RefSeq database. RefSeq annotations are high-quality, manually curated or computationally derived features that are part of NCBI's Reference Sequence project. Examples: Protein-coding genes, RNA genes, pseudogenes.
 
-- For Features on the - Strand: The TSS is the largest genomic coordinate (end), as transcription occurs in the reverse direction.
+   - `Gnomon`: Gnomon is NCBI's gene prediction tool, which generates computationally predicted annotations. These annotations may include protein-coding genes, non-coding RNAs, or other features predicted based on sequence analysis. Gnomon is used when there is no manually curated annotation available for certain regions or genes.
+
+   - `cmsearch`: This refers to the Infernal package (specifically the cmsearch tool), which identifies RNA features such as non-coding RNAs or structured RNA elements.  Often used for annotating RNA families based on covariance models.
+
+  - `tRNAscan-SE`: tRNAscan-SE is a specialized tool for identifying and annotating tRNA genes in genome sequences. Annotations with this source indicate regions identified as tRNAs through this tool.
+
+   - `BestRefSeq`: Features with this source are part of the BestRefSeq annotation, which integrates high-quality manual curation with computational predictions to produce a "best" annotation for a gene or transcript. BestRefSeq annotations are typically the most reliable.
+
+  - BestRefSeq,Gnomon (or `BestRefSeq%2CGnomon`): This indicates that a feature is annotated by both the BestRefSeq and Gnomon pipelines. Such annotations may combine curated data with computational predictions.
+
+### Filter region of interest
 
 ```{r}
-# Extract TSS
-tss <- data.frame(
-  chr = seqnames(gtf_transcripts),
-  tss = ifelse(strand(gtf_transcripts) == "+", start(gtf_transcripts), end(gtf_transcripts)),
-  strand = strand(gtf_transcripts)
-)
-head(tss)
+region_gff <- gff[
+  gff$seqnames == "NC_036801.1" & 
+  gff$type == "gene" & 
+  gff$start <= region_end & 
+  gff$end >= region_start, 
+]
+
+head(region_gff)
 ```
 
-The tss data frame contains:
 
-- `chr`: Chromosome names
+```{r}
+table(region_gff$source)
+```
 
-- `tss`: Transcription start sites
 
-- `strand`: Strand orientation of the transcripts
+
+
+```{r}
+region_gff[grep("GeneID:101483164", region_gff$Dbxref), ]
+```
+
+```{r}
+length(unique(region_gff$ID))
+unique(region_gff$ID)
+```
+
+```{r}
+# Extract relevant columns
+gene_data <- region_gff[, c("strand","start", "end", "gene")]
+
+# Create a y-axis index for unique gene names
+gene_data$y_index <- match(gene_data$gene, unique(gene_data$gene))
+
+# Set gene colors based on strand information (red for negative strand, blue for positive strand)
+gene_data$gene_color <- ifelse(gene_data$strand == "-", "red", "blue")
+
+```
+
+```{r}
+# Set up larger plotting area and adjust margins
+par(mar=c(6, 10, 4, 2), xpd=TRUE)
+
+# Create the plot with adjusted y-axis
+plot(c(min(gene_data$start), max(gene_data$end)), 
+     c(0, max(gene_data$y_index) + 1), 
+     type="n", 
+     xlab="Genomic Coordinates", 
+     ylab="", 
+     xaxt="n", 
+     yaxt="n")
+
+# Plot each gene as a line, with thicker line for GeneID:101483164
+for (i in 1:nrow(gene_data)) {
+  # Set line width for GeneID:101483164 (2x as thick)
+  lwd_value <- ifelse(gene_data$gene[i] == "LOC101483164", 4, 1)
+  
+  # Plot the gene line with the appropriate color and line width
+  segments(gene_data$start[i], gene_data$y_index[i], gene_data$end[i], gene_data$y_index[i], 
+           col=gene_data$gene_color[i], lwd=lwd_value)
+}
+
+# Add gene names to the y-axis
+axis(2, at=gene_data$y_index, labels=gene_data$gene, las=1, cex.axis=0.7)
+# Add x-axis with genomic coordinates
+axis(1)
+
+# Optionally, add a grid for better visualization
+grid()
+
+# Add a legend at the top-left corner
+legend("topleft", 
+       legend=c("Positive strand (blue)", "Negative strand (red)"), 
+       fill=c("blue", "red"), 
+       bty="n", cex=0.8)
+```
+
+```{r}
+# Sort gene_data by strand and then by start position
+gene_data_sorted <- gene_data[order(gene_data$strand, gene_data$start), ]
+
+# Initialize a vector to store overlap results
+gene_data_sorted$overlap <- FALSE
+
+# Loop over genes, comparing each gene with the next one in the same strand
+for (i in 1:(nrow(gene_data_sorted) - 1)) {
+  # Check if genes are on the same strand and overlap
+  if (gene_data_sorted$strand[i] == gene_data_sorted$strand[i + 1] &&
+      gene_data_sorted$end[i] >= gene_data_sorted$start[i + 1]) {
+    gene_data_sorted$overlap[i] <- TRUE
+    gene_data_sorted$overlap[i + 1] <- TRUE
+  }
+}
+
+# View the genes with overlap information
+head(gene_data_sorted)
+
+```
+
+```{r}
+gene_data_sorted[which(gene_data_sorted$overlap==TRUE),"gene"]
+```
+
+```{r}
+region_gff[region_gff$gene == "nop58",]
+region_gff[region_gff$gene == "LOC111501074",]
+```
+
+The second one corresponds to the source `cmsearch`, so it may be the one that should be taken out.
+
+
+```{r}
+region_gff <- region_gff[region_gff$gene != "LOC111501074",]
+```
+
+
+### Define the 200 kb upstream regions
+
+
+
+
+Calculate the upstream start and end to prevent overlap with the previous gene. *This is done for each strand from the second gene onwards as we dont know where the gene before the first gene is as it is not included in the region dataframe*.
+
+- For genes on the positive strand, the upstream region starts 20kb before the gene's start position, or at the end of the previous gene if there is one.
+
+- For genes on the negative strand, the upstream region starts 20kb after the gene's end position, or at the start of the next gene if there is one.
+
+
+```{r}
+# Separate genes by strand
+positive_strand_genes <- region_gff[region_gff$strand == "+", ]
+negative_strand_genes <- region_gff[region_gff$strand == "-", ]
+
+# Sort genes by start position within each strand
+positive_strand_genes <- positive_strand_genes[order(positive_strand_genes$start), ]
+negative_strand_genes <- negative_strand_genes[order(negative_strand_genes$end, decreasing = TRUE), ]
+
+# Initialize the new columns for upstream start and end
+positive_strand_genes$upstream_start <- NA
+positive_strand_genes$upstream_end <- NA
+
+negative_strand_genes$upstream_start <- NA
+negative_strand_genes$upstream_end <- NA
+
+# Calculate the upstream region for positive strand genes
+for (i in 2:nrow(positive_strand_genes)) {
+  positive_strand_genes$upstream_start[i] <- max(positive_strand_genes$start[i] - 20000, positive_strand_genes$end[i-1] + 1)
+  positive_strand_genes$upstream_end[i] <- positive_strand_genes$start[i] - 1
+}
+
+# Calculate the upstream region for negative strand genes
+for (i in 2:nrow(negative_strand_genes)) {
+  negative_strand_genes$upstream_start[i] <- min(negative_strand_genes$end[i] + 20000, negative_strand_genes$start[i-1] - 1)
+  negative_strand_genes$upstream_end[i] <- negative_strand_genes$end[i] + 1
+}
+
+# Combine the results back
+region_gff <- rbind(positive_strand_genes, negative_strand_genes)
+
+# View the updated dataframe with upstream regions
+head(region_gff)
+
+```
+
+
+#### Chromosome lengths
+
+In case the upstream regions were to be defined for all chromosomes/scaffolds, the chromosome lengths would be needed to be the maximum for the start of the upstream region of the genes on the negative strand.
+
+Load chromosome lengths:
+
+```{r, eval = FALSE}
+gbff_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/genomic.gbff" 
+file_lines <- readLines(gbff_file)
+# Extract the LOCUS line
+locus_lines <- file_lines[grep("^LOCUS", file_lines)]
+head(locus_lines)
+```
+
+They don't seem to end with the dot and the number (version) as in the case of the `gff` data. Lets check if the `gff` has several versions:
+
+```{r}
+length(unique(gff$seqnames))
+# Remove version suffix from seqnames
+length(unique(sub("\\.\\d+$", "", gff$seqnames)))
+```
+
+It does not have several versions.
+
+```{r, eval = FALSE}
+# Extract chromosome names and lengths
+chrom_info <- gsub("^LOCUS\\s+(\\S+)\\s+(\\d+)\\s+.*$", "\\1,\\2", locus_lines)
+chrom_info <- strsplit(chrom_info, ",")
+chrom_names <- sapply(chrom_info, `[`, 1)
+chrom_lengths <- as.numeric(sapply(chrom_info, `[`, 2))
+# Create a named vector
+chrom_lengths <- setNames(chrom_lengths, chrom_names)
+
+# Remove version numbers from seqnames in the region-filtered gff
+region_gff$seqnames <- sub("\\.\\d+$", "", region_gff$seqnames)
+
+```
+
+
+
 
 ## Step 2: Filtering of CGI by promoter overlap
 
@@ -122,248 +329,169 @@ cgif <- read.table(cgi_file, header = TRUE, sep = "\t")
 head(cgif)
 ```
 
-Convert the promoter and CGI data to `GRanges` objects for genomic interval operations:
-
 ```{r}
-# Create GRanges for promoters
-promoter_gr <- GRanges(
-  seqnames = promoters$chr,
-  ranges = IRanges(start = promoters$tss, end = promoters$tss),
-  strand = promoters$strand
-)
-
-# Create GRanges for CGI
-cgi_gr <- GRanges(
-  seqnames = cgif$chr,
-  ranges = IRanges(start = cgif$start, end = cgif$end)
-)
+region_cgi <- cgif[cgif$chr==dpp4_chr,]
 ```
 
-Use `findOverlaps` to find promoters within or near CpG islands:
-
 ```{r}
-# Find overlaps
-overlaps <- findOverlaps(promoter_gr, cgi_gr)
+# Create a matrix of CGI intervals for faster lookup
+cgi_intervals <- cbind(region_cgi$start, region_cgi$end)
 
-# Extract overlapping promoter indices
-promoters_with_cgi <- promoters[queryHits(overlaps), ]
-cgi_overlaps <- cgif[subjectHits(overlaps), ]
-
-# Combine data for output
-promoter_cgi_overlap <- cbind(promoters_with_cgi, cgi_overlaps)
-head(promoter_cgi_overlap)
-```
-
-The `promoter_cgi_overlap` dataset combines information about promoters and CpG islands (CGIs) where they overlap. It contains the following columns:
-
-- `chr`: The chromosome where the promoter is located.
-    
-- `tss`: The transcription start site (TSS) position of the promoter.
-
-- `strand`: The strand of the promoter (+ or -).
-
-- `chr`: The chromosome where the CGI is located (same as the promoter in the overlap context).
-
-- `start`: The start position of the overlapping CGI.
-
-- `end`: The end position of the overlapping CGI.
-
-- `length`: The length of the CGI in base pairs.
-
-- `CpGcount`: The number of CpG dinucleotides within the CGI.
-
-- `GCcount`: The number of G and C nucleotides within the CGI.
-
-- `pctGC`: The percentage of G and C nucleotides within the CGI.
-
-- `obsExp`: The observed-to-expected ratio of CpG dinucleotides in the CGI.
-
-Each row corresponds to an overlap between a promoter and a CGI. For example:
-
-- The first row shows that a promoter at TSS 755,445 on the negative strand overlaps with a CGI on chromosome NC_036780.1 spanning positions 755,397 to 756,689. This CGI has a length of 1,293 bp, contains 123 CpG dinucleotides, and has a GC content of 63.19% with an observed-to-expected CpG ratio of 0.954.
-
-- The overlap is detailed for both the promoter and the CGI, including their respective properties.
-
-```{r}
-#write.table(promoter_cgi_overlap, file = "promoter_cgi_overlap.txt", sep = "\t", row.names = FALSE)
-promoter_cgi_overlap <- read.table("/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/promoter_cgi_overlap.txt")
-```
-
-### Check TSS overlap density
-
-```{r}
-plot(
-  promoter_cgi_overlap$length, 
-  promoter_cgi_overlap$pctGC, 
-  xlab = "CGI Length (bp)", 
-  ylab = "GC Content (%)", 
-  main = "Relationship Between CGI Length and GC Content",
-  pch = 16,  # Solid circle points
-  col = "blue"  # Point color
-)
-
-```
-
-
-# Dirk idea
-
-## Explore the data
-
-```{r}
-unique(gtf$type)
-```
-
-The gtf contains: gene, transcript, exon, CDS, start_codon and stop_codon
-
-Lets filter the genes:
-
-```{r}
-genes <- gtf[gtf$type == "gene",]
-dim(as.data.frame(genes))
-```
-
-Are the genes duplicated?
-
-```{r}
-length(genes$gene_id)
-length(unique(genes$gene_id))
-```
-
-
-Lets explore the annotation sources:
-
-```{r}
-unique(genes$source)
-```
-
-Summary table:
-
-| Source        | Primary Focus                       | Reliability          | Features                                         |
-|---------------|-------------------------------------|----------------------|--------------------------------------------------|
-| Gnomon        | Computational gene prediction       | Medium               | Predicted genes, transcripts, and exons         |
-| cmsearch      | RNA homology                        | Medium-High          | Non-coding RNAs (e.g., ribosomal RNAs)          |
-| tRNAscan-SE   | tRNA genes                          | High                 | tRNA annotations                                 |
-| BestRefSeq    | High-confidence curated annotations | High                 | Protein-coding and non-coding genes             |
-| BestRefSeq, Gnomon | Combined curated and predicted annotations | Medium-High | Hybrid of RefSeq and Gnomon predictions         |
-| RefSeq        | Broader RefSeq annotations          | Mixed (High to Low)  | Protein-coding and non-coding genes             |
-
-
-
-## Define the 200 kb upstream regions
-
-First, save chromosome lengths:
-
-```{r}
-gbff_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/genomic.gbff" 
-file_lines <- readLines(gbff_file)
-# Extract the LOCUS line
-locus_lines <- file_lines[grep("^LOCUS", file_lines)]
-head(locus_lines)
-```
-
-They dont seem to end with the dot and the number (version) as in the case of the `gtf_genes` data. Lets check if the `gtf_genes` (or the dataframe obtained from it) has several versions:
-
-```{r}
-length(unique(genes_df$seqnames))
-# Remove version suffix from seqnames
-length(unique(sub("\\.\\d+$", "", genes_df$seqnames)))
-```
-
-It does not have several versions.
-
-```{r}
-# Extract chromosome names and lengths
-chrom_info <- gsub("^LOCUS\\s+(\\S+)\\s+(\\d+)\\s+.*$", "\\1,\\2", locus_lines)
-chrom_info <- strsplit(chrom_info, ",")
-chrom_names <- sapply(chrom_info, `[`, 1)
-chrom_lengths <- as.numeric(sapply(chrom_info, `[`, 2))
-# Create a named vector
-chrom_lengths <- setNames(chrom_lengths, chrom_names)
-
-# Remove version numbers from seqnames in genes_df
-genes_df$seqnames <- sub("\\.\\d+$", "", genes_df$seqnames)
-
-```
-
-
-
-Calculate the upstream start and end to prevent overlap with the previous gene.
-
-```{r}
-# Ensure genes_df is sorted by seqnames and start position
-genes_df <- genes_df[order(genes_df$seqnames, genes_df$start), ]
-
-# Initialize the upstream_start column
-genes_df$upstream_start <- NA
-
-# Iterate over genes to adjust upstream_start
-for (i in 1:nrow(genes_df)) {
-  current_gene <- genes_df[i, ]
-  current_chrom <- current_gene$seqnames
-  current_strand <- current_gene$strand
-  current_start <- current_gene$start
-  current_end <- current_gene$end
-
-  # Find the previous gene on the same chromosome
-  previous_gene <- genes_df[i - 1, ]
-  if (i > 1 && previous_gene$seqnames == current_chrom) {
-    previous_end <- previous_gene$end
-    previous_start <- previous_gene$start
-  } else {
-    previous_end <- NA
-    previous_start <- NA
-  }
-
-  # Adjust upstream_start based on strand and previous gene position
-  if (current_strand == "+") {
-    if (!is.na(previous_end)) {
-      genes_df$upstream_start[i] <- max(current_start - 200000, previous_end)
-    } else {
-      genes_df$upstream_start[i] <- max(current_start - 200000, 1)
-    }
-  } else if (current_strand == "-") {
-    if (!is.na(previous_start)) {
-      genes_df$upstream_start[i] <- min(current_end + 200000, previous_start)
-    } else {
-      genes_df$upstream_start[i] <- min(current_end + 200000, chrom_lengths[current_chrom])
-    }
-  }
+# Function to efficiently check if positions are within any CGI
+is_within_cgi_vector <- function(positions, cgi_intervals) {
+  # Apply the check for each position against all intervals
+  sapply(positions, function(pos) {
+    any(pos >= cgi_intervals[,1] & pos <= cgi_intervals[,2])
+  })
 }
 
+# Initialize results list for better memory management
+results_list <- vector("list", nrow(region_gff))
+
+# Process each gene
+for (i in 1:nrow(region_gff)) {
+  upstream_start <- region_gff$upstream_start[i]
+  upstream_end <- region_gff$upstream_end[i]
+  
+  # Skip if NA values
+  if (is.na(upstream_start) | is.na(upstream_end)) {
+    next
+  }
+  
+  # Create sequence of positions (handling both forward and reverse cases)
+  if (upstream_start > upstream_end) {
+    positions <- seq(from = upstream_start, to = upstream_end, by = -1)
+  } else {
+    positions <- seq(from = upstream_start, to = upstream_end, by = 1)
+  }
+  
+  # Get CGI status for all positions at once
+  in_cgi <- is_within_cgi_vector(positions, cgi_intervals)
+  
+  # Calculate distances properly based on strand
+  distances <- if(region_gff$strand[i] == "+") {
+    # For positive strand: distance from gene start
+    region_gff$start[i] - positions  # Positive values will be upstream
+  } else {
+    # For negative strand: distance from gene end
+    positions - region_gff$end[i]    # Positive values will be upstream
+  }
+  
+  # Create result data frame for this gene
+  results_list[[i]] <- data.frame(
+    gene_id = region_gff$gene[i],
+    position = positions,
+    in_cgi = in_cgi,
+    distance = distances,
+    strand = region_gff$strand[i]
+  )
+}
+
+# Combine all results efficiently
+upstream_data <- do.call(rbind, results_list[!sapply(results_list, is.null)])
+
+# Calculate counts and probabilities
+position_counts <- table(upstream_data$distance)  # Using table() for correct counts
+distance_seq <- as.numeric(names(position_counts))
+
+# Calculate probabilities
+cgi_probabilities <- tapply(upstream_data$in_cgi, 
+                          upstream_data$distance, 
+                          mean)   # Probability of being in CGI
+
+
 ```
 
-Filter for "curated" chromosomes:
+```{r, fig.height=12, fig.width=10}
+# Set up the plot with better formatting
+par(mfrow = c(2,1))  # Set up 2 plots vertically
+par(mar = c(4, 5, 4, 2))  # Adjust margins for top plot
+# Plot 1: Probability plot
+plot(distance_seq, cgi_probabilities, 
+     xlab = "",  # Remove x-label from top plot
+     ylab = "Probability of Position Being in CGI",
+     main = "Probability of Position Being in CpG Island\nby Distance to Gene Start",
+     cex.lab = 1.2,      # Larger axis labels
+     cex.axis = 1.1,     # Larger axis numbers
+     cex.main = 1.3,     # Larger title
+     las = 1,            # Horizontal axis labels
+     pch = 16,          # Solid circle points
+     ylim = c(0, 1),    # Force probability y-axis to [0,1]
+     col = adjustcolor("darkblue", alpha.f = 0.5))  # Semi-transparent blue
 
-```{r}
-# Filter genes_df to keep only those rows where seqnames starts with "NC"
-genes_df_filtered <- genes_df[grep("^NC", genes_df$seqnames), ]
+# Add grid
+grid(col = "gray90", lty = "dotted")
 
-# Check the result
-head(genes_df_filtered)
+# Add a horizontal line at y = 0
+abline(h = 0, col = "gray70", lty = 2)
+
+# Plot 2: Count plot
+par(mar = c(5, 5, 3, 2))  # Adjust margins for bottom plot
+plot(distance_seq, position_counts, type = "h",  # Using the correct counts
+     xlab = "Distance to Gene Start (bp)",
+     ylab = "Number of Positions",
+     main = "Number of Positions at Each Distance",
+     col = "darkgreen",
+     lwd = 1,
+     ylim = c(0, max(position_counts) * 1.05))  # Force y-axis to start at 0 with 5% padding
+grid(col = "gray90", lty = "dotted")
+```
+
+
+```{r, fig.height=4, fig.width=15}
+# Set up plotting area with adjusted margins
+par(mfrow = c(1,1))  
+par(mar=c(5, 8, 4, 4))  # Increased right margin for legend
+
+# Create y-coordinates for each type
+y_coords <- c(1, 2, 3)  # 1 for neg strand, 2 for pos strand, 3 for CGIs
+
+# Get the x-axis range including both genes and CGIs
+x_range <- range(c(region_gff$start, region_gff$end))
+
+# Create the empty plot
+plot(x_range, c(0.5, 3.5), 
+     type="n", 
+     xlab="Genomic Coordinates",
+     ylab="",
+     yaxt="n",  # Remove y-axis ticks
+     main="Genes and CpG Islands")
+
+# Add custom y-axis labels
+axis(2, at=y_coords, 
+     labels=c("- Strand Genes", "+ Strand Genes", "Islands"),
+     las=1)  # Horizontal labels
+
+# Plot genes on negative strand
+neg_genes <- region_gff[region_gff$strand == "-", ]
+for(i in 1:nrow(neg_genes)) {
+    segments(neg_genes$start[i], y_coords[1], 
+            neg_genes$end[i], y_coords[1],
+            col="red", lwd=2)
+}
+
+# Plot genes on positive strand
+pos_genes <- region_gff[region_gff$strand == "+", ]
+for(i in 1:nrow(pos_genes)) {
+    segments(pos_genes$start[i], y_coords[2], 
+            pos_genes$end[i], y_coords[2],
+            col="blue", lwd=2)
+}
+
+# Plot CGIs
+region_cgis <- cgif[cgif$chr == dpp4_chr & 
+                   cgif$start >= region_start & 
+                   cgif$end <= region_end,]
+
+for(i in 1:nrow(region_cgis)) {
+    segments(region_cgis$start[i], y_coords[3], 
+            region_cgis$end[i], y_coords[3],
+            col="darkgreen", lwd=2)
+}
+
+# Add grid
+grid(col="gray90")
 
 ```
 
-Still it seems there is nothing but genes. Maybe I should have filtered for something else.
-
-In a GTF (Gene Transfer Format) file, the gene feature type represents the entire gene, including all its exons, introns, and regulatory regions. The transcript feature type corresponds to a specific transcript variant of the gene, encompassing all exons and introns of that transcript. The exon feature type denotes individual exonic regions within a transcript. The CDS (Coding Sequence) feature type indicates the portion of the gene or transcript that codes for protein. The start_codon and stop_codon feature types mark the beginning and end of the coding sequence, respectively. 
-**Try gff**
-
-```{r}
-gtf_df[gtf_df$seqnames=="NC_036801.1" & gtf_df$type == "gene",]
-gtf_df[gtf_df$gene_id == "LOC101483164",]
-```
-
-```{r}
-dpp4_chr <- "NC_036801.1"
-dpp4_start <- 29502362
-dpp4_end <- 29517382
-gtf_df[gtf_df$seqnames=="NC_036801.1" & gtf_df$type == "gene" & gtf_df$start > dpp4_start - 5e5 & gtf_df$end > dpp4_end + 5e5  ,]
-```
-
-
-
-
-
-
-
-
+# References
