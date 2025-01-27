@@ -2,7 +2,11 @@
 title: "Definition of Archipelagos"
 author: "Sara"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
 bibliography: references.bib
 ---
 
@@ -10,7 +14,7 @@ bibliography: references.bib
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, warning=FALSE, message=FALSE}
+```{r load libraries, warning=FALSE, message=FALSE, echo=FALSE}
 # If missing, install required packages
 
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
@@ -20,7 +24,6 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
 if (!requireNamespace("rtracklayer", quietly = TRUE)) {
   BiocManager::install("rtracklayer")
 }
-
 
 library(rtracklayer)
 ```
@@ -36,7 +39,7 @@ Our approach then has the following steps:
 
 We will perform this steps for the genomic region of interest:
 
-```{r}
+```{r set region values}
 dpp4_chr <- "NC_036801.1"
 dpp4_start <- 29502362
 dpp4_end <- 29517382
@@ -71,11 +74,11 @@ File formats from [NCBI](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000238
 
 The `.gtf` file contains more information, but for our purpose we can use the `.gff` file.
 
-```{r}
+```{r load gff}
 # Load the GFF file
 gff_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/genomic.gff" 
 gff <- as.data.frame(import(gff_file))
-
+names(gff)
 ```
 
 - `seqnames`: Chromosome.
@@ -90,8 +93,18 @@ gff <- as.data.frame(import(gff_file))
 
 - `gene_biotype`: Functionality (e.g., protein_coding)
 
+Lets keep the relevant columns:
 
-```{r}
+```{r gff filter relevant columns}
+gff <- gff[,c("seqnames", "start", "end", "width", "strand", "type", "source", "ID", "Dbxref", "gene")]
+```
+
+
+```{r gff table of annotation type}
+table(gff$type)
+```
+
+```{r gff table of annotation source}
 table(gff$source)
 ```
 
@@ -109,37 +122,293 @@ table(gff$source)
 
   - BestRefSeq,Gnomon (or `BestRefSeq%2CGnomon`): This indicates that a feature is annotated by both the BestRefSeq and Gnomon pipelines. Such annotations may combine curated data with computational predictions.
 
-### Filter region of interest
+### Filter genes of whole genome
 
-```{r}
-region_gff <- gff[
-  gff$seqnames == "NC_036801.1" & 
-  gff$type == "gene" & 
-  gff$start <= region_end & 
-  gff$end >= region_start, 
+First, we filter the GFF file to keep only genes.
+```{r filter gff genome}
+genome_gff <- gff[
+  gff$type == "gene", 
 ]
+```
 
-head(region_gff)
+We can check the source of the filtered annotations:
+```{r gff_genome table of annotation source}
+table(genome_gff$source)
+```
+
+And the number of genes:
+
+```{r gff_genome number of genes}
+nrow(genome_gff)
+length(unique(genome_gff$ID))
+```
+
+We order the entries:
+
+```{r order genome_gff}
+genome_gff <- genome_gff[order(
+  genome_gff$seqnames,                     # First, order by chromosome
+  genome_gff$strand,                       # Then, order by strand
+  ifelse(genome_gff$strand == "+",         # If strand is "+", order by start
+         genome_gff$start, 
+         -genome_gff$end)                  # If strand is "-", order by end in descending order
+), ]
+
+# View the first few rows of the ordered dataframe by strand
+head(genome_gff[genome_gff$strand == "+",])
+head(genome_gff[genome_gff$strand == "-",])
 ```
 
 
+Now, we can filter to keep only genes that are not overlapping with each other. We first look for genes that overlap:
+
 ```{r}
+# Initialize a vector to store overlap results
+genome_gff$overlap <- FALSE
+
+# Loop over genes, comparing each gene with the next one in the same strand
+for (i in 1:(nrow(genome_gff) - 1)) {
+  
+  # Check if genes are on the same chromosome/scaffold and same strand
+  if (genome_gff$seqnames[i] == genome_gff$seqnames[i + 1] &&
+      genome_gff$strand[i] == genome_gff$strand[i + 1]){
+    
+    # Check overlap if strand is positive
+    if (genome_gff$strand[i] == "+" &&
+        genome_gff$end[i] >= genome_gff$start[i+1]) {
+      genome_gff$overlap[i] <- TRUE
+      genome_gff$overlap[i+1] <- TRUE
+    }
+   
+     # Check overlap if strand is negative
+    if (genome_gff$strand[i] == "-" &&
+       genome_gff$start[i] <= genome_gff$end[i+1]) {
+      genome_gff$overlap[i] <- TRUE
+      genome_gff$overlap[i+1] <- TRUE
+    }
+  }
+  
+}
+
+# Number of overlapping genes
+nrow(genome_gff[genome_gff$overlap == TRUE,])
+```
+
+
+We remove the overlapping genes from `genome_gff` and check the number of remaining genes:
+
+```{r gff_genome remove overlap genes}
+# Remove overlapping genes from genome_gff
+genome_gff <- genome_gff[!genome_gff$overlap, ]
+nrow(genome_gff)
+length(unique(genome_gff$ID))
+```
+
+### Chromosome lengths
+
+To define the upstream regions the chromosome lengths are needed to be the maximum for the start of the upstream region of the genes on the negative strand.
+
+Load chromosome lengths:
+
+```{r load gbff}
+gbff_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/genomic.gbff" 
+file_lines <- readLines(gbff_file)
+# Extract the LOCUS line
+locus_lines <- file_lines[grep("^LOCUS", file_lines)]
+head(locus_lines)
+```
+
+They don't seem to end with the dot and the number (version) as in the case of the `gff` data. Lets check if the `gff` has several versions:
+
+```{r explore genome_gff versions}
+length(unique(genome_gff$seqnames))
+# Remove version suffix from seqnames
+length(unique(sub("\\.\\d+$", "", genome_gff$seqnames)))
+```
+
+It does not have several versions, so we can remove the version numbers from `seqnames` in the `genome_gff` and from variable `dpp4_chr`.
+
+```{r remove version from seqnames}
+# Remove version numbers from seqnames in the filtered files
+genome_gff$seqnames <- sub("\\.\\d+$", "", genome_gff$seqnames)
+dpp4_chr <- "NC_036801"
+```
+
+```{r extract chrom names and lengths}
+# Extract chromosome names and lengths
+chrom_info <- gsub("^LOCUS\\s+(\\S+)\\s+(\\d+)\\s+.*$", "\\1,\\2", locus_lines)
+rm(locus_lines)
+chrom_info <- strsplit(chrom_info, ",")
+chrom_names <- sapply(chrom_info, `[`, 1)
+chrom_lengths <- as.numeric(sapply(chrom_info, `[`, 2))
+# Create a named vector
+chrom_lengths <- setNames(chrom_lengths, chrom_names)
+```
+
+```{r check correspondence genome_gff and chrom_lengths}
+# Check how many chromosomes are in chrom_names but not in genome_gff$seqnames
+length(setdiff(chrom_names, unique(genome_gff$seqnames)))
+
+# You can also check the reverse - how many chromosomes in genome_gff$seqnames are not in chrom_names
+length(setdiff(unique(genome_gff$seqnames), chrom_names))
+```
+
+### Define the 200 kb upstream genes of whole genome
+
+
+
+```{r}
+# Initialize the new columns for upstream start and end in genome_gff
+genome_gff$upstream_start <- NA
+genome_gff$upstream_end <- NA
+genome_gff$upstream_length <- NA
+
+# Process each chromosome separately
+for (chr in unique(genome_gff$seqnames)) {
+  chr_length <- chrom_lengths[chr]
+  chr_genes <- genome_gff[genome_gff$seqnames == chr, ]
+  
+  ### Process positive strand genes ###
+  
+  pos_genes <- chr_genes[chr_genes$strand == "+", ]
+  if (nrow(pos_genes) > 0) {
+    
+    # First gene in chromosome (positive strand)
+    if (pos_genes$start[1] > 1){
+      pos_genes$upstream_end[1] <- pos_genes$start[1] - 1
+      pos_genes$upstream_start[1] <- max(1, pos_genes$start[1] - 20000)
+      pos_genes$upstream_length[1] <- pos_genes$upstream_end[1] - pos_genes$upstream_start[1] + 1
+
+      # Only keep upstream region if it's valid (at least 1 base)
+      if (pos_genes$upstream_end[1] - pos_genes$upstream_start[1] < 0){
+        pos_genes$upstream_start[1] <- NA
+        pos_genes$upstream_end[1] <- NA
+        pos_genes$upstream_length[1] <- NA
+      }
+    }
+ 
+    # Remaining genes
+    if (nrow(pos_genes) > 1) {
+      for (i in 2:nrow(pos_genes)) {
+        pos_genes$upstream_end[i] <- pos_genes$start[i] - 1
+        pos_genes$upstream_start[i] <- max(pos_genes$start[i] - 20000, pos_genes$end[i-1] + 1)
+        pos_genes$upstream_length[i] <- pos_genes$upstream_end[i] - pos_genes$upstream_start[i] + 1
+
+        # Only keep upstream region if it's valid (at least 1 base)
+        if (pos_genes$upstream_end[i] - pos_genes$upstream_start[i] < 0){
+          pos_genes$upstream_start[i] <- NA
+          pos_genes$upstream_end[i] <- NA
+          pos_genes$upstream_length[i] <- NA
+        }
+      }
+    }
+  }
+  
+  ### Process negative strand genes ###
+  neg_genes <- chr_genes[chr_genes$strand == "-", ]
+  if (nrow(neg_genes) > 0) {
+    
+    # First gene in chromosome (negative strand)
+    if (neg_genes$end[1] < chr_length) {
+      neg_genes$upstream_start[1] <- min(chr_length, neg_genes$end[1] + 20000)
+      neg_genes$upstream_end[1] <- neg_genes$end[1] + 1
+      neg_genes$upstream_length[1] <- neg_genes$upstream_start[1] - neg_genes$upstream_end[1] + 1
+
+      # Only keep upstream region if it's valid (at least 1 base)
+      if (neg_genes$upstream_start[1] - neg_genes$upstream_end[1] < 0) {
+        neg_genes$upstream_start[1] <- NA
+        neg_genes$upstream_end[1] <- NA
+        neg_genes$upstream_length[1] <- NA
+      }
+    }
+    
+    # Remaining genes
+    if (nrow(neg_genes) > 1) {
+      for (i in 2:nrow(neg_genes)) {
+        neg_genes$upstream_start[i] <- min(neg_genes$end[i] + 20000, neg_genes$start[i-1] - 1)
+        neg_genes$upstream_end[i] <- neg_genes$end[i] + 1
+        neg_genes$upstream_length[i] <- neg_genes$upstream_start[i] - neg_genes$upstream_end[i] + 1
+
+        # Only keep upstream region if it's valid (at least 1 base)
+        if (neg_genes$upstream_start[i] - neg_genes$upstream_end[i] < 0) {
+          neg_genes$upstream_start[i] <- NA
+          neg_genes$upstream_end[i] <- NA
+          neg_genes$upstream_length[i] <- NA
+        }
+      }
+    }
+  }
+  
+  # Update the main genome_gff dataframe
+  if(nrow(pos_genes)>0){
+    genome_gff[genome_gff$seqnames == chr & genome_gff$strand == "+", c("upstream_start", "upstream_end", "upstream_length")] <- 
+    pos_genes[, c("upstream_start", "upstream_end", "upstream_length")]
+  }
+  
+  if(nrow(neg_genes)>0){
+    genome_gff[genome_gff$seqnames == chr & genome_gff$strand == "-", c("upstream_start", "upstream_end", "upstream_length")] <- 
+    neg_genes[, c("upstream_start", "upstream_end", "upstream_length")]
+  }
+  
+}
+
+# Check the results
+summary(genome_gff$upstream_length)
+```
+
+
+#### Subset chromosome of interest
+
+```{r filter gff chromosome alternative}
+chromosome_gff <- genome_gff[
+  genome_gff$seqnames == dpp4_chr,
+]
+```
+
+We can check the source of the filtered annotations:
+```{r gff_chromosome table of annotation source}
+table(chromosome_gff$source)
+```
+
+Check the number of remaining genes:
+
+```{r gff_chromosome remaining genes}
+nrow(chromosome_gff)
+length(unique(chromosome_gff$ID))
+```
+
+Check the summary of the upstream lengths:
+
+```{r}
+summary(chromosome_gff$upstream_length)
+```
+
+
+
+#### Subset region of interest
+
+```{r filter gff region alternative}
+region_gff <- chromosome_gff[
+  chromosome_gff$start <= region_end & 
+  chromosome_gff$end >= region_start, 
+]
+```
+
+We can check the source of the filtered annotations:
+```{r gff_region table of annotation source}
 table(region_gff$source)
 ```
 
+Check the number of remaining genes:
 
-
-
-```{r}
-region_gff[grep("GeneID:101483164", region_gff$Dbxref), ]
-```
-
-```{r}
+```{r gff_region remaining genes}
+nrow(region_gff)
 length(unique(region_gff$ID))
-unique(region_gff$ID)
 ```
 
-```{r}
+We can visualize the genes on the region of interest:
+
+```{r gff_region plot}
 # Extract relevant columns
 gene_data <- region_gff[, c("strand","start", "end", "gene")]
 
@@ -149,9 +418,6 @@ gene_data$y_index <- match(gene_data$gene, unique(gene_data$gene))
 # Set gene colors based on strand information (red for negative strand, blue for positive strand)
 gene_data$gene_color <- ifelse(gene_data$strand == "-", "red", "blue")
 
-```
-
-```{r}
 # Set up larger plotting area and adjust margins
 par(mar=c(6, 10, 4, 2), xpd=TRUE)
 
@@ -183,138 +449,17 @@ axis(1)
 grid()
 
 # Add a legend at the top-left corner
-legend("topleft", 
+legend("topright", 
        legend=c("Positive strand (blue)", "Negative strand (red)"), 
        fill=c("blue", "red"), 
        bty="n", cex=0.8)
 ```
 
-```{r}
-# Sort gene_data by strand and then by start position
-gene_data_sorted <- gene_data[order(gene_data$strand, gene_data$start), ]
+Check the summary of the upstream lengths:
 
-# Initialize a vector to store overlap results
-gene_data_sorted$overlap <- FALSE
-
-# Loop over genes, comparing each gene with the next one in the same strand
-for (i in 1:(nrow(gene_data_sorted) - 1)) {
-  # Check if genes are on the same strand and overlap
-  if (gene_data_sorted$strand[i] == gene_data_sorted$strand[i + 1] &&
-      gene_data_sorted$end[i] >= gene_data_sorted$start[i + 1]) {
-    gene_data_sorted$overlap[i] <- TRUE
-    gene_data_sorted$overlap[i + 1] <- TRUE
-  }
-}
-
-# View the genes with overlap information
-head(gene_data_sorted)
-
+```{r summary of region upstream length}
+summary(region_gff$upstream_length)
 ```
-
-```{r}
-gene_data_sorted[which(gene_data_sorted$overlap==TRUE),"gene"]
-```
-
-```{r}
-region_gff[region_gff$gene == "nop58",]
-region_gff[region_gff$gene == "LOC111501074",]
-```
-
-The second one corresponds to the source `cmsearch`, so it may be the one that should be taken out.
-
-
-```{r}
-region_gff <- region_gff[region_gff$gene != "LOC111501074",]
-```
-
-
-### Define the 200 kb upstream regions
-
-
-
-
-Calculate the upstream start and end to prevent overlap with the previous gene. *This is done for each strand from the second gene onwards as we dont know where the gene before the first gene is as it is not included in the region dataframe*.
-
-- For genes on the positive strand, the upstream region starts 20kb before the gene's start position, or at the end of the previous gene if there is one.
-
-- For genes on the negative strand, the upstream region starts 20kb after the gene's end position, or at the start of the next gene if there is one.
-
-
-```{r}
-# Separate genes by strand
-positive_strand_genes <- region_gff[region_gff$strand == "+", ]
-negative_strand_genes <- region_gff[region_gff$strand == "-", ]
-
-# Sort genes by start position within each strand
-positive_strand_genes <- positive_strand_genes[order(positive_strand_genes$start), ]
-negative_strand_genes <- negative_strand_genes[order(negative_strand_genes$end, decreasing = TRUE), ]
-
-# Initialize the new columns for upstream start and end
-positive_strand_genes$upstream_start <- NA
-positive_strand_genes$upstream_end <- NA
-
-negative_strand_genes$upstream_start <- NA
-negative_strand_genes$upstream_end <- NA
-
-# Calculate the upstream region for positive strand genes
-for (i in 2:nrow(positive_strand_genes)) {
-  positive_strand_genes$upstream_start[i] <- max(positive_strand_genes$start[i] - 20000, positive_strand_genes$end[i-1] + 1)
-  positive_strand_genes$upstream_end[i] <- positive_strand_genes$start[i] - 1
-}
-
-# Calculate the upstream region for negative strand genes
-for (i in 2:nrow(negative_strand_genes)) {
-  negative_strand_genes$upstream_start[i] <- min(negative_strand_genes$end[i] + 20000, negative_strand_genes$start[i-1] - 1)
-  negative_strand_genes$upstream_end[i] <- negative_strand_genes$end[i] + 1
-}
-
-# Combine the results back
-region_gff <- rbind(positive_strand_genes, negative_strand_genes)
-
-# View the updated dataframe with upstream regions
-head(region_gff)
-
-```
-
-
-#### Chromosome lengths
-
-In case the upstream regions were to be defined for all chromosomes/scaffolds, the chromosome lengths would be needed to be the maximum for the start of the upstream region of the genes on the negative strand.
-
-Load chromosome lengths:
-
-```{r, eval = FALSE}
-gbff_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/genomic.gbff" 
-file_lines <- readLines(gbff_file)
-# Extract the LOCUS line
-locus_lines <- file_lines[grep("^LOCUS", file_lines)]
-head(locus_lines)
-```
-
-They don't seem to end with the dot and the number (version) as in the case of the `gff` data. Lets check if the `gff` has several versions:
-
-```{r}
-length(unique(gff$seqnames))
-# Remove version suffix from seqnames
-length(unique(sub("\\.\\d+$", "", gff$seqnames)))
-```
-
-It does not have several versions.
-
-```{r, eval = FALSE}
-# Extract chromosome names and lengths
-chrom_info <- gsub("^LOCUS\\s+(\\S+)\\s+(\\d+)\\s+.*$", "\\1,\\2", locus_lines)
-chrom_info <- strsplit(chrom_info, ",")
-chrom_names <- sapply(chrom_info, `[`, 1)
-chrom_lengths <- as.numeric(sapply(chrom_info, `[`, 2))
-# Create a named vector
-chrom_lengths <- setNames(chrom_lengths, chrom_names)
-
-# Remove version numbers from seqnames in the region-filtered gff
-region_gff$seqnames <- sub("\\.\\d+$", "", region_gff$seqnames)
-
-```
-
 
 
 
@@ -322,121 +467,40 @@ region_gff$seqnames <- sub("\\.\\d+$", "", region_gff$seqnames)
 
 CGI annotation file (`.txt` file) obtained with makeCGI v1.3.4 [@hiddenMarkov]
 
-```{r}
+```{r load cgi annotation file}
 # Load the CGI annotation file
 cgi_file <- "/home/sara/methylation/MethEvolSIM/application_examples/abc_inferences/genomic_dist/CGI-Mzebra.txt" 
 cgif <- read.table(cgi_file, header = TRUE, sep = "\t")
 head(cgif)
 ```
+Lets remove the chromosome version number from the CGI annotation:
 
 ```{r}
-region_cgi <- cgif[cgif$chr==dpp4_chr,]
+cgif$chr <- sub("\\.\\d+$", "", cgif$chr)
 ```
+
+Check the summary of the island lengths:
+
+```{r summary of cgi lengths}
+summary(cgif$length)
+```
+
+Not all chromosomes in `genome_gff` are in the CGI annotations:
 
 ```{r}
-# Create a matrix of CGI intervals for faster lookup
-cgi_intervals <- cbind(region_cgi$start, region_cgi$end)
+# Identify seqnames in genome_gff that are not in cgif
+missing_seqnames <- setdiff(unique(genome_gff$seqnames), unique(cgif$chr))
 
-# Function to efficiently check if positions are within any CGI
-is_within_cgi_vector <- function(positions, cgi_intervals) {
-  # Apply the check for each position against all intervals
-  sapply(positions, function(pos) {
-    any(pos >= cgi_intervals[,1] & pos <= cgi_intervals[,2])
-  })
-}
-
-# Initialize results list for better memory management
-results_list <- vector("list", nrow(region_gff))
-
-# Process each gene
-for (i in 1:nrow(region_gff)) {
-  upstream_start <- region_gff$upstream_start[i]
-  upstream_end <- region_gff$upstream_end[i]
-  
-  # Skip if NA values
-  if (is.na(upstream_start) | is.na(upstream_end)) {
-    next
-  }
-  
-  # Create sequence of positions (handling both forward and reverse cases)
-  if (upstream_start > upstream_end) {
-    positions <- seq(from = upstream_start, to = upstream_end, by = -1)
-  } else {
-    positions <- seq(from = upstream_start, to = upstream_end, by = 1)
-  }
-  
-  # Get CGI status for all positions at once
-  in_cgi <- is_within_cgi_vector(positions, cgi_intervals)
-  
-  # Calculate distances properly based on strand
-  distances <- if(region_gff$strand[i] == "+") {
-    # For positive strand: distance from gene start
-    region_gff$start[i] - positions  # Positive values will be upstream
-  } else {
-    # For negative strand: distance from gene end
-    positions - region_gff$end[i]    # Positive values will be upstream
-  }
-  
-  # Create result data frame for this gene
-  results_list[[i]] <- data.frame(
-    gene_id = region_gff$gene[i],
-    position = positions,
-    in_cgi = in_cgi,
-    distance = distances,
-    strand = region_gff$strand[i]
-  )
-}
-
-# Combine all results efficiently
-upstream_data <- do.call(rbind, results_list[!sapply(results_list, is.null)])
-
-# Calculate counts and probabilities
-position_counts <- table(upstream_data$distance)  # Using table() for correct counts
-distance_seq <- as.numeric(names(position_counts))
-
-# Calculate probabilities
-cgi_probabilities <- tapply(upstream_data$in_cgi, 
-                          upstream_data$distance, 
-                          mean)   # Probability of being in CGI
-
-
+# Print the missing seqnames
+print(missing_seqnames)
 ```
 
-```{r, fig.height=12, fig.width=10}
-# Set up the plot with better formatting
-par(mfrow = c(2,1))  # Set up 2 plots vertically
-par(mar = c(4, 5, 4, 2))  # Adjust margins for top plot
-# Plot 1: Probability plot
-plot(distance_seq, cgi_probabilities, 
-     xlab = "",  # Remove x-label from top plot
-     ylab = "Probability of Position Being in CGI",
-     main = "Probability of Position Being in CpG Island\nby Distance to Gene Start",
-     cex.lab = 1.2,      # Larger axis labels
-     cex.axis = 1.1,     # Larger axis numbers
-     cex.main = 1.3,     # Larger title
-     las = 1,            # Horizontal axis labels
-     pch = 16,          # Solid circle points
-     ylim = c(0, 1),    # Force probability y-axis to [0,1]
-     col = adjustcolor("darkblue", alpha.f = 0.5))  # Semi-transparent blue
-
-# Add grid
-grid(col = "gray90", lty = "dotted")
-
-# Add a horizontal line at y = 0
-abline(h = 0, col = "gray70", lty = 2)
-
-# Plot 2: Count plot
-par(mar = c(5, 5, 3, 2))  # Adjust margins for bottom plot
-plot(distance_seq, position_counts, type = "h",  # Using the correct counts
-     xlab = "Distance to Gene Start (bp)",
-     ylab = "Number of Positions",
-     main = "Number of Positions at Each Distance",
-     col = "darkgreen",
-     lwd = 1,
-     ylim = c(0, max(position_counts) * 1.05))  # Force y-axis to start at 0 with 5% padding
-grid(col = "gray90", lty = "dotted")
+To check when extracting chromosome info.
+```{r}
+nrow(cgif[cgif$chr==missing_seqnames[1],])
 ```
 
+Lets visualize the islands in the genomic region of interest:
 
 ```{r, fig.height=4, fig.width=15}
 # Set up plotting area with adjusted margins
@@ -493,5 +557,211 @@ for(i in 1:nrow(region_cgis)) {
 grid(col="gray90")
 
 ```
+
+For each position within each upstream region we check whether it is in a CGI and the distance to the gene.
+
+
+```{r, eval = FALSE}
+# Function to efficiently check if positions are within any CGI
+is_within_cgi_vector <- function(positions, cgi_intervals) {
+  # Apply the check for each position against all intervals
+  sapply(positions, function(pos) {
+    any(pos >= cgi_intervals[,1] & pos <= cgi_intervals[,2])
+  })
+}
+
+# Initialize results list
+#results_list <- vector("list", nrow(region_gff))
+## TODO: Update comment
+cgiVsDistance <- matrix(data = NA, nrow = nrow(genome_gff), ncol = 20000)
+
+# Get the genome_gff indices for genes with a defined upstream region
+nonNA_upstream <- which(!is.na(genome_gff$upstream_length))
+
+
+# Set start variable for previous chromosome name
+prev_chrom_name <- 0
+
+for (i in nonNA_upstream){
+  # Get current chromosome name
+  chrom_name <- genome_gff$seqnames[i]
+  # Get the cgi annotations for the current chromosome
+  if (prev_chrom_name != chrom_name){
+    chrom_cgi <- cgif[cgif$chr==chrom_name,]
+    # Create a matrix of CGI intervals for faster lookup
+    chrom_cgi_intervals <- cbind(chrom_cgi$start, chrom_cgi$end)
+  }
+  
+  # Get the sequence of upstream positions
+  upstream_start <- genome_gff$upstream_start[i]
+  upstream_end <- genome_gff$upstream_end[i]
+  if (upstream_start > upstream_end) { # Upstream in the negative strand
+    positions <- seq(from = upstream_end, to = upstream_start, by = 1)
+  } else { # Upstream in the positive strand
+    positions <- seq(from = upstream_start, to = upstream_end, by = 1)
+  }
+  
+  # Get CGI status for all positions at once
+  in_cgi <- is_within_cgi_vector(positions, chrom_cgi_intervals)
+  
+  # Get the sequence of upstream distances to the gene start
+  if(genome_gff$strand[i] == "+") {
+    # For positive strand: distance from gene start
+    distances <- genome_gff$start[i] - positions
+  } else {
+    # For negative strand: distance from gene end
+    distances <- positions - genome_gff$end[i]
+  }
+  
+  # Save the CGI status in the distance matrix
+  cgiVsDistance[i,distances] <- in_cgi
+  
+  # Update the variable for the previous chromosome name
+  prev_chrom_name <- chrom_name
+}
+```
+
+```{r, eval=FALSE}
+save(cgiVsDistance, file = "cgiVsDistance.RData")
+```
+
+```{r}
+load("cgiVsDistance.RData")
+```
+
+Now we can calculate the probability of each promoter site (described by the distance to the gene) to be in a CGI:
+
+```{r}
+cgiProbByDistance <- colMeans(cgiVsDistance, na.rm = TRUE)
+distCounts <- colSums(!is.na(cgiVsDistance))
+```
+
+
+
+
+```{r, fig.height=12, fig.width=10}
+# Set up the plot with better formatting
+par(mfrow = c(2,1))  # Set up 2 plots vertically
+par(mar = c(4, 5, 4, 2))  # Adjust margins for top plot
+# Plot 1: Probability plot
+plot(1:length(cgiProbByDistance), cgiProbByDistance, 
+     xlab = "Distance of Upstream Positions to Gene",  
+     ylab = "Probability of Position Being in CGI",
+     main = "Probability of Position Being in CpG Island\nby Distance to Gene Start",
+     cex.lab = 1.2,      # Larger axis labels
+     cex.axis = 1.1,     # Larger axis numbers
+     cex.main = 1.3,     # Larger title
+     las = 1,            # Horizontal axis labels
+     pch = 16,          # Solid circle points
+     ylim = c(0, 1),    # Force probability y-axis to [0,1]
+     col = adjustcolor("darkblue", alpha.f = 0.5))  # Semi-transparent blue
+
+# Add grid
+grid(col = "gray90", lty = "dotted")
+
+# Add a horizontal line at y = 0
+abline(h = 0, col = "gray70", lty = 2)
+
+# Plot 2: Count plot
+par(mar = c(5, 5, 3, 2))  # Adjust margins for bottom plot
+plot(1:length(distCounts), distCounts, type = "h",  # Using the correct counts
+     xlab = "Distance to Gene Start (bp)",
+     ylab = "Number of Positions",
+     main = "Number of Positions at Each Distance",
+     col = "darkgreen",
+     lwd = 1,
+     ylim = c(0, max(distCounts) * 1.05))  # Force y-axis to start at 0 with 5% padding
+grid(col = "gray90", lty = "dotted")
+```
+
+#### Subset chromosome of interest
+
+```{r}
+cgiProbByDistance <- colMeans(cgiVsDistance[which(genome_gff$seqnames == dpp4_chr),], na.rm = TRUE)
+distCounts <- colSums(!is.na(cgiVsDistance[which(genome_gff$seqnames == dpp4_chr),]))
+```
+
+```{r, fig.height=12, fig.width=10}
+# Set up the plot with better formatting
+par(mfrow = c(2,1))  # Set up 2 plots vertically
+par(mar = c(4, 5, 4, 2))  # Adjust margins for top plot
+# Plot 1: Probability plot
+plot(1:length(cgiProbByDistance), cgiProbByDistance, 
+     xlab = "Distance of Upstream Positions to Gene",  
+     ylab = "Probability of Position Being in CGI",
+     main = "Probability of Position Being in CpG Island\nby Distance to Gene Start",
+     cex.lab = 1.2,      # Larger axis labels
+     cex.axis = 1.1,     # Larger axis numbers
+     cex.main = 1.3,     # Larger title
+     las = 1,            # Horizontal axis labels
+     pch = 16,          # Solid circle points
+     ylim = c(0, 1),    # Force probability y-axis to [0,1]
+     col = adjustcolor("darkblue", alpha.f = 0.5))  # Semi-transparent blue
+
+# Add grid
+grid(col = "gray90", lty = "dotted")
+
+# Add a horizontal line at y = 0
+abline(h = 0, col = "gray70", lty = 2)
+
+# Plot 2: Count plot
+par(mar = c(5, 5, 3, 2))  # Adjust margins for bottom plot
+plot(1:length(distCounts), distCounts, type = "h",  # Using the correct counts
+     xlab = "Distance to Gene Start (bp)",
+     ylab = "Number of Positions",
+     main = "Number of Positions at Each Distance",
+     col = "darkgreen",
+     lwd = 1,
+     ylim = c(0, max(distCounts) * 1.05))  # Force y-axis to start at 0 with 5% padding
+grid(col = "gray90", lty = "dotted")
+```
+
+#### Subset region of interest
+
+```{r}
+region_indeces <- genome_gff$seqnames == dpp4_chr & genome_gff$start <= region_end & genome_gff$end >= region_start
+cgiProbByDistance <- colMeans(cgiVsDistance[region_indeces,], na.rm = TRUE)
+distCounts <- colSums(!is.na(cgiVsDistance[region_indeces,]))
+```
+
+
+```{r, fig.height=12, fig.width=10}
+# Set up the plot with better formatting
+par(mfrow = c(2,1))  # Set up 2 plots vertically
+par(mar = c(4, 5, 4, 2))  # Adjust margins for top plot
+# Plot 1: Probability plot
+plot(1:length(cgiProbByDistance), cgiProbByDistance, 
+     xlab = "Distance of Upstream Positions to Gene",  
+     ylab = "Probability of Position Being in CGI",
+     main = "Probability of Position Being in CpG Island\nby Distance to Gene Start",
+     cex.lab = 1.2,      # Larger axis labels
+     cex.axis = 1.1,     # Larger axis numbers
+     cex.main = 1.3,     # Larger title
+     las = 1,            # Horizontal axis labels
+     pch = 16,          # Solid circle points
+     ylim = c(0, 1),    # Force probability y-axis to [0,1]
+     col = adjustcolor("darkblue", alpha.f = 0.5))  # Semi-transparent blue
+
+# Add grid
+grid(col = "gray90", lty = "dotted")
+
+# Add a horizontal line at y = 0
+abline(h = 0, col = "gray70", lty = 2)
+
+# Plot 2: Count plot
+par(mar = c(5, 5, 3, 2))  # Adjust margins for bottom plot
+plot(1:length(distCounts), distCounts, type = "h",  # Using the correct counts
+     xlab = "Distance to Gene Start (bp)",
+     ylab = "Number of Positions",
+     main = "Number of Positions at Each Distance",
+     col = "darkgreen",
+     lwd = 1,
+     ylim = c(0, max(distCounts) * 1.05))  # Force y-axis to start at 0 with 5% padding
+grid(col = "gray90", lty = "dotted")
+```
+
+
+
+
 
 # References

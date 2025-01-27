@@ -256,4 +256,4 @@ This statistic gives the proportion of sites in the cherry structure $k$ where t
 
 get_FChange_cherryData (uses find_cherries --get_cherryDist-- and cherry_diffs -- now count_cherryMethDiff )
 
-NOTE: Summary statistics related with tree cherries require a tree with tip labels as numeric values
+NOTE: Summary statistics related with tree cherries require a tree with tip labels givenas numeric values
