@@ -570,9 +570,7 @@ is_within_cgi_vector <- function(positions, cgi_intervals) {
   })
 }
 
-# Initialize results list
-#results_list <- vector("list", nrow(region_gff))
-## TODO: Update comment
+# Initialize result dataframe
 cgiVsDistance <- matrix(data = NA, nrow = nrow(genome_gff), ncol = 20000)
 
 # Get the genome_gff indices for genes with a defined upstream region
@@ -761,7 +759,189 @@ grid(col = "gray90", lty = "dotted")
 ```
 
 
+## Step 3: Island assignation to closer gene
 
+Neglecting those islands that intersect gene bodies, we get the overlaps of CGI with upstream regions:
+
+```{r}
+library(GenomicRanges)
+
+### Step 1: Filter CGI not within gene bodies ###
+
+# Create GRanges for two sets with different chromosomes
+gr_cgi <- GRanges(seqnames = cgif$chr,
+                  ranges = IRanges(start = cgif$start,
+                                   end = cgif$end))
+
+gr_genes <- GRanges(seqnames = genome_gff$seqnames,
+                    ranges = IRanges(start = genome_gff$start,
+                                     end = genome_gff$end))
+
+# Subset common chromosomes (seqnames)
+common_seqnames <- intersect(seqlevels(gr_cgi), seqlevels(gr_genes))
+gr_cgi <- keepSeqlevels(gr_cgi, common_seqnames, pruning.mode = "coarse")
+gr_genes <- keepSeqlevels(gr_genes, common_seqnames, pruning.mode = "coarse")
+
+# Find overlaps
+overlap_result <- overlapsAny(gr_cgi, gr_genes)
+
+# Subset non-overlapping CG islands
+non_overlapping_cgi <- gr_cgi[!overlap_result]
+
+### Step 2: Find overlaps of CGI with upstream regions ###
+
+# Filter out rows with NA in upstream_start or upstream_end 
+genome_gff_clean <- genome_gff[!is.na(genome_gff$upstream_start) & !is.na(genome_gff$upstream_end), ]
+
+# Rename upstream_start and upstream_end from the "-" strand as in GRanges objects
+# each range must have an end that is greater or equal to its start minus one
+inverted_start <- genome_gff_clean$upstream_end[genome_gff_clean$strand == "-"]
+inverted_end <- genome_gff_clean$upstream_start[genome_gff_clean$strand == "-"]
+genome_gff_clean$upstream_start[genome_gff_clean$strand == "-"] <- inverted_start
+genome_gff_clean$upstream_end[genome_gff_clean$strand == "-"] <- inverted_end
+
+# Create a GRanges object for upstream regions
+upstream_regions <- GRanges(
+  seqnames = genome_gff_clean$seqnames,
+  ranges = IRanges(start = genome_gff_clean$upstream_start, end = genome_gff_clean$upstream_end),
+  gene_id = genome_gff_clean$ID,
+  strand = genome_gff_clean$strand
+)
+
+# Subset common chromosomes (seqnames)
+common_seqnames <- intersect(seqlevels(non_overlapping_cgi), seqlevels(upstream_regions))
+non_overlapping_cgi <- keepSeqlevels(non_overlapping_cgi, common_seqnames, pruning.mode = "coarse")
+upstream_regions <- keepSeqlevels(upstream_regions, common_seqnames, pruning.mode = "coarse")
+
+# Find overlaps between non-overlapping CG islands and upstream regions
+upstream_overlap <- findOverlaps(non_overlapping_cgi, upstream_regions)
+
+### Step 3: Extract details of overlaps ###
+
+# Query (CGI) and subject (upstream regions) indices
+cgi_indices <- queryHits(upstream_overlap)
+upstream_indices <- subjectHits(upstream_overlap)
+
+# Calculate the number of overlaps for each CGI
+cgi_overlap_counts <- table(cgi_indices) # Creates a named vector with CGI indices as names and counts as values
+
+# Create a vector that maps the overlap count to each CGI in overlap_info
+overlap_number <- cgi_overlap_counts[as.character(cgi_indices)] # Map counts back to the corresponding CGI index
+
+# Map upstream regions back to the original genome_gff_clean to get gene start and end
+gene_start <- genome_gff_clean$start[match(mcols(upstream_regions)$gene_id[upstream_indices], genome_gff_clean$ID)]
+gene_end <- genome_gff_clean$end[match(mcols(upstream_regions)$gene_id[upstream_indices], genome_gff_clean$ID)]
+
+
+# Combine relevant information
+overlap_info <- data.frame(
+  CGI_Chr = seqnames(non_overlapping_cgi)[cgi_indices],
+  CGI_Start = start(non_overlapping_cgi)[cgi_indices],
+  CGI_End = end(non_overlapping_cgi)[cgi_indices],
+  Gene_ID = mcols(upstream_regions)$gene_id[upstream_indices],
+  Gene_Start = gene_start,
+  Gene_End = gene_end,
+  Upstream_Start = start(upstream_regions)[upstream_indices],
+  Upstream_End = end(upstream_regions)[upstream_indices],
+  Upstream_Length = width(upstream_regions)[upstream_indices],
+  Strand = as.character(strand(upstream_regions)[upstream_indices]),
+  Overlap_Number = as.integer(overlap_number)
+)
+
+# Calculate the distance to the gene based on the strand
+distance_to_gene <- ifelse(
+  overlap_info$Strand == "+",
+  overlap_info$Gene_Start - overlap_info$CGI_End, # Positive strand: distance from CGI_End to Gene_Start
+  overlap_info$CGI_Start - overlap_info$Gene_End # Negative strand: distance from CGI_Start to Gene_End
+)
+
+# Add the distance_to_gene column to overlap_info
+overlap_info$Distance_to_Gene <- distance_to_gene
+
+# Inspect the result
+head(overlap_info)
+
+```
+
+Number of upstream regions each island intersects with:
+
+```{r}
+table(overlap_info$Overlap_Number)
+```
+
+Summary of distances from the islands to the associated gene:
+
+```{r}
+summary(overlap_info$Distance_to_Gene)
+```
+
+
+```{r}
+# Count the number of CGIs assigned to each gene
+gene_cgi_counts <- table(overlap_info$Gene_ID)
+
+# Create a frequency table of these counts
+count_distribution <- table(gene_cgi_counts)
+
+# Plot
+barplot(
+  height = as.numeric(count_distribution), # y-axis: number of genes
+  names.arg = names(count_distribution),   # x-axis: CGI counts per gene
+  xlab = "Number of CGIs assigned to a gene", 
+  ylab = "Number of genes",
+  main = "Distribution of CGI Assignments to Genes",
+  col = "skyblue",
+  border = "black"
+)
+```
+
+Now from those islands that were associated to 2 upstream regions (positive and negative strand), we keep only the entry corresponding to the closer gene:
+
+```{r}
+# Step 1: Split overlap_info by unique CGI coordinates
+cgi_groups <- split(overlap_info, paste(overlap_info$CGI_Chr, overlap_info$CGI_Start, overlap_info$CGI_End))
+
+# Step 2: For each group, keep the row with the smallest Distance_to_Gene
+filtered_overlap_info <- do.call(rbind, lapply(cgi_groups, function(group) {
+  group[which.min(group$Distance_to_Gene), ] # Select the row with the minimum Distance_to_Gene
+}))
+
+# Step 3: Reset row names
+rownames(filtered_overlap_info) <- NULL
+
+# Step 4: Inspect the filtered result
+head(filtered_overlap_info)
+
+```
+
+```{r}
+# Check that the number of entries filtered out corresponds to half of the original number of entries corresponding to islands assigned to 2 genes
+nrow(overlap_info) - nrow(filtered_overlap_info) == table(overlap_info$Overlap_Number)[2]/2
+```
+
+```{r}
+# Count the number of CGIs assigned to each gene
+gene_cgi_counts <- table(filtered_overlap_info$Gene_ID)
+
+# Create a frequency table of these counts
+count_distribution <- table(gene_cgi_counts)
+
+# Plot
+barplot(
+  height = as.numeric(count_distribution), # y-axis: number of genes
+  names.arg = names(count_distribution),   # x-axis: CGI counts per gene
+  xlab = "Number of CGIs assigned to a gene", 
+  ylab = "Number of genes",
+  main = "Distribution of CGI Assignments to Genes",
+  col = "skyblue",
+  border = "black"
+)
+```
+
+
+**Maybe I should check the order of the filtering, as all those genes overlapping with each other were removed from genome_gff before, so maybe some of the islands that are kept here because they dont overlap gene bodies actually would overlap with those genes that were removed**
+
+*Not now at least, but keep it in mind when looking at the results*
 
 
 # References
