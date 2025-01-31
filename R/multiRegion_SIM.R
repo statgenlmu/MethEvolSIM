@@ -1332,7 +1332,10 @@ singleStructureGenerator <-
               )
               )
 
-
+cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
+                                 public = list(
+                                   events = NULL
+                                 ))
 
 #' @title combiStructureGenerator
 #' @importFrom R6 R6Class
