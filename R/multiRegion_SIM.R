@@ -1975,12 +1975,6 @@ combiStructureGenerator <-
                   equal <- FALSE
                   counter <- 0
                   while(!equal) {
-                    ###################
-                    if (counter > 5){
-                      save(combi_u, combi_m, file = paste0("/scratch/saracv/CFTP_debug/counter_", counter, ".RData"))
-                    }
-                    ##TODO: check size of vectors with info of the cftp steps
-                    ###################
                     # Sample the CFTP steps 
                     self$cftp_event_generator(steps)
                     # Copy (deep clone) the combiStructure instance to generate 2 instances
@@ -2207,6 +2201,11 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                      self$Branch[[1]] <- self$testing_output$cftp_output$combi_u
                                    } else {
                                      self$Branch[[1]] <- self$Branch[[1]]$cftp()
+                                     ################################################
+                                     ##TODO: delete before merging to develop
+                                     print(paste("Size of combi after CFTP", object.size(self$Branch[[1]])))
+                                     print(paste("Number of CFTP steps:", length(self$Branch[[1]]$CFTP_event)))
+                                     ################################################
                                    }
                                  }
                                  
