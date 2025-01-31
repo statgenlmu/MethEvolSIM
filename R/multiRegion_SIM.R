@@ -1332,10 +1332,7 @@ singleStructureGenerator <-
               )
               )
 
-cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
-                                 public = list(
-                                   events = NULL
-                                 ))
+
 
 #' @title combiStructureGenerator
 #' @importFrom R6 R6Class
@@ -1467,11 +1464,14 @@ combiStructureGenerator <-
                 offspring_index = NULL,
                 
                 ## CFTP attributes
+                ##TODO: delete
                 CFTP_highest_rate = 0,
                 CFTP_chosen_singleStr = integer(length=0),
                 CFTP_chosen_site = integer(length=0),
                 CFTP_event = integer(length=0),
-                CFTP_random = numeric(length=0)
+                CFTP_random = numeric(length=0),
+                ##TODO: document
+                CFTP_info = NULL
               ),
               public = list(
                   #' @field testing_output Public attribute: Testing output for initialize
@@ -1530,7 +1530,7 @@ combiStructureGenerator <-
                       }
                       private$set_IWE_rate()
                       #undebug(self$cftp_apply_events)
-                      #debug(self$cftp)
+                      #undebug(self$get_highest_rate)
                       
                       
                       ## TODO: delete before merging to main
@@ -1966,6 +1966,7 @@ combiStructureGenerator <-
                   }
                 },
                 
+                ## TODO: Update method's comment and documentation
                 #' @description
                 #' Public Method. Applies the CFTP algorithm.
                 #' 
@@ -1974,51 +1975,68 @@ combiStructureGenerator <-
                 #' 
                 #' @return combiStructureGenerator instance when testing FALSE. Testing output when testing TRUE.
                 cftp = function(steps = 10000, testing = FALSE) {
+                  private$CFTP_info <- cftpStepGenerator$new(singleStr_number = self$get_singleStr_number(), 
+                                                             singleStr_siteNumber = self$get_singleStr_siteNumber(), 
+                                                             CFTP_highest_rate = self$get_highest_rate())
+                  
                   # Set a variable to track when the $seq of the 2 combi instances become equal
                   equal <- FALSE
                   counter <- 0
-                  while(!equal) {
-                    # Sample the CFTP steps 
-                    self$cftp_event_generator(steps)
-                    # Copy (deep clone) the combiStructure instance to generate 2 instances
-                    combi_u <- self$copy()
-                    combi_m <- self$copy()
-                    for(str in 1:length(private$singleStr)){
-                      # Set the sequences for each as all m states and all u states
-                      combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
-                      combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
+                  
+                  
+                  
+                  ################## OLD
+                  if (FALSE) {
+                    # Set a variable to track when the $seq of the 2 combi instances become equal
+                    equal <- FALSE
+                    counter <- 0
+                    while(!equal) {
+                      # Sample the CFTP steps 
+                      #self$cftp_event_generator(steps)
+                      self$get_CFTP_info()$generate_events(steps)
+                      # Copy (deep clone) the combiStructure instance to generate 2 instances
+                      combi_u <- self$copy()
+                      combi_m <- self$copy()
+                      for(str in 1:length(private$singleStr)){
+                        # Set the sequences for each as all m states and all u states
+                        combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
+                        combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
+                      }
+                      for(str in 1:length(private$singleStr)){
+                        # Update the neighbSt according to the new sequence
+                        combi_u$get_singleStr(str)$init_neighbSt()
+                        combi_m$get_singleStr(str)$init_neighbSt()
+                        ### note that rate trees are not updated in combi_u and combi_m 
+                      }
+                      combi_u$cftp_apply_events() 
+                      combi_m$cftp_apply_events() 
+                      
+                      equal_str <- c()
+                      for(str in 1:length(private$singleStr)){
+                        equal_str[str] <- all(combi_u$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())
+                      }
+                      equal <- all(equal_str)
+                      steps <- 2*steps
+                      counter <- counter + 1
                     }
-                    for(str in 1:length(private$singleStr)){
-                      # Update the neighbSt according to the new sequence
-                      combi_u$get_singleStr(str)$init_neighbSt()
-                      combi_m$get_singleStr(str)$init_neighbSt()
-                      ### note that rate trees are not updated in combi_u and combi_m 
-                    }
-                    combi_u$cftp_apply_events() 
-                    combi_m$cftp_apply_events() 
                     
-                    equal_str <- c()
+                    # Once converged, update ratetree
                     for(str in 1:length(private$singleStr)){
-                      equal_str[str] <- all(combi_u$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())
+                      combi_u$get_singleStr(str)$initialize_ratetree()
                     }
-                    equal <- all(equal_str)
-                    steps <- 2*steps
-                    counter <- counter + 1
+                    
+                    if(testing){
+                      return(list(combi_u = combi_u,
+                                  combi_m = combi_m,
+                                  self = self,
+                                  counter = counter,
+                                  total_steps = length(private$CFTP_event),
+                                  CFTP_chosen_site = private$CFTP_chosen_site))
+                    } else {
+                      return(combi_u)
+                    }
                   }
-                  for(str in 1:length(private$singleStr)){
-                    # update converged combiStructure ratetree
-                    combi_u$get_singleStr(str)$initialize_ratetree()
-                  }
-                  if(testing){
-                    return(list(combi_u = combi_u,
-                                combi_m = combi_m,
-                                self = self,
-                                counter = counter,
-                                total_steps = length(private$CFTP_event),
-                                CFTP_chosen_site = private$CFTP_chosen_site))
-                  } else {
-                    return(combi_u)
-                  }
+                  
                   
                 }
                 )

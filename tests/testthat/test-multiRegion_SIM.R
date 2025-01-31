@@ -4319,6 +4319,7 @@ test_that("singleStructureGenerator $set_seqSt_update_neighbSt",{
                info = "method fails to update neighbSt to right neighbor")
 })
 
+##TODO: Delete test
 test_that("combiStructureGenerator $cftp_event_generator()", {
   
   # Initialize combiStructureGenerator instance
