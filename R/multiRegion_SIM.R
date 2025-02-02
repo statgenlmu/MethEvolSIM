@@ -1462,14 +1462,6 @@ combiStructureGenerator <-
                 parent_index = NULL,
                 ## @field parent_index Private attribute: Offspring branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
                 offspring_index = NULL,
-                
-                ## CFTP attributes
-                ##TODO: delete
-                CFTP_highest_rate = 0,
-                CFTP_chosen_singleStr = integer(length=0),
-                CFTP_chosen_site = integer(length=0),
-                CFTP_event = integer(length=0),
-                CFTP_random = numeric(length=0),
                 ##TODO: document
                 CFTP_info = NULL
               ),
@@ -1898,71 +1890,104 @@ combiStructureGenerator <-
                 #' 
                 #' @return NULL when testing FALSE. Testing output when testing TRUE.
                 cftp_apply_events = function(testing = FALSE) {
-                  if(length(private$CFTP_event) < 1) stop("No CFTP events generated yet.")
+                  
+                  if(length(private$CFTP_info$CFTP_event) < 1) stop("No CFTP events generated yet.")
+                  
                   if (testing){
                     # Set vector to save acceptance/rejection as T or F
-                    event_acceptance <- logical(length = length(private$CFTP_event))
+                    event_acceptance <- logical(length = length(private$CFTP_info$CFTP_event))
                     # Set vector to save the rate of the chosen site (j) at each CFTP step (k)
-                    r_jk <- rep(NA, length(private$CFTP_event))
+                    r_jk <- rep(NA, length(private$CFTP_info$CFTP_event))
                     # Set vector to save the applied case 
-                    applied_event <- rep(NA, length(private$CFTP_event))
+                    applied_event <- rep(NA, length(private$CFTP_info$CFTP_event))
                   } 
-                  for(k in length(private$CFTP_event):1) {
-                    ### applies the CFTP_events from -n to 1 to the combiStructure
-                    i <- private$CFTP_chosen_singleStr[k]
-                    j <- private$CFTP_chosen_site[k]
+                  
+                  # Apply the CFTP_events from -n to 1 (past to present) to the combiStructure
+                  for(k in length(private$CFTP_info$CFTP_event):1) {
+                    
+                    # Get the chosen singleStr (i) and chosen site (j)
+                    i <- private$CFTP_info$CFTP_chosen_singleStr[k]
+                    j <- private$CFTP_info$CFTP_chosen_site[k]
+                    
+                    # Get the site's old methylation state
                     oldSt <- private$singleStr[[i]]$get_seq()[j]
-                    if(private$CFTP_event[k] < 4) { # If the event is of type SSEi, set the new St as the sampled event 
-                      newSt <- private$CFTP_event[k]      
+                    
+                    # If the event is of type SSEi, set the new methylation state
+                    # as the sampled event (1 unmethylated, 2 partially methylated, 3 methylated)
+                    if(private$CFTP_info$CFTP_event[k] < 4) {  
+                      
+                      # Get the site's proposed new methylation state
+                      newSt <- private$CFTP_info$CFTP_event[k]   
+                      
                       if(oldSt != newSt) {
+                        
+                        # Get the site's encoding for SSEi Rate (R1, R2 or R3)
                         siteR <- private$singleStr[[i]]$get_siteR(j)
+                        # Get the site's encoding of neighbor states
                         neighbSt <- private$singleStr[[i]]$get_neighbSt(j)
+                        # Get the site's rate of SSEi
                         r <- private$singleStr[[i]]$get_Qi(siteR = siteR, oldSt = oldSt, newSt = newSt)
-                        if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
+                        
+                        # If the rate is higher than the threshold, change the site's methylation state
+                        if( r/private$CFTP_info$CFTP_highest_rate > private$CFTP_info$CFTP_random[k] ) {
                           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, newSt)
+                          
                           if (testing){
                             event_acceptance[k] <- TRUE
                             r_jk[k] <- r
                             applied_event[k] <- paste("SSEi", newSt, sep = "_")
                           } 
+                          
                         } else if (testing){
                           r_jk[k] <- r
                         }
                       } 
+                      
+                      # If the sampled event is of type SSEc
                     } else {
-                      r <- (1-private$singleStr[[i]]$get_iota())/2 # Rc/2 for each event copy left or copy right
-                      if( r/private$CFTP_highest_rate > private$CFTP_random[k] ) {
-                        if(private$CFTP_event[k] == 4) {
-                          ##copy from left neighbor
+                      # Set the event rate as Rc/2 for each event copy left or copy right
+                      r <- (1-private$singleStr[[i]]$get_iota())/2 
+                      
+                      # If the rate is higher than the threshold, change the site's methylation state
+                      if( r/private$CFTP_info$CFTP_highest_rate > private$CFTP_info$CFTP_random[k] ) {
+                        
+                        # Copy left neighbor's methylation state and update neighbors encoding of neighbouring states
+                        if(private$CFTP_info$CFTP_event[k] == 4) {
                           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_seqSt_leftneighb(index = j))
+                        
                           if (testing){
                             event_acceptance[k] <- TRUE
                             r_jk[k] <- r
                             applied_event[k] <- paste("SSEc", "left", sep = "_")
                           } 
+                        
+                        # Copy right neighbor's methylation state and update neighbors encoding of neighbouring states
                         } else {
-                          ## copy from right neighbor
                           private$singleStr[[i]]$set_seqSt_update_neighbSt(j, private$singleStr[[i]]$get_seqSt_rightneighb(index = j))
+                        
                           if (testing){
                             event_acceptance[k] <- TRUE
                             r_jk[k] <- r
                             applied_event[k] <- paste("SSEc", "right", sep = "_")
                           } 
                         }
+                        
                       } else if (testing) {
                         r_jk[k] <- r
                       }
                     }
-                  }
+                }
+                  
+                  
                   if(testing){
-                    list(CFTP_chosen_singleStr = private$CFTP_chosen_singleStr,
-                         CFTP_chosen_site = private$CFTP_chosen_site,
-                         CFTP_event = private$CFTP_event,
-                         CFTP_random = private$CFTP_random,
+                    list(CFTP_chosen_singleStr = private$CFTP_info$CFTP_chosen_singleStr,
+                         CFTP_chosen_site = private$CFTP_info$CFTP_chosen_site,
+                         CFTP_event = private$CFTP_info$CFTP_event,
+                         CFTP_random = private$CFTP_info$CFTP_random,
                          event_acceptance = event_acceptance,
                          applied_event = applied_event,
                          r_jk = r_jk,
-                         r_m = private$CFTP_highest_rate)
+                         r_m = private$CFTP_info$CFTP_highest_rate)
                   }
                 },
                 
@@ -1979,65 +2004,65 @@ combiStructureGenerator <-
                                                              singleStr_siteNumber = self$get_singleStr_siteNumber(), 
                                                              CFTP_highest_rate = self$get_highest_rate())
                   
-                  # Set a variable to track when the $seq of the 2 combi instances become equal
+                  # Set a variable to track when the $seq of the 2 combi instances becomes equal
                   equal <- FALSE
                   counter <- 0
                   
-                  
-                  
-                  ################## OLD
-                  if (FALSE) {
-                    # Set a variable to track when the $seq of the 2 combi instances become equal
-                    equal <- FALSE
-                    counter <- 0
-                    while(!equal) {
-                      # Sample the CFTP steps 
-                      #self$cftp_event_generator(steps)
-                      self$get_CFTP_info()$generate_events(steps)
-                      # Copy (deep clone) the combiStructure instance to generate 2 instances
-                      combi_u <- self$copy()
-                      combi_m <- self$copy()
-                      for(str in 1:length(private$singleStr)){
-                        # Set the sequences for each as all m states and all u states
-                        combi_u$get_singleStr(str)$cftp_all_equal(state = "U")
-                        combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
-                      }
-                      for(str in 1:length(private$singleStr)){
-                        # Update the neighbSt according to the new sequence
-                        combi_u$get_singleStr(str)$init_neighbSt()
-                        combi_m$get_singleStr(str)$init_neighbSt()
-                        ### note that rate trees are not updated in combi_u and combi_m 
-                      }
-                      combi_u$cftp_apply_events() 
-                      combi_m$cftp_apply_events() 
-                      
-                      equal_str <- c()
-                      for(str in 1:length(private$singleStr)){
-                        equal_str[str] <- all(combi_u$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())
-                      }
-                      equal <- all(equal_str)
-                      steps <- 2*steps
-                      counter <- counter + 1
-                    }
+                  while(!equal) {
                     
-                    # Once converged, update ratetree
+                    # Sample the CFTP steps 
+                    private$CFTP_info$generate_events(steps)
+                    
+                    # Copy (deep clone) the combiStructure instance to generate 
+                    # another instance sharing the same CFTP_info 
+                    combi_m <- self$copy()
+                    
+                    # Set the sequences for each singleStr as all m states and all u states
                     for(str in 1:length(private$singleStr)){
-                      combi_u$get_singleStr(str)$initialize_ratetree()
+                      self$get_singleStr(str)$cftp_all_equal(state = "U")
+                      combi_m$get_singleStr(str)$cftp_all_equal(state = "M")
                     }
                     
-                    if(testing){
-                      return(list(combi_u = combi_u,
-                                  combi_m = combi_m,
-                                  self = self,
-                                  counter = counter,
-                                  total_steps = length(private$CFTP_event),
-                                  CFTP_chosen_site = private$CFTP_chosen_site))
-                    } else {
-                      return(combi_u)
+                    # Update the neighbSt encoding according to the new sequence
+                    for(str in 1:length(private$singleStr)){
+                      self$get_singleStr(str)$init_neighbSt()
+                      combi_m$get_singleStr(str)$init_neighbSt()
+                      ### note that rate trees are not updated in combi_u and combi_m 
                     }
+                    
+                    # Apply the cftp events
+                    self$cftp_apply_events() 
+                    combi_m$cftp_apply_events() 
+                    
+                    # Check whether the sequence of methylation states in both
+                    # instances is equal across all singleStr instances
+                    equal_str <- c()
+                    for(str in 1:length(private$singleStr)){
+                      equal_str[str] <- all(self$get_singleStr(str)$get_seq() == combi_m$get_singleStr(str)$get_seq())
+                    }
+                    
+                    # Update variable tracking when the $seq of the 2 combi instances becomes equal
+                    equal <- all(equal_str)
+                    
+                    # Double the number of steps
+                    steps <- 2*steps
+                    
+                    # Increase counter value
+                    counter <- counter + 1
                   }
                   
+                  # Once converged, update ratetree
+                  for(str in 1:length(private$singleStr)){
+                    self$get_singleStr(str)$initialize_ratetree()
+                  }
                   
+                  if(testing){
+                    return(list(self = self,
+                                combi_m = combi_m,
+                                counter = counter,
+                                total_steps = length(private$CFTP_info$CFTP_event),
+                                CFTP_chosen_site = private$CFTP_info$CFTP_chosen_site))
+                  } 
                 }
                 )
               )
@@ -2217,15 +2242,20 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                    message("Calling CFTP algorithm for data at root before letting it evolve along given tree.")
                                    if(testing){
                                      self$testing_output <- list()
-                                     self$testing_output$self_before_cftp <- self$Branch[[1]]
+                                     # Save the sequence of methylation states at 
+                                     # the root before calling CFTP
+                                     self$testing_output$seq_before_cftp <- c()
+                                     for(str in 1:self$Branch[[1]]$get_singleStr_number()) {
+                                       self$testing_output$seq_before_cftp <- c(self$testing_output$seq_before_cftp, self$Branch[[1]]$get_singleStr(str)$get_seq())
+                                     }
+                                     # Call CFTP while saving testing output
                                      self$testing_output$cftp_output <- self$Branch[[1]]$cftp(testing = testing)
-                                     self$Branch[[1]] <- self$testing_output$cftp_output$combi_u
                                    } else {
-                                     self$Branch[[1]] <- self$Branch[[1]]$cftp()
+                                     self$Branch[[1]]$cftp()
                                      ################################################
                                      ##TODO: delete before merging to develop
-                                     print(paste("Size of combi after CFTP", object.size(self$Branch[[1]])))
-                                     print(paste("Number of CFTP steps:", length(self$Branch[[1]]$CFTP_event)))
+                                     #print(paste("Size of combi after CFTP", object.size(self$Branch[[1]])))
+                                     #print(paste("Number of CFTP steps:", length(self$Branch[[1]]$CFTP_event)))
                                      ################################################
                                    }
                                  }

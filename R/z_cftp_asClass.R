@@ -24,6 +24,11 @@ combiStructureGenerator$set("public", "get_CFTP_info", function() {
   private$CFTP_info
 })
 
+combiStructureGenerator$set("public", "set_CFTP_info", function(CFTP_instance) {
+  if(class(CFTP_instance)[1] != "cftpStepGenerator") stop("Argument 'CFTP_instance' must be of class cftpStepGenerator")
+  private$CFTP_info <- CFTP_instance
+})
+
 cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
                                  public = list(
                                    ##TODO: document combi instance attributes
@@ -35,6 +40,7 @@ cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
                                    CFTP_chosen_site = integer(length=0),
                                    CFTP_event = integer(length=0),
                                    CFTP_random = numeric(length=0),
+                                   
                                    ##TODO: document
                                    generate_events = function(steps = 10000, testing = FALSE) {
                                      if(!(is.numeric(steps) && length(steps) == 1 && steps == floor(steps) && steps >= 1)){
@@ -44,12 +50,16 @@ cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
                                      # Generate for each CFTP step the event and location to apply it and a threshold for acceptance/rejection
                                      old_steps <- length(self$CFTP_event) # Check the number of already existing steps
                                      if (steps <= old_steps){stop("The given number of steps has already been generated")}
-                                     new_steps <- steps - old_steps # Get the number of new steps
+                                     
+                                     # Get the number of new steps
+                                     new_steps <- steps - old_steps 
+                                     
                                      # Initialize the vectors to store the CFTP info for the new steps
                                      chosen_singleStr <- integer(length=new_steps)
                                      chosen_site <- integer(length=new_steps)
                                      event <- integer(length=new_steps)
                                      random_threshold <- numeric(length=new_steps)
+                                     
                                      # For each CFTP step (from past to present)
                                      for(n in new_steps:1) {
                                        # For generation -n
@@ -60,6 +70,7 @@ cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
                                        # Sample a threshold to accept or reject event
                                        random_threshold[n] <- runif(1) # numerical value between 0 and 1
                                      }
+                                     
                                      # Add the new step info to the existing ones
                                      self$CFTP_chosen_singleStr <- c(self$CFTP_chosen_singleStr, chosen_singleStr)
                                      self$CFTP_chosen_site <- c(self$CFTP_chosen_site, chosen_site)
@@ -74,6 +85,7 @@ cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
                                      }
                                      
                                    },
+                                   
                                    ##TODO: document 
                                    initialize = function(singleStr_number, singleStr_siteNumber, CFTP_highest_rate) {
                                      # Initialize a new instance with the info of the corresponding combiStrucutre instance
