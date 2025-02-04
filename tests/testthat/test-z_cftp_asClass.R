@@ -435,9 +435,4 @@ test_that("treeMultiRegionSimulator initialize with cftp = TRUE", {
               info = "Class contains informative message when CFTP is set to FALSE")
 })
 
-##TODO: comments to week_6
-##TODO: prepare script to run a case with a seed with current branch and another with previous branch
-##TODO: prepare a script to compare the output with both versions, which should be identical
-##TODO: start in server previously crushed runs. If they dont crush anymore:
-##TODO: clean old tests
-##TODO: Update documentation
+
