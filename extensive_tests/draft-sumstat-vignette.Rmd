@@ -85,48 +85,48 @@ get_nonislandMeanFreqM(index_nonislands, data, sample_n)
 
 - **Partially-methylated sites**: Let $x_{i,t}$ and $y_{j,t}$ be the frequency of methylation state $p$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$, respectively. We define the standard deviation of the frequency of $x$ and $y$ at tip $t$ as:
 
-\[
+$$
 \sigma_{t}(x)=\sqrt{\frac{1}{I-1}\sum_{i=1}^{I}(x_{i,t}-\overline{x_{.,t}})^2} \\
 \sigma_{t}(y)=\sqrt{\frac{1}{J-1}\sum_{j=1}^{J}(y_{i,t}-\overline{y_{.,t}})^2}
-\]
+$$
 
 
 , where $\overline{x_{.,t}}$ is the mean frequency of state $p$ at tip $t$ in islands and $\overline{y_{.,t}}$ is the mean frequency of state $p$ at tip $t$ in non-islands:
 
-\[
+$$
 \overline{x_{.,t}}=\frac{1}{I}\sum_{i=1}^{I}x_{i,t} \\
 \overline{y_{.,t}}=\frac{1}{J}\sum_{j=1}^{J}x_{j,t}
-\] 
+$$ 
 
 Therefore, the mean standard deviation across tips is:
 
-\[
+$$
 \hat{\sigma}(x)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(x) \\
 \hat{\sigma}(y)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(y) \\
-\]
+$$
 
 
 - **Methylated sites**: Let $w_{i,t}$ and $z_{j,t}$ be the frequency of methylation state $m$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$, respectively. We define the standard deviation of the frequency of $w$ and $z$ at tip $t$ as:
 
-\[
+$$
 \sigma_{t}(w)=\sqrt{\frac{1}{I-1}\sum_{i=1}^{I}(x_{i,t}-\overline{x_{.,t}})^2} \\
 \sigma_{t}(z)=\sqrt{\frac{1}{J-1}\sum_{j=1}^{J}(y_{i,t}-\overline{y_{.,t}})^2}
-\]
+$$
 
 
 , where $\overline{x_{.,t}}$ is the mean frequency of state $m$ at tip $t$ in islands and $\overline{z_{.,t}}$ is the mean frequency of state $m$ at tip $t$ in non-islands:
 
-\[
+$$
 \overline{w_{.,t}}=\frac{1}{I}\sum_{i=1}^{I}w_{i,t} \\
 \overline{z_{.,t}}=\frac{1}{J}\sum_{j=1}^{J}z_{j,t}
-\] 
+$$
 
 Therefore, the mean standard deviation across tips is:
 
-\[
+$$
 \hat{\sigma}(w)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(w) \\
 \hat{\sigma}(z)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(z) \\
-\]
+$$
 
 
 ```{r}
@@ -158,7 +158,7 @@ get_nonislandSDFreqM(index_nonislands, data, sample_n)
 
 Note that we average across tips as there can be correlations between the mean standard deviation of tips (e.g. under the case of an event affecting the states at two tips).
 
-# Mean correlation of a segment of methylation states per genomic structure type
+# Mean correlation of a central segment of methylation states per genomic structure type
 
 Let $s$ be the length of the 2 adjacent segments of central positions to consider.
 Let $l$ represent a number of positions to exclude at the start and end of each island/non-island structure.
