@@ -2056,7 +2056,19 @@ combiStructureGenerator <-
                 )
               )
 
-cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
+#' @title cftpStepGenerator
+#' @importFrom R6 R6Class
+#'
+#' @description
+#' an R6 class representing the steps for sampling a sequence of methylation states
+#' from the equilibrium (SSEi and SSEc considered, IWE neglected) 
+#' for a given combiStructureGenerator instance.
+#'
+#' It is stored in the private attribute CFTP_info of combiStructureGenerator instances
+#' when calling the combiStructureGenerator$cftp() method 
+#' and can be retrieved with the combiStructureGenerator$get_CFTP_info()
+#'
+cftpStepGenerator <-  R6::R6Class("cftpStepGenerator",
                                  public = list(
                                    #' @field singleStr_number Public attribute: Number of singleStr instances
                                    singleStr_number = NULL,
@@ -2073,7 +2085,7 @@ cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
                                    #' 1: SSEi to unmethylated, 2: SSEi to partially methylated, 3: SSEi to methylated
                                    #' 4: SSEc copy left state, 5: SSEc copy right state
                                    CFTP_event = integer(length=0),
-                                   #' @field CFTP_threshold Public attribute: CFTP threshold at each CFTP step
+                                   #' @field CFTP_random Public attribute: CFTP threshold at each CFTP step
                                    CFTP_random = numeric(length=0),
                                    
                                    #' @description
