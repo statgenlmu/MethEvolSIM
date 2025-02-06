@@ -115,7 +115,7 @@ simulate_initialData <- function(infoStr, params = NULL, CFTP = FALSE){
   data <- combiStructureGenerator$new(infoStr = infoStr, params = params)
   if (CFTP){
     message("Calling CFTP algorithm.")
-    data <- data$cftp()
+    data$cftp()
   }
   if(is.null(params)){
     params <- get_parameterValues()
