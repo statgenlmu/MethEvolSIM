@@ -99,7 +99,7 @@ test_that("simulate_initialData",{
   # Now with CFTP
   c <- combiStructureGenerator$new(infoStr = infoStr); c$reset_sharedCounter()
   m <- capture.output(o <- simulate_initialData(infoStr = infoStr, CFTP = TRUE), type = "message")
-  expect_true(o$data$get_id() > 1,
+  expect_true(o$data$get_id() == 1,
                info = "wrong ID of generated data with CFTP")
 })
 

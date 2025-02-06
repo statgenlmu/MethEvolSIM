@@ -1548,7 +1548,19 @@ combiStructureGenerator <-
                   #'
                   #' @return number of singleStructureGenerator object contained in $singleStr
                   get_singleStr_number = function () length(private$singleStr),
-
+                  
+                  #' @description
+                  #' Public method: Get number of sites in all singleStructureGenerator objects
+                  #'
+                  #' @return number of sites in all singleStructureGenerator objects 
+                  get_singleStr_siteNumber = function () {
+                    singleStr_site_n <- c()
+                    for(str in 1:length(private$singleStr)){
+                      singleStr_site_n[str] <- length(private$singleStr[[str]]$get_seq())
+    
+                    }
+                    singleStr_site_n
+                  },
 
                   #' @description
                   #' Public method: Get number of singleStructureGenerator objects in $singleStr with $globalState "U" (CpG islands)
@@ -1825,62 +1837,39 @@ combiStructureGenerator <-
                         return(branchEvolInfo)
                     }
                 },
-                
+
                 #' @description
-                #' Public Method. Generates the events to apply for CFTP.
+                #' Public Method. Gets the highest rate among all singleStructureGenerator objects for CFTP.
                 #' 
-                #' @param steps Integer value >=1
-                #' @param testing default FALSE. TRUE for testing output
-                #' 
-                #' @return NULL when testing FALSE. Testing output when testing TRUE.
-                #'
-                #' @details
-                #' The function add steps to the existing ones. 
-                #' If called several times the given steps need to be higher than the sum of steps generated before.
-                cftp_event_generator = function(steps, testing = FALSE) {
-                  
-                  if(!(is.numeric(steps) && length(steps) == 1 && steps == floor(steps) && steps >= 1)){
-                    stop("'index' must be one number >=1 without decimals")
-                  }
-                  
-                  # Set CFTP_highest_rate to be the highest rate across all singleStr withing combiStr instance
-                  private$CFTP_highest_rate <- 0 # ensure minimum value of 0
-                  singleStr_n <- c()
+                #' @return Highest rate value.
+                get_highest_rate = function() {
+                  CFTP_highest_rate <- 0 # ensure minimum value of 0
                   for(str in 1:length(private$singleStr)){
-                    private$CFTP_highest_rate <- max(private$CFTP_highest_rate,            
-                                                     max(c(unlist(private$singleStr[[str]]$get_Qi()), 
-                                                           (1-private$singleStr[[str]]$get_iota())/2)))
-                    singleStr_n[str] <- length(private$singleStr[[str]]$get_seq())
+                    CFTP_highest_rate <- max(CFTP_highest_rate,
+                                             max(c(unlist(private$singleStr[[str]]$get_Qi()), 
+                                                  (1-private$singleStr[[str]]$get_iota())/2)))
+    
                   }
-                  
-                  # Generate for each CFTP step the event and location to apply it and a threshold for acceptance/rejection
-                  old_steps <- length(private$CFTP_event)
-                  if (steps <= old_steps){stop("The given number of steps has already been generated")}
-                  new_steps <- steps - old_steps
-                  chosen_singleStr <- integer(length=new_steps)
-                  chosen_site <- integer(length=new_steps)
-                  event <- integer(length=new_steps)
-                  random_threshold <- numeric(length=new_steps)
-                  for(n in new_steps:1) {
-                    # For generation -n
-                    # Propose 1 site and what may happen to it
-                    chosen_singleStr[n] <- sample(1:length(private$singleStr), 1, prob=singleStr_n)
-                    chosen_site[n] <- sample(1:length(private$singleStr[[chosen_singleStr[n]]]$get_seq()), 1)
-                    event[n] <- sample(1:5, 1)  ## 1,2,3: go to u, p, m by SSEi ## 4,5: copy left, copy right.                        
-                    # Sample a threshold to accept or reject event
-                    random_threshold[n] <- runif(1) # numerical value between 0 and 1
-                  }
-                  private$CFTP_chosen_singleStr <- c(private$CFTP_chosen_singleStr, chosen_singleStr)
-                  private$CFTP_chosen_site <- c(private$CFTP_chosen_site, chosen_site)
-                  private$CFTP_event <- c(private$CFTP_event, event)
-                  private$CFTP_random <- c(private$CFTP_random, random_threshold) 
-                  
-                  if(testing){
-                    list(CFTP_chosen_singleStr = private$CFTP_chosen_singleStr,
-                         CFTP_chosen_site = private$CFTP_chosen_site,
-                         CFTP_event = private$CFTP_event,
-                         CFTP_random = private$CFTP_random)
-                  }
+                  CFTP_highest_rate
+                },
+
+                #' @description
+                #' Public Method. Sets a cftpStepGenerator instance asthe CFTP info.
+                #' 
+                #' @param CFTP_instance CFTP info.
+                #'
+                #' @return NULL
+                set_CFTP_info = function(CFTP_instance) {
+                  if(class(CFTP_instance)[1] != "cftpStepGenerator") stop("Argument 'CFTP_instance' must be of class cftpStepGenerator")
+                  private$CFTP_info <- CFTP_instance
+                },  
+
+                #' @description
+                #' Public Method. Gets the CFTP info.
+                #' 
+                #' @return CFTP info.
+                get_CFTP_info = function () {
+                  private$CFTP_info
                 },
                 
                 #' @description
@@ -2066,6 +2055,99 @@ combiStructureGenerator <-
                 }
                 )
               )
+
+cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
+                                 public = list(
+                                   #' @field singleStr_number Public attribute: Number of singleStr instances
+                                   singleStr_number = NULL,
+                                   #' @field singleStr_siteNumber Public attribute: Number of sites in singleStr instances
+                                   singleStr_siteNumber = NULL,
+                                   #' @field CFTP_highest_rate Public attribute: CFTP highest rate
+                                   CFTP_highest_rate = 0,
+                                   #' @field CFTP_chosen_singleStr Public attribute: chosen singleStr index at each CFTP step
+                                   CFTP_chosen_singleStr = integer(length=0),
+                                   #' @field CFTP_chosen_site Public attribute: chosen site index at each CFTP step
+                                   CFTP_chosen_site = integer(length=0),
+                                   #' @field CFTP_event Public attribute: type of CFTP event at each CFTP step.
+                                   #' @description
+                                   #' 1: SSEi to unmethylated, 2: SSEi to partially methylated, 3: SSEi to methylated
+                                   #' 4: SSEc copy left state, 5: SSEc copy right state
+                                   CFTP_event = integer(length=0),
+                                   #' @field CFTP_threshold Public attribute: CFTP threshold at each CFTP step
+                                   CFTP_random = numeric(length=0),
+                                   
+                                   #' @description
+                                   #' Public Method. Generates the events to apply for CFTP.
+                                   #' 
+                                   #' @param steps Integer value >=1
+                                   #' @param testing default FALSE. TRUE for testing output
+                                   #' 
+                                   #' @return NULL when testing FALSE. Testing output when testing TRUE.
+                                   #'
+                                   #' @details
+                                   #' The function add steps to the existing ones. 
+                                   #' If called several times the given steps need to be higher than the sum of steps generated before.
+                                   generate_events = function(steps = 10000, testing = FALSE) {
+                                     if(!(is.numeric(steps) && length(steps) == 1 && steps == floor(steps) && steps >= 1)){
+                                       stop("'index' must be one number >=1 without decimals")
+                                     }
+                                     
+                                     # Generate for each CFTP step the event and location to apply it and a threshold for acceptance/rejection
+                                     old_steps <- length(self$CFTP_event) # Check the number of already existing steps
+                                     if (steps <= old_steps){stop("The given number of steps has already been generated")}
+                                     
+                                     # Get the number of new steps
+                                     new_steps <- steps - old_steps 
+                                     
+                                     # Initialize the vectors to store the CFTP info for the new steps
+                                     chosen_singleStr <- integer(length=new_steps)
+                                     chosen_site <- integer(length=new_steps)
+                                     event <- integer(length=new_steps)
+                                     random_threshold <- numeric(length=new_steps)
+                                     
+                                     # For each CFTP step (from past to present)
+                                     for(n in new_steps:1) {
+                                       # For generation -n
+                                       # Propose 1 site and what may happen to it
+                                       chosen_singleStr[n] <- sample(1:self$singleStr_number, 1, prob=self$singleStr_siteNumber)
+                                       chosen_site[n] <- sample(1:self$singleStr_siteNumber[chosen_singleStr[n]], 1)
+                                       event[n] <- sample(1:5, 1)  ## 1,2,3: go to u, p, m by SSEi ## 4,5: copy left, copy right.                        
+                                       # Sample a threshold to accept or reject event
+                                       random_threshold[n] <- runif(1) # numerical value between 0 and 1
+                                     }
+                                     
+                                     # Add the new step info to the existing ones
+                                     self$CFTP_chosen_singleStr <- c(self$CFTP_chosen_singleStr, chosen_singleStr)
+                                     self$CFTP_chosen_site <- c(self$CFTP_chosen_site, chosen_site)
+                                     self$CFTP_event <- c(self$CFTP_event, event)
+                                     self$CFTP_random <- c(self$CFTP_random, random_threshold)
+                                     
+                                     if(testing){
+                                       list(CFTP_chosen_singleStr = self$CFTP_chosen_singleStr,
+                                            CFTP_chosen_site = self$CFTP_chosen_site,
+                                            CFTP_event = self$CFTP_event,
+                                            CFTP_random = self$CFTP_random)
+                                     }
+                                     
+                                   },
+                                   
+                                   #' @description
+                                   #' Create a new instance of class cftpStepGenerator with the info of the corresponding combiStrucutre instance
+                                   #'
+                                   #' @param singleStr_number Number of singleStr instances
+                                   #' @param singleStr_siteNumber Number of sites in singleStr instances
+                                   #' @param CFTP_highest_rate CFTP highest rate across all singleStr withing combiStr instance 
+                                   #' 
+                                   #' @return A new instance of class cftpStepGenerator
+                                   initialize = function(singleStr_number, singleStr_siteNumber, CFTP_highest_rate) {
+                                     # Initialize a new instance with the info of the corresponding combiStrucutre instance
+                                     self$singleStr_number <- singleStr_number
+                                     self$singleStr_siteNumber <- singleStr_siteNumber
+                                     # Set CFTP_highest_rate to be the highest rate across all singleStr withing combiStr instance
+                                     self$CFTP_highest_rate <- CFTP_highest_rate
+                                     
+                                   }
+                                 ))
 
 #' Split Newick Tree
 #'
