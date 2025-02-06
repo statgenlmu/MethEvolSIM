@@ -4359,8 +4359,6 @@ test_that("combiStructureGenerator $get_singleStr_siteNumber and $get_singleStr_
 
 test_that("cftpStepGenerator $new", {
   
-  ## TODO: Add test for checking that when one argument is not given, the method throws an error
-  
   cftp <- cftpStepGenerator$new(singleStr_number = 3, singleStr_siteNumber = c(10, 8, 15), CFTP_highest_rate = 0.8)
   
   expect_equal(cftp$singleStr_number, 3,
@@ -4617,11 +4615,6 @@ test_that("combiStructureGenerator $cftp_apply_events()", {
               info = "whith testing = FALSE method generates output")
 })
 
-##TODO: delete this if moved to the multiRegion script. or move to the top if this is kept as separate script
-# Function to access private variables and functions
-get_private <- function(x) {
-  x[['.__enclos_env__']]$private
-}
 
 test_that("combiStructureGenerator $cftp", {
   

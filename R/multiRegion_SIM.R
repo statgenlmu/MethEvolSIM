@@ -1462,7 +1462,11 @@ combiStructureGenerator <-
                 parent_index = NULL,
                 ## @field parent_index Private attribute: Offspring branch index in the tree along which the evolutionary process is simulated (from class treeMultiRegionSimulator)
                 offspring_index = NULL,
-                ##TODO: document
+                ## @field CFTP_info Private attribute: Instance of class cftpStepGenerator
+                ## containing the info for the steps for sampling a sequence of methylation states
+                ## from the equilibrium (SSEi and SSEc considered, IWE neglected) 
+                ## using the CFTP algorithm for a given combiStructureGenerator instance.
+                ## Can be retrieved with the combiStructureGenerator$get_CFTP_info()
                 CFTP_info = NULL
               ),
               public = list(
@@ -1523,15 +1527,6 @@ combiStructureGenerator <-
                       private$set_IWE_rate()
                       #undebug(self$cftp_apply_events)
                       #undebug(self$get_highest_rate)
-                      
-                      
-                      ## TODO: delete before merging to main
-                      ## Example for Nikolas ##
-                      # if (dist == TRUE){
-                          # self$testing_output <- list()
-                          # self$testing_output$testing_info_1 <- info_1
-                      # }
-                      # Example with my own implementation in initialize from treeMultiRegionSimulator
                       
                   },
                   #' @description
@@ -1980,14 +1975,13 @@ combiStructureGenerator <-
                   }
                 },
                 
-                ## TODO: Update method's comment and documentation
                 #' @description
                 #' Public Method. Applies the CFTP algorithm.
                 #' 
                 #' @param steps minimum number of steps to apply (default 10000)
                 #' @param testing default FALSE. TRUE for testing output
                 #' 
-                #' @return combiStructureGenerator instance when testing FALSE. Testing output when testing TRUE.
+                #' @return NULL when testing FALSE. Testing output when testing TRUE.
                 cftp = function(steps = 10000, testing = FALSE) {
                   private$CFTP_info <- cftpStepGenerator$new(singleStr_number = self$get_singleStr_number(), 
                                                              singleStr_siteNumber = self$get_singleStr_siteNumber(), 
@@ -2062,7 +2056,7 @@ combiStructureGenerator <-
 #' @description
 #' an R6 class representing the steps for sampling a sequence of methylation states
 #' from the equilibrium (SSEi and SSEc considered, IWE neglected) 
-#' for a given combiStructureGenerator instance.
+#' using the CFTP algorithm for a given combiStructureGenerator instance.
 #'
 #' It is stored in the private attribute CFTP_info of combiStructureGenerator instances
 #' when calling the combiStructureGenerator$cftp() method 
@@ -2346,11 +2340,6 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                      self$testing_output$cftp_output <- self$Branch[[1]]$cftp(testing = testing)
                                    } else {
                                      self$Branch[[1]]$cftp()
-                                     ################################################
-                                     ##TODO: delete before merging to develop
-                                     #print(paste("Size of combi after CFTP", object.size(self$Branch[[1]])))
-                                     #print(paste("Number of CFTP steps:", length(self$Branch[[1]]$CFTP_event)))
-                                     ################################################
                                    }
                                  }
                                  
