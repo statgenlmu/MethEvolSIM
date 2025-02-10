@@ -290,13 +290,21 @@ This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the s
 
 1. Set the output directory.
 
-2. Get the CpG count in islands and non-island regions.
+2. Get the CpG count in islands and non-island regions relative to the reference genome.
 
-3. Filter CpG count to keep only regions with at least one CpG site and get the CpG position indeces for each region.
+3. Filter the CpG count in islands and non-island regions for the genomic region of interest.
 
-1. Save as simulation design the genomic structure for the regions within the selected genomic region, tree(s) -- GIVEN -- and sampled parameter combinations.
+4. Get the spatial structure dataframe from the filtered GpG count to use as input for the simulations.
 
-2. Run the simulations. TODO: Before submitting load package without devtools
+5. Save as simulation design the genomic structure for the regions within the selected genomic region, tree(s) -- GIVEN -- and sampled parameter combinations.
+
+6. Run the simulations. TODO: Before submitting load package without devtools
+
+7. Get the CpG position indices relative to the reference genome (cytosine index relative to positive strand).
+
+
+
+
 
 3. Compute the selected summary statistics. TODO: When added sumStats functions to package, stop sourcing script.
 
