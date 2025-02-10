@@ -162,7 +162,7 @@ rule get_CpG_positions:
         "get_CpG_positions.out"
     shell:
         """
-        Rscript scripts/get_CpG_positions.R --reference-genome {params.reference_genome} --input {input.CpG_count} --output {output.CpG_positions} > {log}
+        Rscript scripts/get_CpG_positions.R --reference-genome {params.reference_genome} --input {input.CpG_counts} --output {output.CpG_positions} > {log}
         """
 
 # Rule to compute the summary statistics
