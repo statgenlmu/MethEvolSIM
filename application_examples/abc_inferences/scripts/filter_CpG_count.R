@@ -39,16 +39,5 @@ load(opt[["input"]])
 # Filter the data for the given chromosome and region
 CpG_count_region <- CpG_count[CpG_count$chr == opt[["chr"]] & CpG_count$start >= opt[["start"]] - opt[["side-bp"]] & CpG_count$start <= opt[["end"]] + opt[["side-bp"]], ]
 
-# Create the data frame spatial_str
-spatial_str <- data.frame(n = CpG_count_region$CpG_count)
-
-# Add the globalState column based on CpG_count_region$str values
-spatial_str$globalState <- ifelse(CpG_count_region$str == "Island", "U", "M")
-
-# Save spatial structure
-#output_name <- paste0(paste(opt[["chr"]], opt[["start"]] - opt[["side-bp"]], opt[["end"]] + opt[["side-bp"]], opt[["name-selected-region"]], sep = "_"), ".RData")
-save(spatial_str, file = opt[["output"]])
-
-##TODO: save CpG_count_region as region_CGI-Mzebra.RData. 
-# Maybe rename it as region_cgi. Then update name it in get_CpG_positions
-# or if in next script region_CpG_positions.
+# Save the CpG count filtered for the region of interest
+save(CpG_count_region, file = opt[["output"]])

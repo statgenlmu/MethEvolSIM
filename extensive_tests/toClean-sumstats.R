@@ -1,71 +1,16 @@
 
-
-#### #### #### Tree cherries comparisons #### #### ####
-
-find_cherries <- function(tree) {
-  ## tree must be an ape tree whose tip labels are numbers.
-  ## returns a list of vectors (a, b, x), where  (a, b) are a cherry of tree,
-  ## that is a pair of leaves that are sisters in the tree,
-  ## and x is their distance, that is, sum of the branch lengths between them 
-  outlist <- list()
-  d <- cophenetic.phylo(tree)
-  n <- nrow(d)
-  for(i in 1:n) {
-    j <- which(d[i,]==min(d[i, -i]))
-    if(length(j)==1) {
-      k <- which(d[j,]==min(d[j, -j]))
-      if(length(k)==1) {
-        if(k==i & i<j) {
-          ## outlist[[length(outlist)+1]] <- c(as.integer(rownames(d)[i]), as.integer(colnames(d)[j]), d[i,j])
-          outlist[[length(outlist)+1]] <- c(i, j, d[i,j])
-        }
-      }
-    }
-  }
-  outlist
-}
+index_islands <- c(1,3)
+index_nonislands <- c(2,4)
+# Simulated data has all positions
+# But empirical data may have differences in coverage
+# E.g. if in island one positions 1,3,5,7 are CpGs
+# Empirical data may have in first_tip 1,5,7
+# And in second tip 1,3,5,7
+# So that only sites 1,5,7 can be compared
 
 
 
-## TODO: The tree needs to
-## have the tips with numeric labels. ordered from left to as ((1:1,2:1):5,3:6); 
-## For that check previous (old) function 
-## tree needs to be an object of ape's phylo class or a character string in
-## parenthetic format known as the Newick or New Hampshire format
-get_cherryDist <- function(tree, sample_n, testing = FALSE){
-  if(sample_n < 2){stop("Minimum number of tips/samples needed: 2")}
-  if(class(tree) != "phylo") tree <- ape::read.tree(text = tree)
-  # compute the pairwise distances between the tips from a phylogenetic tree
-  dist <- ape::cophenetic.phylo(tree)
-  # get the number of tips
-  n_tips <- nrow(dist)
-  # set list to store the cherry info
-  cherry_list <- list()
-  for (tip in 1:n_tips){
-    # find the closest tip
-    tip_a <- which(dist[tip,] == min(dist[tip, -tip]))
-    # if there is one single closest tip
-    if(length(tip_a)==1){
-      # find the closes tip 
-      tip_b <- which(dist[tip_a,] == min(dist[tip_a, -tip_a]))
-      # if there is one single closest tip
-      if (length(tip_b)==1){
-        # if both are mutually closest tips and
-        # tip < tip_a is used to avoid identifying the cherry twice (dist is symmetric)
-        if(tip_b == tip & tip < tip_a){
-          cherry_list[[length(cherry_list)+1]] <- c(tip, tip_a, dist[tip,tip_a])
-        }
-      }
-    }
-  }
-  if(testing){
-    list(tree = tree,
-         cherry_list = cherry_list)
-  } else {
-    cherry_list
-  }
-  
-}
+
 
 
 #undebug(get_cherryDist)

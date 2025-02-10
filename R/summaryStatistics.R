@@ -476,3 +476,100 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
   }
   return(mean(cor))
 }
+
+#### #### #### Tree cherries comparisons #### #### ####
+
+#' Get Cherry Pair Distances from a Phylogenetic Tree
+#'
+#' This function computes the pairwise distances between the tips of a phylogenetic tree 
+#' that are part of cherries. A cherry is a pair of leaves (tips) that are sisters in the tree.
+#' The distance is calculated as the sum of the branch lengths between the two sister tips.
+#'
+#' @param tree A tree in Newick format (as a character string) or an object of class \code{phylo} from the \code{ape} package.
+#' If the input is a character string, it must follow the Newick or New Hampshire format (e.g. \code{"((tip_1:1,tip_2:1):5,tip_3:6);"}).
+#' If an object of class \code{phylo} is provided, it should represent a valid phylogenetic tree.
+#'
+#' @return A data frame with three columns:
+#'   \item{first_tip}{A character string representing the first tip in the cherry (sister pair).}
+#'   \item{second_tip}{A character string representing the second tip in the cherry.}
+#'   \item{dist}{A numeric value representing the sum of the branch lengths between the two tips (i.e., the distance between the cherries).}
+#'   
+#' @details The function first checks if the input is either a character string in the Newick format or an object of class \code{phylo}.
+#'   It then computes the pairwise distances between the tips in the tree and identifies the sister pairs (cherries).
+#'   The distance between each cherry is the sum of the branch lengths leading to the sister tips.
+#'   
+#'   If the tree is provided in Newick format, it will be parsed using the \code{ape::read.tree} function.
+#'   
+#' @importFrom ape read.tree cophenetic.phylo
+#'   
+#' @examples
+#' # Example of a tree in Newick format
+#' newick_tree <- "((a:1,b:2):5,c:6);"
+#' get_cherryDist(newick_tree)
+#' 
+#' # Example of using a phylo object from ape
+#' library(ape)
+#' tree_phylo <- read.tree(text = "((a:1,b:1):5,c:6);")
+#' get_cherryDist(tree_phylo)
+#' 
+#' @export
+get_cherryDist <- function(tree){
+  
+  # Check that the input is a character string or phylo object
+  if (!is.character(tree) && !inherits(tree, "phylo")) {
+    stop(paste("Argument 'tree' must be a character string in newick format (e.g. '((tip_1:1,tip_2:1):5,tip_3:6);').\n",
+               "or an object of class 'phylo' from the 'ape'. For more details, see ?phylo or ?ape."))
+  }
+  
+  # Transform the newick tree in a phylo object managing issues with given tree format
+  if(!inherits(tree, "phylo")) {
+    tryCatch({
+      # Attempt to read the tree
+      tree <- ape::read.tree(text = tree)
+      # Check if the result is NULL, which indicates an issue with the tree format
+      if (is.null(tree)) {
+        stop("Error in ape::read.tree(tree): Tree could not be parsed. Invalid format.")
+      }
+    }, warning = function(w) {
+      stop("Error in ape::read.tree(tree): Invalid 'tree' format: ", conditionMessage(w))
+    }, error = function(e) {
+      stop("Error in ape::read.tree(tree): Invalid 'tree' format: ", conditionMessage(e))
+    })
+  }
+  
+  # Check given tree has minium two tips
+  if (length(tree$tip.label)<2) stop("The input 'tree' must have a minimum of 2 tips.")
+  
+  # Compute the pairwise distances between the tips from a phylogenetic tree
+  dist <- ape::cophenetic.phylo(tree)
+  # Set a vector to save the cherry tips for which the distance has already been extracted (because dist is symmetric)
+  cherry_tips <- c()
+  # set list to store the cherry distances
+  cherry_dist <- data.frame(first_tip=character(), second_tip=character(), dist=numeric()) # start df
+  # Get the tip names
+  tips <- rownames(dist)
+
+  for(tip in tips) {
+    # If tip is not already in cherry_dist
+    if (!tip %in% cherry_tips) {
+      # find the closest tip
+      tip_a <- names(which(dist[tip,] == min(dist[tip, colnames(dist) != tip])))
+      # if there is one single closest tip
+      if(length(tip_a)==1){
+        # find the closes tip 
+        tip_b <- names(which(dist[tip_a,] == min(dist[tip_a, colnames(dist) != tip_a])))
+        # if there is one single closest tip
+        if (length(tip_b)==1){
+          # if both are mutually closest tips 
+          if(tip_b == tip){
+            # save the distance and the tip labels 
+            cherry_dist[nrow(cherry_dist)+1,] <- c(tip, tip_a, dist[tip,tip_a])
+            cherry_tips <- c(cherry_tips, tip, tip_a)
+          }
+        }
+      }
+    }
+  }
+  cherry_dist$dist <- as.numeric(cherry_dist$dist)
+  cherry_dist
+}

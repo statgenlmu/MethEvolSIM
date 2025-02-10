@@ -32,6 +32,6 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-Imports: R6
+Imports: R6, ape
 Depends: R (>= 4.0)
 VignetteBuilder: knitr

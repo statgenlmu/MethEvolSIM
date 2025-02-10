@@ -1,49 +1,5 @@
 
 
-test_that("get_cherryDist", {
-  # Set tree
-  newick_tree <- "((1:1,2:1):1,3:2);"
-  
-  # Test wrong input
-  expect_error(get_cherryDist(),
-               info = "function fails to throw an error when no tree/sample_n is given")
-  expect_error(get_cherryDist(sample_n = 2),
-               info = "function fails to throw an error when no tree is given")
-  expect_error(get_cherryDist(tree = newick_tree),
-               info = "function fails to throw an error when no sample_n is given")
-  
-  
-  # Test error when tree has only one tip
-  newick_tree <- "(1:1);"
-  expect_error(get_cherryDist(tree = newick_tree, sample_n = 1),
-               info = "fails to throw an error when number of tips is < 2")
-  
-  # Test conversion from newick tree to ape tree
-  newick_tree <- "((1:1,2:1):1,3:2);"
-  expect_true(class(get_cherryDist(newick_tree, sample_n = 3, testing = T)$tree) == "phylo",
-              info = "fails to convert newick tree into ape's class phylo")
-  
-  # Test case single cherry
-  expect_true(all(get_cherryDist(newick_tree, sample_n = 3)[[1]] == c(1,2,2)),
-              info = "incorrect output for newick tree with single cherry")
-  ape_tree <- ape::read.tree(text = newick_tree)
-  expect_true(all(get_cherryDist(ape_tree, sample_n = 3)[[1]] == c(1,2,2)),
-              info = "incorrect output for ape tree with single cherry")
-  
-  # Test case 2 cherries
-  newick_tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
-  ape_tree <- ape::read.tree(text = newick_tree)
-  expect_true(all(get_cherryDist(newick_tree, sample_n = 4)[[1]] == c(1,2,3)),
-              info = "incorrect output for newick tree with two cherries (1st cherry)")
-  expect_true(all(get_cherryDist(newick_tree, sample_n = 4)[[2]] == c(3,4,4)),
-              info = "incorrect output for newick tree with two cherries (2nd cherry)")
-  expect_true(all(get_cherryDist(ape_tree, sample_n = 4)[[1]] == c(1,2,3)),
-              info = "incorrect output for ape tree with two cherries (1st cherry)")
-  expect_true(all(get_cherryDist(ape_tree, sample_n = 4)[[2]] == c(3,4,4)),
-              info = "incorrect output for ape tree with two cherries (2nd cherry)")
-  
-})
-
 
 test_that("countSites_cherryMethDiff", {
   # Test case one cherry

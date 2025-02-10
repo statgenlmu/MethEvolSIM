@@ -2,6 +2,7 @@
 
 export(compute_meanCor_i)
 export(compute_meanCor_ni)
+export(get_cherryDist)
 export(get_islandMeanFreqM)
 export(get_islandMeanFreqP)
 export(get_islandSDFreqM)
@@ -14,3 +15,5 @@ export(get_parameterValues)
 export(simulate_evolData)
 export(simulate_initialData)
 importFrom(R6,R6Class)
+importFrom(ape,cophenetic.phylo)
+importFrom(ape,read.tree)

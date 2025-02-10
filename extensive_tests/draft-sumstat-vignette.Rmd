@@ -127,7 +127,7 @@ $$
 \hat{\sigma}(w)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(w) \\
 \hat{\sigma}(z)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(z) \\
 $$
-
+These values can be computed with the functions `get_islandSDFreqP`, `get_nonislandSDFreqP`,`get_islandSDFreqM` and `get_nonislandSDFreqM` as in the following examples:
 
 ```{r}
 # 1 tip / sample / replicate
@@ -185,6 +185,8 @@ In this formulation:
 - Only structures with a minimum length of $n = s + 2 \cdot l$ are considered.
 
 - If $l = 0$, all the positions are considered.
+
+These values can be computed with the functions `compute_meanCor_i` for island structures and `compute_meanCor_ni` for non-island structures as in the following examples:
 
 ```{r}
 # 1 tip / sample / replicate
@@ -254,6 +256,8 @@ where $|S_k|$ is the total number of sites in the cherry structure $k$, and the 
 This statistic gives the proportion of sites in the cherry structure $k$ where the methylation state differs between the two tips of interest.
 
 
-get_FChange_cherryData (uses find_cherries --get_cherryDist-- and cherry_diffs -- now count_cherryMethDiff )
+Functions:
 
-NOTE: Summary statistics related with tree cherries require a tree with tip labels givenas numeric values
+- `get_cherryDist` to get the distances between the cherry tips.
+
+
