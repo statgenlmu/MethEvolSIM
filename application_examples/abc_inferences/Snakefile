@@ -153,15 +153,16 @@ rule run_sim:
 # Rule to get the CpG position indices relative to the reference genome (cytosine index relative to positive strand)
 rule get_CpG_positions:
     input:
-        reference_genome = config["methSite_genomicDist"]["reference_genome"],
-        CGI_annotation = config["methSite_genomicDist"]["CGI_annotation"]
+        CpG_counts = config["methSite_genomicDist"]["CpG_count"]
     output:
-    	CpG_counts = config["methSite_genomicDist"]["CpG_count"]
+    	CpG_positions = config["methSite_genomicDist"]["CpG_positions"]
+    params:
+        reference_genome = config["methSite_genomicDist"]["reference_genome"]
     log:
-        "get_CpG_count.out"
+        "get_CpG_positions.out"
     shell:
         """
-        Rscript scripts/get_CpG_positions.R --reference-genome {input.reference_genome} --CGI-annotation {input.CGI_annotation} --output {output.CpG_counts} > {log}
+        Rscript scripts/get_CpG_positions.R --reference-genome {params.reference_genome} --input {input.CGI_annotation} --output {output.CpG_positions} > {log}
         """
 
 # Rule to compute the summary statistics
