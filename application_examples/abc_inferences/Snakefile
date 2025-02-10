@@ -13,10 +13,6 @@ region_workdir = os.path.join(
     config["selected_region"]["name"]
 )
 
-# Global environment definition
-#conda:
-#    os.path.join(base_path, "environment.yaml")
-
 
 rule setup_output_dir:
     output:
@@ -28,7 +24,7 @@ rule setup_output_dir:
 
 
 
-# Rule to get the CpG counts in island and non-island regions
+# Rule to get the CpG counts in island and non-island regions relative to the reference genome
 rule get_CpG_count:
     input:
         reference_genome = config["methSite_genomicDist"]["reference_genome"],
@@ -41,13 +37,13 @@ rule get_CpG_count:
         """
         Rscript scripts/get_CpG_count.R --reference-genome {input.reference_genome} --CGI-annotation {input.CGI_annotation} --output {output.CpG_counts} > {log}
         """
-
-# Rule to get the spatial_str.RData file for the genomic region to simulate
-rule get_spatial_str:
+        
+# Rule to filter the CpG counts in island and non-island regions relative to the genomic region of interest
+rule filter_CpG_count:
     input:
         CpG_counts = config["methSite_genomicDist"]["CpG_count"]
     output:
-        spatial_str = os.path.join(region_workdir, config["selected_region"]["chr"] + "_" + str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" + str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" + config["selected_region"]["name"] + ".RData")
+        filtered_CpG_count = config["methSite_genomicDist"]["filtered_CpG_count"]
     params:
     	region_name = config["selected_region"]["name"],
     	region_chr = config["selected_region"]["chr"],
@@ -56,7 +52,18 @@ rule get_spatial_str:
     	region_side_bp = config["selected_region"]["side_bp"]
     shell:
         """
-        Rscript scripts/get_spatial_str.R --input {input.CpG_counts} --output {output.spatial_str} --name-selected-region {params.region_name} --chr {params.region_chr} --start {params.region_start} --end {params.region_end} --side-bp {params.region_side_bp} 
+        Rscript scripts/filter_CpG_count.R --input {input.CpG_counts} --output {output.filtered_CpG_count} --name-selected-region {params.region_name} --chr {params.region_chr} --start {params.region_start} --end {params.region_end} --side-bp {params.region_side_bp} 
+        """
+
+# Rule to get the spatial_str.RData file for the genomic region to simulate
+rule get_spatial_str:
+    input:
+        filtered_CpG_count = config["methSite_genomicDist"]["filtered_CpG_count"]
+    output:
+        spatial_str = os.path.join(region_workdir, config["selected_region"]["chr"] + "_" + str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" + str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" + config["selected_region"]["name"] + ".RData")
+    shell:
+        """
+        Rscript scripts/get_spatial_str.R --input {input.filtered_CpG_count} --output {output.spatial_str}
         """
     	
 

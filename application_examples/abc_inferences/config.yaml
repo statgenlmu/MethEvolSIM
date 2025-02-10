@@ -12,6 +12,7 @@ methSite_genomicDist:
   reference_genome: genomic_dist/ncbi_dataset/ncbi_dataset/data/GCF_000238955.4/GCF_000238955.4_M_zebra_UMD2a_genomic.fna
   CGI_annotation: genomic_dist/CGI-Mzebra.txt
   CpG_count: genomic_dist/CpG_count.RData
+  filtered_CpG_count: genomic_dist/CpG_count_region.RData
   # /home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/spatial_str.RData
   #/scratch/saracv/abc/cichlids/test1/spatial_str.RData
   
