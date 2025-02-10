@@ -74,6 +74,7 @@ for (i in 1:nrow(CpG_count)) {
   seq_region <- subseq(seq_chr, start = region$start, end = region$end)  # Extract region
   
   # Get CpG positions
+  cpg_positions <- get_CpG_positions(seq_region, region$start)
   
   # Store results
   cpg_positions_list[[i]] <- data.frame(
