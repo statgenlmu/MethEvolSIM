@@ -164,6 +164,20 @@ rule get_CpG_positions:
         """
         Rscript scripts/get_CpG_positions.R --reference-genome {params.reference_genome} --input {input.CpG_counts} --output {output.CpG_positions} > {log}
         """
+        
+# Rule to filter the CpG position indices within to the genomic region of interest
+rule filter_CpG_positions:
+    input:
+    	CpG_positions = config["methSite_genomicDist"]["CpG_positions"],
+        filtered_CpG_count = config["methSite_genomicDist"]["filtered_CpG_count"]
+    output:
+    	filtered_CpG_positions = config["methSite_genomicDist"]["filtered_CpG_positions"]
+    log:
+        "filter_CpG_positions.out"
+    shell:
+        """
+        Rscript scripts/filter_CpG_positions.R --filtered-CpGcount-region {input.filtered_CpG_count} --CpG-positions {input.CpG_positions} --output {output.CpG_positions} > {log}
+        """
 
 # Rule to compute the summary statistics
 rule compute_sumStats:

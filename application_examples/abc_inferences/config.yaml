@@ -14,6 +14,7 @@ methSite_genomicDist:
   CpG_count: genomic_dist/CpG_count.RData
   filtered_CpG_count: genomic_dist/CpG_count_region.RData
   CpG_positions: genomic_dist/CpG_positions.RData
+  filtered_CpG_positions: genomic_dist/CpG_positions_region.RData
   # /home/sara/methylation/MethEvolSIM/extensive_tests/abc_inferences/spatial_str.RData
   #/scratch/saracv/abc/cichlids/test1/spatial_str.RData
   
