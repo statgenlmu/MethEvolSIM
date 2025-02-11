@@ -27,14 +27,18 @@ load_all()
 # Introduction
 
 The initialization of the DNA methylation data without the CFTP method
-samples for each genomic structure (island or non-island) the
+samples for each genomic structure (island or  non-island) the
 methylation state for each of the CpG sites within from the
 structure's equilibrium frequencies independently.
 Therefore, the initial distribution of methylation states lacks the
 effect of the neighbor correlations introduced by the correlated SSE process.
 This correlations would then build during evolution along a branch. 
 
-In order to be able to start simulating evolution along a tree with the sequence of states at the tree root accounting for the neighbouring correlations we implemented the CFTP method, which samples a sequence of methylation states from the equilibrium given by the model (accounting for the correlated SSE process while neglecting the IWE process.)
+In order to be able to start simulating evolution along a tree
+with the sequence of states at the tree root accounting for the
+neighbouring correlations we implemented the CFTP method,
+which samples a sequence of methylation states from the equilibrium given
+by the model (accounting for the correlated SSE process while neglecting the IWE process.)
 
 **Add examples of use**
 
