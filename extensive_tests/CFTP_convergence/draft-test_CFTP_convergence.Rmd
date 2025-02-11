@@ -1,4 +1,4 @@
-q---
+---
 title: "CFTP Convergence"
 output: 
   rmarkdown::html_vignette:
@@ -139,6 +139,12 @@ All the given parameters to the workflow steps are taken from the `config.yaml` 
 4.  Rule `compute_meanCor` run by script `compute_meanCor.R`. Takes as input the output of the previous rule. For each branch step output and cftp output it computes the mean correlation of a segment of methylation states per genomic structure type (**summary statistics described in the summaryStats vignette**). The output files are written under the directory `dir` and are named as "summaryStats_CFTP_testConvergence_paramsID_{parameter_combination_number}_cftp.RData" for the output of the cftp method and ""summaryStats_CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}.RData" for the output of evolution along the branch.
 
 5.  Rule `plot_results` run by script `plot.R`. Takes as input the output of the previous rule.  The output files are written under a subdirectory `Figures` generated in the same directory of the snakemake workflow, and are named "CFTP_testConvergence_paramsID_{parameter_combination_number}" both in `.pdf` and `.png` format.
+
+
+# TO ADD
+
+- Add references
+
 
 
 
