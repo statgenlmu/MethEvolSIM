@@ -145,6 +145,12 @@ All the given parameters to the workflow steps are taken from the `config.yaml` 
 
 - Add references
 
+- Simplify sentences
+
+- Step in the Workflow and then mention Snakemake and conda as an additional option.
+ 
+- Instead of whan using nohup, if using nohup
+
 
 
 
