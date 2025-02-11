@@ -44,7 +44,7 @@ for (i in 1:nrow(CpG_count_region)) {
   end <- region$end
   
   # Extract the CpG positions within the current region
-  filtered_positions[[i]] <- cpg_positions_df[cpg_positions_df$chr == chr & cpg_positions_df$CpG_position >= start & cpg_positions_df$CpG_position <= end,]
+  filtered_positions[[i]] <- cpg_positions[cpg_positions$chr == chr & cpg_positions$CpG_position >= start & cpg_positions$CpG_position <= end,]
   
   # Add the positions for region start and end
   filtered_positions[[i]]$region_start <- region$start
