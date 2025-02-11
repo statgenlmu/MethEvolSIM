@@ -1,36 +1,5 @@
 
 
-
-test_that("countSites_cherryMethDiff", {
-  # Test case one cherry
-  newick_tree <- "((1:1,2:1):1,3:2);"
-  data <- list(
-    list(rep(1,10), rep(0,10), rep(1,10)),
-    list(rep(1,10), rep(0.5,10), rep(0,10)),
-    list(rep(1,10), rep(0.5,10), rep(0,10)))
-  cherries <- get_cherryDist(newick_tree, sample_n = 3)
-  o <- countSites_cherryMethDiff(cherries, data)
-  expect_equal(nrow(o), 1, info = "case one cherry does not have one row")
-  expect_true(all(as.numeric(o[1,-c(1,2)]) == c(0, 0, 0, 10, 10, 0)),
-              info = "case one cherry incorrect count output")
-  
-  # Test case two cherries
-  newick_tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
-  data <- list(
-    list(rep(1,10), rep(0,10), rep(1,10)),
-    list(rep(1,10), rep(0.5,10), rep(0,10)),
-    list(rep(1,10), rep(0.5,10), rep(0,10)),
-    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1, rep(0.5, 5)), c(0.5, 1, rep(0, 8))))
-  cherries <- get_cherryDist(newick_tree, sample_n = 4)
-  o <- countSites_cherryMethDiff(cherries, data)
-  expect_equal(nrow(o), 2, info = "case two cherries does not have one row")
-  expect_true(all(as.numeric(o[1,-c(1,2)]) == c(0, 0, 0, 10, 10, 0)),
-              info = "case two cherries incorrect count output for first cherry")
-  expect_true(all(as.numeric(o[2,-c(1,2)]) == c(5, 5, 0, 5, 1, 1)),
-              info = "case two cherries incorrect count output for second cherry")
-  
-})
-
 test_that("get_siteFChange_cherry_perMethDiffType", {
   
   # Test error when tree has only one tip

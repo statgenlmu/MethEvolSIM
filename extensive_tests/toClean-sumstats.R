@@ -7,41 +7,13 @@ index_nonislands <- c(2,4)
 # Empirical data may have in first_tip 1,5,7
 # And in second tip 1,3,5,7
 # So that only sites 1,5,7 can be compared
+# Previous step of filtering data using a list containing for each island and non-island region a vector of the
+# relative indices of the CpGs that are to be compared.
 
 
 
 
 
-
-#undebug(get_cherryDist)
-## TODO: Assumes that each str has the same number of sites at the different tips
-## Think about how to control for pop cases in which there may be insertions/deletions
-## or whether this should be controlled by the user
-countSites_cherryMethDiff <- function(cherries, data) {
-  ## returns a data frame with one line for each cherry, containing the branch distance between the
-  ## cherries and for each structure two numbers: that of the number of sites that are m in one in
-  ## u in the other tip and the number of sites that are p in one and m or u in the other tip.
-
-  str_n <- length(data[[1]]) # set the number of structures
-  df <- data.frame(tips=character(), dist=numeric()) # start df
-  for(str in 1:str_n) {
-    # e.g. df 3 structures: tips dist 1_f 1_h 2_f 2_h 3_f 3_h
-    df <- cbind(df, integer(), integer())
-    names(df)[c(ncol(df)-1, ncol(df))] <- paste0(str,"_",c("f", "h"))
-  }
-  for(i in 1:length(cherries)) {
-    ch <- cherries[[i]]
-    df[i, 1] <- paste0(ch[1],"-",ch[2]) # add tips info
-    df[i, 2] <- ch[3] # add dist between tips
-    for(str in 1:str_n) {
-      # count number of sites with full methylation change (from u to m or m to u)
-      df[i, (str+1)*2-1] <- sum(abs(data[[ch[1]]][[str]]-data[[ch[2]]][[str]])==1)
-      # count number of sites with half methylation change (p in one tip and m or u in the other)
-      df[i, (str+1)*2] <- sum(abs(data[[ch[1]]][[str]]-data[[ch[2]]][[str]])==0.5)
-    }
-  }
-  df
-}
 
 #undebug(countSites_cherryMethDiff)
 #undebug(get_cherryDist)

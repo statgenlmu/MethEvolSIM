@@ -482,21 +482,30 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
 #' Get Cherry Pair Distances from a Phylogenetic Tree
 #'
 #' This function computes the pairwise distances between the tips of a phylogenetic tree 
-#' that are part of cherries. A cherry is a pair of leaves (tips) that are sisters in the tree.
-#' The distance is calculated as the sum of the branch lengths between the two sister tips.
+#' that are part of cherries. A cherry is a pair of leaf nodes (also called tips or terminal nodes) 
+#' in a phylogenetic tree that share a direct common ancestor. 
+#' In other words, if two leaves are connected to the same internal node and no other leaves 
+#' are connected to that internal node, they form a cherry.
+#' The distance is calculated as the sum of the branch lengths between the two cherry tips.
 #'
 #' @param tree A tree in Newick format (as a character string) or an object of class \code{phylo} from the \code{ape} package.
 #' If the input is a character string, it must follow the Newick or New Hampshire format (e.g. \code{"((tip_1:1,tip_2:1):5,tip_3:6);"}).
 #' If an object of class \code{phylo} is provided, it should represent a valid phylogenetic tree.
 #'
-#' @return A data frame with three columns:
-#'   \item{first_tip}{A character string representing the first tip in the cherry (sister pair).}
-#'   \item{second_tip}{A character string representing the second tip in the cherry.}
+#' @return A data frame with five columns:
+#'   \item{first_tip_name}{A character string representing the name of the first tip in the cherry.}
+#'   \item{second_tip_name}{A character string representing the name of the second tip in the cherry.}
+#'   \item{first_tip_index}{An integer representing the index of the first tip in the cherry.}
+#'   \item{second_tip_index}{An integer representing the index of the second tip in the cherry.}
 #'   \item{dist}{A numeric value representing the sum of the branch lengths between the two tips (i.e., the distance between the cherries).}
 #'   
 #' @details The function first checks if the input is either a character string in the Newick format or an object of class \code{phylo}.
 #'   It then computes the pairwise distances between the tips in the tree and identifies the sister pairs (cherries).
 #'   The distance between each cherry is the sum of the branch lengths leading to the sister tips.
+#'   The tips of each cherry are identified by the tip names and the tip indices. 
+#'   The tip indices correspond to (a) the index from left to right on the newick string,
+#'   (b) the order of the tip label in the phylo_object$tip.label, and (c) the index in the methylation data list
+#'   (\code{data[[tip]][[structure]]}) as obtained with the function simulate_evolData() when the given tree has several tips.
 #'   
 #'   If the tree is provided in Newick format, it will be parsed using the \code{ape::read.tree} function.
 #'   
@@ -544,8 +553,12 @@ get_cherryDist <- function(tree){
   dist <- ape::cophenetic.phylo(tree)
   # Set a vector to save the cherry tips for which the distance has already been extracted (because dist is symmetric)
   cherry_tips <- c()
-  # set list to store the cherry distances
-  cherry_dist <- data.frame(first_tip=character(), second_tip=character(), dist=numeric()) # start df
+  # set df to store the cherry names, tip indices and distances
+  cherry_dist <- data.frame(first_tip_name=character(), 
+                            second_tip_name=character(),
+                            first_tip_index=integer(),
+                            second_tip_index=integer(),
+                            dist=numeric()) 
   # Get the tip names
   tips <- rownames(dist)
 
@@ -562,8 +575,8 @@ get_cherryDist <- function(tree){
         if (length(tip_b)==1){
           # if both are mutually closest tips 
           if(tip_b == tip){
-            # save the distance and the tip labels 
-            cherry_dist[nrow(cherry_dist)+1,] <- c(tip, tip_a, dist[tip,tip_a])
+            # save the tip labels, the distance and the tip indices
+            cherry_dist[nrow(cherry_dist)+1,] <- c(tip, tip_a, which(rownames(dist)==tip), which(rownames(dist)==tip_a), dist[tip,tip_a])
             cherry_tips <- c(cherry_tips, tip, tip_a)
           }
         }
@@ -571,5 +584,133 @@ get_cherryDist <- function(tree){
     }
   }
   cherry_dist$dist <- as.numeric(cherry_dist$dist)
+  cherry_dist$first_tip_index <- as.integer(cherry_dist$first_tip_index)
+  cherry_dist$second_tip_index <- as.integer(cherry_dist$second_tip_index)
   cherry_dist
 }
+
+
+
+#' Count Methylation Differences Between Cherry Pairs
+#'
+#' This function calculates the number of methylation differences between pairs of cherry tips in a phylogenetic tree.
+#' A cherry is a pair of leaf nodes that share a direct common ancestor. The function quantifies full and half methylation
+#' differences for each genomic structure (e.g., island/non-island) across all sites.
+#'
+#' @param cherryDist A data frame containing pairwise distances between the tips of a phylogenetic tree that form cherries.
+#'   This should be as the output of \code{get_cherryDist}, and must include the following columns:
+#'   \describe{
+#'     \item{first_tip_name}{A character string representing the name of the first tip in the cherry.}
+#'     \item{second_tip_name}{A character string representing the name of the second tip in the cherry.}
+#'     \item{first_tip_index}{An integer representing the index of the first tip in the cherry.}
+#'     \item{second_tip_index}{An integer representing the index of the second tip in the cherry.}
+#'     \item{dist}{A numeric value representing the sum of the branch lengths between the two tips (i.e., the distance between the cherries).}
+#'   }
+#'
+#' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
+#'   The data should be structured as \code{data[[tip]][[structure]]}, where each structure has the same number of sites across tips.
+#'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
+#'
+#' @return A data frame with one row per cherry, containing the following columns:
+#'   \describe{
+#'     \item{tip_names}{A character string representing the names of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{tip_indices}{A character string representing the indices of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{dist}{A numeric value representing the sum of the branch distances between the cherry tips.}
+#'     \item{\code{[str_number]_f}}{An integer count of the sites with a full methylation difference (where one tip is methylated and the other is unmethylated) for the given structure (str).}
+#'     \item{\code{[str_number]_h}}{An integer count of the sites with a half methylation difference (where one tip is partially methylated and the other is either fully methylated or unmethylated) for the given structure (str).}
+#'   }
+#'
+#' @details The function first verifies that \code{cherryDist} contains the required columns and has at least one row.
+#'   It also ensures that \code{data} contains a sufficient number of tips and that all structures have the same number of sites.
+#'   The function then iterates over each cherry and genomic structure to compute the full and half methylation differences
+#'   between the two tips of each cherry.
+#'
+#' @examples
+#' # Example data setup
+#' data <- list(
+#'   list(c(0, 1, 2, 0), c(1, 1, 0, 2)),
+#'   list(c(1, 0, 2, 1), c(0, 1, 2, 2))
+#' )
+#' cherryDist <- data.frame(
+#'   first_tip_name = c("tip1"),
+#'   second_tip_name = c("tip2"),
+#'   first_tip_index = c(1),
+#'   second_tip_index = c(2),
+#'   dist = c(0.5)
+#' )
+#' countSites_cherryMethDiff(cherryDist, data)
+#'
+#' @export
+countSites_cherryMethDiff <- function(cherryDist, data) {
+  
+  # Check argument cherryDist has all columns
+  if(!all(c("first_tip_name", "second_tip_name", "first_tip_index", "second_tip_index", "dist") %in% names(cherryDist))){
+    stop("Argument 'cherryDist' misses a required column")
+  }
+  
+  # Check argument cherryDist has at least one row
+  if(!nrow(cherryDist)>0) stop("Argument cherryDist has 0 rows.")
+  num_tips<- length(data)
+  
+  # Check the number of tips is equal or greater to the maximum tip index in cherryDist argument
+  if(!num_tips>=max(c(cherryDist$first_tip_index, cherryDist$second_tip_index))){
+    stop("Argument 'data' with required structure data[[tip]][[structure]] does not have enough tips according to argument 'cherryDist'")
+  }
+  
+  # Ensure the number of structures is > 0 and equal across tips
+  lengths_per_tip <- sapply(seq_len(num_tips), function(tip) length(data[[tip]]))
+  if (!(all(lengths_per_tip > 0) && length(unique(lengths_per_tip)) == 1)) {
+    stop("Input 'data' with required structure data[[tip]][[structure]] has some tips zero or differing number of structures. Check given 'data' structure.")
+  }
+  
+  # Set the number of structures after checking consistency across tips
+  str_n <- length(data[[1]]) 
+  
+  # Iterate over each structure and check length (number of sites) consistency across tips
+  for (structure in seq_len(str_n)) {
+    lengths_per_tip <- sapply(seq_len(num_tips), function(tip) length(data[[tip]][[structure]]))
+    
+    # Ensure all lengths are > 0 and equal across tips
+    if (!(all(lengths_per_tip > 0) && length(unique(lengths_per_tip)) == 1)) {
+      stop(paste("Error: Structure", structure, "has inconsistent lengths across tips or zero length at some tips."))
+    }
+  }
+  
+  # Initialize a data frame to store the count of methylation differences at each cherry
+  df <- data.frame(tip_names=character(), tip_indices=character(), dist=numeric()) 
+  
+  # For each structure in the data add two integer columns named as
+  # [structure_index]_f for full methylation changes and [structure_index]_h for half methylation changes
+  for(str in 1:str_n) {
+    df <- cbind(df, integer(), integer())
+    names(df)[c(ncol(df)-1, ncol(df))] <- paste0(str,"_",c("f", "h"))
+  }
+  
+  # Loop through the cherries
+  for(i in 1:nrow(cherryDist)) {
+    
+    # Extract current cherry info
+    ch <- cherryDist[i,]
+    
+    # Save current cherry tip names, tip indices and distance
+    df[i, "tip_names"] <- paste0(ch$first_tip_name,"-",ch$second_tip_name) 
+    df[i, "tip_indices"] <- paste0(ch$first_tip_index,"-",ch$second_tip_index) 
+    df[i, "dist"] <- ch$dist 
+    
+    # Loop through the structures
+    for(str in 1:str_n) {
+      # Get the sequence of methylation states for the given structure at the cherry tips
+      data_first_tip <- data[[ch$first_tip_index]][[str]]
+      data_second_tip <- data[[ch$second_tip_index]][[str]]
+      
+      # Count number of sites with full methylation change (from u to m or m to u)
+      df[i, paste0(str, "_f")] <- sum(abs(data_first_tip-data_second_tip)==1)
+      
+      # Count number of sites with half methylation change (p in one tip and m or u in the other)
+      df[i, paste0(str, "_h")] <- sum(abs(data_first_tip-data_second_tip)==0.5)
+    }
+  }
+  # Return the data frame
+  df
+}
+

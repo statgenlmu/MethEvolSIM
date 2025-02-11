@@ -84,7 +84,7 @@ for (i in 1:nrow(CpG_count)) {
   )
 }
 
-# Combine results into a single data frame
+# Combine results into a single data frame and save into output file
 cpg_positions <- do.call(rbind, cpg_positions_list)
 save(cpg_positions, file = opt[["output"]])
 

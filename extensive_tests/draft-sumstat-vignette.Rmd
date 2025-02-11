@@ -258,6 +258,8 @@ This statistic gives the proportion of sites in the cherry structure $k$ where t
 
 Functions:
 
-- `get_cherryDist` to get the distances between the cherry tips.
+- `get_cherryDist(tree)` to get the distances between the tips of each cherry. It identifies each cherry by the tip names and the tip indices. The tip indices correspond to (a) the index from left to right on the newick string, (b) the order of the tip label in the `phylo_object$tip.label`, and (c) the index in the methylation data list `data[[tip]][[structure]]` as obtained with the function `simulate_evolData()` when the given tree has several tips.
+
+- `countSites_cherryMethDiff(cherryDist, data)` to get for each cherry the counts of sites with half-methylation and full-methylation changes per genomic structure (island or non-island).
 
 

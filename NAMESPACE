@@ -2,6 +2,7 @@
 
 export(compute_meanCor_i)
 export(compute_meanCor_ni)
+export(countSites_cherryMethDiff)
 export(get_cherryDist)
 export(get_islandMeanFreqM)
 export(get_islandMeanFreqP)

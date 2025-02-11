@@ -302,15 +302,13 @@ This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the s
 
 7. Get the CpG position indices relative to the reference genome (cytosine index relative to positive strand).
 
+8. Filter the CpG position indices within the genomic region of interest.
 
+9. Compute the selected summary statistics. TODO: When added sumStats functions to package, stop sourcing script.
 
+10. Assess ABC accuracy using cross-validation.
 
-
-3. Compute the selected summary statistics. TODO: When added sumStats functions to package, stop sourcing script.
-
-4. Assess ABC accuracy using cross-validation.
-
-5. Infer parameters from empirical DNA methylation data.
+11. Infer parameters from empirical DNA methylation data.
 
 
 

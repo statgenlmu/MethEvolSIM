@@ -910,10 +910,14 @@ test_that("get_cherryDist processing of different input types", {
   type <- "One cherry, numeric tip labels ordered"
   tree <- "((1:0.1,2:0.1):2,3:3);"
   output <- get_cherryDist(tree)
-  expect_equal(output$first_tip, "1",
-               info = paste("Fails to output correct $first tip with input type:", type))
-  expect_equal(output$second_tip, "2",
-               info = paste("Fails to output correct $second_tip tip with input type:", type))
+  expect_equal(output$first_tip_name, "1",
+               info = paste("Fails to output correct $first_tip_name with input type:", type))
+  expect_equal(output$second_tip_name, "2",
+               info = paste("Fails to output correct $second_tip_name with input type:", type))
+  expect_equal(output$first_tip_index, 1,
+               info = paste("Fails to output correct $first_tip_index with input type:", type))
+  expect_equal(output$second_tip_index, 2,
+               info = paste("Fails to output correct $second_tip_index with input type:", type))
   expect_equal(output$dist, 0.2,
                info = paste("Fails to output correct $dist tip with input type:", type))
   
@@ -921,56 +925,247 @@ test_that("get_cherryDist processing of different input types", {
   type <- "One cherry, numeric tip labels unordered"
   tree <- "((3:0.15,1:0.2):2,2:3);"
   output <- get_cherryDist(tree)
-  expect_equal(output$first_tip, "3",
-               info = paste("Fails to output correct $first tip with input type:", type))
-  expect_equal(output$second_tip, "1",
-               info = paste("Fails to output correct $second_tip tip with input type:", type))
+  expect_equal(output$first_tip_name, "3",
+               info = paste("Fails to output correct $first_tip_name with input type:", type))
+  expect_equal(output$second_tip_name, "1",
+               info = paste("Fails to output correct $second_tip_name with input type:", type))
+  expect_equal(output$first_tip_index, 1,
+               info = paste("Fails to output correct $first_tip_index with input type:", type))
+  expect_equal(output$second_tip_index, 2,
+               info = paste("Fails to output correct $second_tip_index with input type:", type))
   expect_equal(output$dist, 0.35,
                info = paste("Fails to output correct $dist tip with input type:", type))
+
   
   # One cherry, named tips
   type <- "One cherry, named tips"
   tree <- "((a:0.8,b:0.2):2,c:3);"
   output <- get_cherryDist(tree)
-  expect_equal(output$first_tip, "a",
-               info = paste("Fails to output correct $first tip with input type:", type))
-  expect_equal(output$second_tip, "b",
-               info = paste("Fails to output correct $second_tip tip with input type:", type))
+  expect_equal(output$first_tip_name, "a",
+               info = paste("Fails to output correct $first_tip_name with input type:", type))
+  expect_equal(output$second_tip_name, "b",
+               info = paste("Fails to output correct $second_tip_name with input type:", type))
+  expect_equal(output$first_tip_index, 1,
+               info = paste("Fails to output correct $first_tip_index with input type:", type))
+  expect_equal(output$second_tip_index, 2,
+               info = paste("Fails to output correct $second_tip_index with input type:", type))
   expect_equal(output$dist, 1,
                info = paste("Fails to output correct $dist tip with input type:", type))
+  
+  
+  # One cherry, named tips, cherry to the right of tree
+  type <- "One cherry, named tips, cherry to the right of tree"
+  tree <- "(a:3,(c:2.1:,b:2.1):1);"
+  output <- get_cherryDist(tree)
+  expect_equal(output$first_tip_name, "c",
+               info = paste("Fails to output correct $first_tip_name with input type:", type))
+  expect_equal(output$second_tip_name, "b",
+               info = paste("Fails to output correct $second_tip_name with input type:", type))
+  expect_equal(output$first_tip_index, 2,
+               info = paste("Fails to output correct $first_tip_index with input type:", type))
+  expect_equal(output$second_tip_index, 3,
+               info = paste("Fails to output correct $second_tip_index with input type:", type))
+  expect_equal(output$dist, 4.2,
+               info = paste("Fails to output correct $dist tip with input type:", type))
+  
   
   # Two cherries, numeric tip labels ordered
   type <- "Two cherries, numeric tip labels ordered"
   tree <- "((1:0.1,2:0.1):3,(3:3,4:3):0.2);"
   output <- get_cherryDist(tree)
-  expect_equal(output$first_tip, c("1", "3"),
-               info = paste("Fails to output correct $first tip with input type:", type))
-  expect_equal(output$second_tip, c("2", "4"),
-               info = paste("Fails to output correct $second_tip tip with input type:", type))
+  expect_equal(output$first_tip_name, c("1", "3"),
+               info = paste("Fails to output correct $first_tip_name with input type:", type))
+  expect_equal(output$second_tip_name, c("2", "4"),
+               info = paste("Fails to output correct $second_tip_name with input type:", type))
+  expect_equal(output$first_tip_index, c(1,3),
+               info = paste("Fails to output correct $first_tip_index with input type:", type))
+  expect_equal(output$second_tip_index, c(2,4),
+               info = paste("Fails to output correct $second_tip_index with input type:", type))
   expect_equal(output$dist, c(0.2, 6),
                info = paste("Fails to output correct $dist tip with input type:", type))
+
   
   # Two cherries, numeric tip labels unordered
   type <- "Two cherries, numeric tip labels unordered"
   tree <- "((1:0.15,5:0.2):10,(2:10,10:10):0.35);"
   output <- get_cherryDist(tree)
-  expect_equal(output$first_tip, c("1", "2"),
-               info = paste("Fails to output correct $first tip with input type:", type))
-  expect_equal(output$second_tip, c("5", "10"),
-               info = paste("Fails to output correct $second_tip tip with input type:", type))
+  expect_equal(output$first_tip_name, c("1", "2"),
+               info = paste("Fails to output correct $first_tip_name with input type:", type))
+  expect_equal(output$second_tip_name, c("5", "10"),
+               info = paste("Fails to output correct $second_tip_name with input type:", type))
+  expect_equal(output$first_tip_index, c(1,3),
+               info = paste("Fails to output correct $first_tip_index with input type:", type))
+  expect_equal(output$second_tip_index, c(2,4),
+               info = paste("Fails to output correct $second_tip_index with input type:", type))
   expect_equal(output$dist, c(0.35, 20),
                info = paste("Fails to output correct $dist tip with input type:", type))
+  
   
   # Two cherries, named tips
   type <- "Two cherries, named tips"
   tree <- "((a:0.15,b:0.2):10,(c:0.1,1d:10):0.35);"
   output <- get_cherryDist(tree)
-  expect_equal(output$first_tip, c("a", "c"),
-               info = paste("Fails to output correct $first tip with input type:", type))
-  expect_equal(output$second_tip, c("b", "1d"),
-               info = paste("Fails to output correct $second_tip tip with input type:", type))
+  expect_equal(output$first_tip_name, c("a", "c"),
+               info = paste("Fails to output correct $first_tip_name with input type:", type))
+  expect_equal(output$second_tip_name, c("b", "1d"),
+               info = paste("Fails to output correct $second_tip_name with input type:", type))
+  expect_equal(output$first_tip_index, c(1,3),
+               info = paste("Fails to output correct $first_tip_index with input type:", type))
+  expect_equal(output$second_tip_index, c(2,4),
+               info = paste("Fails to output correct $second_tip_index with input type:", type))
   expect_equal(output$dist, c(0.35, 10.1),
                info = paste("Fails to output correct $dist tip with input type:", type))
+
 })
+
+test_that("countSites_cherryMethDiff input control errors", {
+  
+  # Incomplete argument cherryDist
+  type <- "Incomplete argument cherryDist"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  cherryDist <- get_cherryDist(tree)
+  cherryDist <- cherryDist[,-1]
+  expect_error(countSites_cherryMethDiff(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # No cherry info in cherryDist
+  type <- "No cherry info in cherryDist"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  cherryDist <- get_cherryDist(tree)
+  cherryDist <- cherryDist[-1,]
+  expect_error(countSites_cherryMethDiff(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Different number of structures across tips
+  type <- "Different number of structures across tips"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10))) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(countSites_cherryMethDiff(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Tip without structures
+  type <- "Tip without structures"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list()) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(countSites_cherryMethDiff(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Data with a structure of length 0
+  type <- "Data with a structure of length 0"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), c()), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), c()), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), c())) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(countSites_cherryMethDiff(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Different number of sites in data
+  type <- "Different number of sites in data"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(countSites_cherryMethDiff(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Number of tips in data smaller than given cherry tip indices
+  type <- "Number of tips in data smaller than given cherry tip indices"
+  tree <- "((1:1,2:1):2,(3:2,5:2):1);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(countSites_cherryMethDiff(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+})
+
+test_that("countSites_cherryMethDiff correct output with different input types", {
+  
+  # One cherry numeric labels (left newick)
+  type <- "One cherry numeric labels (left newick)"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  cherryDist <- get_cherryDist(tree)
+  o <- countSites_cherryMethDiff(cherryDist, data)
+  expect_equal(nrow(o), 1, 
+               info = paste("Number of output rows does not correspond with input type:", type))
+  expect_equal(o$tip_names, "1-2", 
+               info = paste("Tip names do not correspond with input type:", type))
+  expect_equal(o$tip_indices, "1-2", 
+               info = paste("Tip indices do not correspond with input type:", type))
+  expect_equal(o$dist, 2, 
+               info = paste("Tips distance does not correspond with input type:", type))
+  expect_true(all(as.numeric(o[1,-c(1,2,3)]) == c(0, 0, 0, 10, 10, 0)),
+              info = paste("Incorrect count number with input type:", type))
+  
+  # One cherry named labels (right newick)
+  type <- "One cherry named labels (right newick)"
+  tree <- "(c:5,(b:1.3,a:1.3):2.4);"
+  data <- list(
+    list(rep(1,10), rep(0,15), rep(1,15)), 
+    list(rep(1,10), rep(0.5,15), rep(0,15)), # tip 1 cherry
+    list(c(rep(0.5,8), 0, 1), c(rep(0.5,10), 1, 1, 0, 0, 0), rep(0,15))) # tip 2 cherry
+  cherryDist <- get_cherryDist(tree)
+  o <- countSites_cherryMethDiff(cherryDist, data)
+  expect_equal(nrow(o), 1, 
+               info = paste("Number of output rows does not correspond with input type:", type))
+  expect_equal(o$tip_names, "b-a", 
+               info = paste("Tip names do not correspond with input type:", type))
+  expect_equal(o$tip_indices, "2-3", 
+               info = paste("Tip indices do not correspond with input type:", type))
+  expect_equal(o$dist, 2.6, 
+               info = paste("Tips distance does not correspond with input type:", type))
+  expect_true(all(as.numeric(o[1,-c(1,2,3)]) == c(1, 8, 0, 5, 0, 0)),
+              info = paste("Incorrect count number with input type:", type))
+  
+  # Test case two cherries numeric labels unordered
+  tree <- "((25:1.51,24:1.51):2,(38:2.1,45:2.1):1.5);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)),
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1, rep(0.5, 5)), c(0.5, 1, rep(0, 8))))
+  cherryDist <- get_cherryDist(tree)
+  o <- countSites_cherryMethDiff(cherryDist, data)
+  expect_equal(nrow(o), 2, 
+               info = paste("Number of output rows does not correspond with input type:", type))
+  expect_equal(o$tip_names, c("25-24", "38-45"), 
+               info = paste("Tip names do not correspond with input type:", type))
+  expect_equal(o$tip_indices, c("1-2", "3-4"), 
+               info = paste("Tip indices do not correspond with input type:", type))
+  expect_equal(o$dist, c(3.02, 4.2), 
+               info = paste("Tips distances do not correspond with input type:", type))
+  expect_true(all(as.numeric(o[1,-c(1,2,3)]) == c(0, 0, 0, 10, 10, 0)),
+              info = "case two cherries incorrect count output for first cherry")
+  expect_true(all(as.numeric(o[2,-c(1,2,3)]) == c(5, 5, 0, 5, 1, 1)),
+              info = "case two cherries incorrect count output for second cherry")
+  
+})
+
+
 
 
