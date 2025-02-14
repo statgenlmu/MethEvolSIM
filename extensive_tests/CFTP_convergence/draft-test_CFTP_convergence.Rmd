@@ -151,6 +151,8 @@ All the given parameters to the workflow steps are taken from the `config.yaml` 
  
 - Instead of whan using nohup, if using nohup
 
+- Break lines shorter to be able to compare versions with gitk.
+
 
 
 
