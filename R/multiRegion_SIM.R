@@ -2102,6 +2102,7 @@ cftpStepGenerator <-  R6::R6Class("cftpStepGenerator",
                                      old_steps <- length(self$CFTP_event) # Check the number of already existing steps
                                      if (steps <= old_steps){stop("The given number of steps has already been generated")}
                                      
+                   
                                      # Get the number of new steps
                                      new_steps <- steps - old_steps 
                                      
