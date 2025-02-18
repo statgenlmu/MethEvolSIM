@@ -131,6 +131,7 @@ cftpStepGenerator_new <- R6::R6Class("cftpStepGenerator_new",
                                              self$CFTP_chosen_site <- self$CFTP_chosen_site[1:correct_length]
                                              self$CFTP_event <- self$CFTP_event[1:correct_length]
                                              self$CFTP_random <- self$CFTP_random[1:correct_length]
+                                             
                                            } else{
                                              return("No additional steps were added.")
                                            }
