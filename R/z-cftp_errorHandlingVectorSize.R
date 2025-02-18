@@ -133,7 +133,7 @@ cftpStepGenerator_new <- R6::R6Class("cftpStepGenerator_new",
                                              self$CFTP_random <- self$CFTP_random[1:correct_length]
                                              
                                            } else{
-                                             return("No additional steps were added.")
+                                             stop(paste("CFTP could not converge. Error message:", conditionMessage(e)))
                                            }
                                            
                                            
@@ -141,8 +141,7 @@ cftpStepGenerator_new <- R6::R6Class("cftpStepGenerator_new",
 
                                          if(testing){
                                            list(old_steps = old_steps,
-                                                new_steps = new_steps,
-                                                current_listIndex = current_listIndex)
+                                                new_steps = new_steps)
                                          }
                                        }
                                      ))
