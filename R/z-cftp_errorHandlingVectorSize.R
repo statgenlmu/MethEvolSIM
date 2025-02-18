@@ -44,6 +44,7 @@ cftpStepGenerator_new <- R6::R6Class("cftpStepGenerator_new",
                                        ##TODO: document
                                        steps_perVector = NULL,
                                        
+                                       ##TODO: Update documentation
                                        #' @description
                                        #' Public Method. Generates the events to apply for CFTP.
                                        #' 
@@ -72,50 +73,70 @@ cftpStepGenerator_new <- R6::R6Class("cftpStepGenerator_new",
                                          # Get the number of new steps
                                          new_steps <- steps - old_steps
                                          
-                                         # Set a variable to store the number of remaining steps to sample 
-                                         remaining_steps <- new_steps
-                                         
-                                         while(remaining_steps > 0){
+                                         # Add the info of the new steps to the existing ones
+                                         # handling potential errors (e.g. memmory limits)
+                                         tryCatch({
+                
+                                           # Set a variable to store the number of remaining steps to sample 
+                                           remaining_steps <- new_steps
                                            
-                                           # Initialize the vectors to store the CFTP info for the new steps
-                                           chosen_singleStr <- integer(length=self$steps_perVector)
-                                           chosen_site <- integer(length=self$steps_perVector)
-                                           event <- integer(length=self$steps_perVector)
-                                           random_threshold <- numeric(length=self$steps_perVector)
-                                           
-                                           # Generate for each CFTP step the event and location to apply it and a threshold for acceptance/rejection
-                                           # For each CFTP step (from past to present)
-                                           for(n in self$steps_perVector:1) {
-                                             # For generation -n
-                                             # Propose 1 site and what may happen to it
-                                             chosen_singleStr[n] <- sample(1:self$singleStr_number, 1, prob=self$singleStr_siteNumber)
-                                             chosen_site[n] <- sample(1:self$singleStr_siteNumber[chosen_singleStr[n]], 1)
-                                             event[n] <- sample(1:5, 1)  ## 1,2,3: go to u, p, m by SSEi ## 4,5: copy left, copy right.                        
-                                             # Sample a threshold to accept or reject event
-                                             random_threshold[n] <- runif(1) # numerical value between 0 and 1
-                                           }
-                                           
-                                           # Set the current list index to store CFTP info 
-                                           current_listIndex <- length(self$chosen_singleStr) + 1
-                                           
-                                           # Add the info of the new steps to the existing ones
-                                           # handling potential errors (e.g. memmory limits)
-                                           tryCatch({
+                                           while(remaining_steps > 0){
+                                             
+                                             # Initialize the vectors to store the CFTP info for the new steps
+                                             chosen_singleStr <- integer(length=self$steps_perVector)
+                                             chosen_site <- integer(length=self$steps_perVector)
+                                             event <- integer(length=self$steps_perVector)
+                                             random_threshold <- numeric(length=self$steps_perVector)
+                                             
+                                             # Generate for each CFTP step the event and location to apply it and a threshold for acceptance/rejection
+                                             # For each CFTP step (from past to present)
+                                             for(n in self$steps_perVector:1) {
+                                               # For generation -n
+                                               # Propose 1 site and what may happen to it
+                                               chosen_singleStr[n] <- sample(1:self$singleStr_number, 1, prob=self$singleStr_siteNumber)
+                                               chosen_site[n] <- sample(1:self$singleStr_siteNumber[chosen_singleStr[n]], 1)
+                                               event[n] <- sample(1:5, 1)  ## 1,2,3: go to u, p, m by SSEi ## 4,5: copy left, copy right.                        
+                                               # Sample a threshold to accept or reject event
+                                               random_threshold[n] <- runif(1) # numerical value between 0 and 1
+                                             }
+                                             
+                                             # Set the current list index to store CFTP info 
+                                             current_listIndex <- length(self$chosen_singleStr) + 1
+                                             
+                                             # Add the info of the new steps to the existing ones
                                              self$CFTP_chosen_singleStr[[current_listIndex]] <- c(self$CFTP_chosen_singleStr, chosen_singleStr)
                                              self$CFTP_chosen_site[[current_listIndex]] <- c(self$CFTP_chosen_site, chosen_site)
                                              self$CFTP_event[[current_listIndex]] <- c(self$CFTP_event, event)
                                              self$CFTP_random[[current_listIndex]] <- c(self$CFTP_random, random_threshold)
-                                           }, error = function(e) {
-                                             message("Error encountered: ", conditionMessage(e))
-                                           })
+                                             
+                                             
+                                             # Update the number of remaining steps to sample 
+                                             remaining_steps <- remaining_steps - self$steps_perVector
+                                           }
                                            
-                                           # Update the number of remaining steps to sample 
-                                           remaining_steps <- new_steps - self$steps_perVector
-                                         }
+                                         }, error = function(e) {
+                                           message("Error encountered: ", conditionMessage(e))
+                                           
+                                           
+                                           warning(paste0("Reducing the number of steps to", steps, "the number of steps per vector to", self$steps_perVector, "and retrying."))
+                                           
+                                           # If there is at least one more step retry, if not return something that can be catched in the outer function
+                                           if(new_steps < 1 || self$steps_perVector < 1) {
+                                             warning("Failure to increase the number of CFTP steps")
+                                             return("failed")
+                                           } else {
+                                             # Retry
+                                             return(self$generate_events(steps = old_steps + new_steps, testing))
+                                           }
+                                         })
+
+                                         
+                                         # Update the number of already existing steps
+                                         self$number_steps <- steps
                                          
 
                                          if(testing){
-                                           list(number_steps = number_steps,
+                                           list(old_steps = old_steps,
                                                 new_steps = new_steps,
                                                 current_listIndex = current_listIndex)
                                          }
