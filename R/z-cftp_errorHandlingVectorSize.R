@@ -73,6 +73,9 @@ cftpStepGenerator_new <- R6::R6Class("cftpStepGenerator_new",
                                          # Get the number of new steps
                                          new_steps <- steps - old_steps
                                          
+                                         # Track successful additions
+                                         successful_additions <- 0
+                                         
                                          # Add the info of the new steps to the existing ones
                                          # handling potential errors (e.g. memmory limits)
                                          tryCatch({
@@ -100,40 +103,40 @@ cftpStepGenerator_new <- R6::R6Class("cftpStepGenerator_new",
                                                random_threshold[n] <- runif(1) # numerical value between 0 and 1
                                              }
                                              
-                                             # Set the current list index to store CFTP info 
-                                             current_listIndex <- length(self$chosen_singleStr) + 1
-                                             
                                              # Add the info of the new steps to the existing ones
-                                             self$CFTP_chosen_singleStr[[current_listIndex]] <- c(self$CFTP_chosen_singleStr, chosen_singleStr)
-                                             self$CFTP_chosen_site[[current_listIndex]] <- c(self$CFTP_chosen_site, chosen_site)
-                                             self$CFTP_event[[current_listIndex]] <- c(self$CFTP_event, event)
-                                             self$CFTP_random[[current_listIndex]] <- c(self$CFTP_random, random_threshold)
+                                             self$CFTP_chosen_singleStr <- append(self$CFTP_chosen_singleStr, list(chosen_singleStr))
+                                             self$CFTP_chosen_site <- append(self$CFTP_chosen_site, list(chosen_site))
+                                             self$CFTP_event <- append(self$CFTP_event, list(event))
+                                             self$CFTP_random <- append(self$CFTP_random, list(random_threshold))
                                              
-                                             
+                                             # Mark successful addition
+                                             successful_additions <- successful_additions + 1
+            
                                              # Update the number of remaining steps to sample 
                                              remaining_steps <- remaining_steps - self$steps_perVector
+                                             
+                                             # Update the number of already existing steps
+                                             self$number_steps <- self$number_steps + self$steps_perVector
                                            }
                                            
                                          }, error = function(e) {
                                            message("Error encountered: ", conditionMessage(e))
                                            
-                                           
-                                           warning(paste0("Reducing the number of steps to", steps, "the number of steps per vector to", self$steps_perVector, "and retrying."))
-                                           
-                                           # If there is at least one more step retry, if not return something that can be catched in the outer function
-                                           if(new_steps < 1 || self$steps_perVector < 1) {
-                                             warning("Failure to increase the number of CFTP steps")
-                                             return("failed")
-                                           } else {
-                                             # Retry
-                                             return(self$generate_events(steps = old_steps + new_steps, testing))
+                                           if(successful_additions > 0){
+                                             # Calculate the correct length according to the number of registered steps
+                                             correct_length <- self$number_steps / self$steps_perVector
+                                             
+                                             # Adjust all lists to the correct length
+                                             self$CFTP_chosen_singleStr <- self$CFTP_chosen_singleStr[1:correct_length]
+                                             self$CFTP_chosen_site <- self$CFTP_chosen_site[1:correct_length]
+                                             self$CFTP_event <- self$CFTP_event[1:correct_length]
+                                             self$CFTP_random <- self$CFTP_random[1:correct_length]
+                                           } else{
+                                             return("No additional steps were added.")
                                            }
+                                           
+                                           
                                          })
-
-                                         
-                                         # Update the number of already existing steps
-                                         self$number_steps <- steps
-                                         
 
                                          if(testing){
                                            list(old_steps = old_steps,
