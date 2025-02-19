@@ -12,7 +12,7 @@ test_that("singleStructureGenerator initialization",{
   infoStr <- data.frame(n = c(100, 100, 100),
                         globalState= c("M", "U", "M"))
 
-  combi_obj <- combiStructureGenerator$new(infoStr)
+    combi_obj <- combiStructureGenerator$new(infoStr)
   for (i in 1:nrow(infoStr)){
     expect_false(is.null(get_private(combi_obj$get_singleStr(i))$my_combiStructure))
     expect_equal(class(get_private(combi_obj$get_singleStr(i))$my_combiStructure)[1], "combiStructureGenerator",
@@ -4366,12 +4366,35 @@ test_that("cftpStepGenerator $new", {
   expect_equal(cftp$singleStr_siteNumber, c(10, 8, 15),
                info = "Incorrect number of sites in singleStr instances")
   expect_equal(cftp$CFTP_highest_rate,  0.8,
-              info = "Incorrect value of CFTP highest rate")
+               info = "Incorrect value of CFTP highest rate")
+  expect_equal(cftp$number_steps, 0,
+               info = "Incorrect number of steps")
+  expect_true(is.null(cftp$steps_perVector),
+              info = "Not null value of steps per vector at initialization")
+  
+  expect_true(is.list(cftp$CFTP_chosen_singleStr),
+              info = "Attribute $CFTP_chosen_singleStr not initialized as list")
+  expect_equal(length(cftp$CFTP_chosen_singleStr), 0,
+               info = "Attribute $CFTP_chosen_singleStr not initialized with length 0")
+  
+  expect_true(is.list(cftp$CFTP_chosen_site),
+              info = "Attribute $CFTP_chosen_site not initialized as list")
+  expect_equal(length(cftp$CFTP_chosen_site), 0,
+               info = "Attribute $CFTP_chosen_site not initialized with length 0")
+  
+  expect_true(is.list(cftp$CFTP_event),
+              info = "Attribute $CFTP_event not initialized as list")
+  expect_equal(length(cftp$CFTP_event), 0,
+               info = "Attribute $CFTP_event not initialized with length 0")
+  
+  expect_true(is.list(cftp$CFTP_random),
+              info = "Attribute $CFTP_random not initialized as list")
+  expect_equal(length(cftp$CFTP_random), 0,
+               info = "Attribute $CFTP_random not initialized with length 0")
   
 })
 
-test_that("cftpStepGenerator $generate_events", {
-  
+test_that("cftpStepGenerator $generate_events input control", {
   cftp <- cftpStepGenerator$new(singleStr_number = 3, singleStr_siteNumber = c(10, 8, 15), CFTP_highest_rate = 0.8)
   
   # Expect error when steps argument is not an non-decimal numerical value of min value 1
@@ -4383,48 +4406,145 @@ test_that("cftpStepGenerator $generate_events", {
                info = "method fails to throw error when 'steps' argument is < 1")
   expect_error(cftp$generate_events(steps = 100.5),
                info = "method fails to throw error when 'steps' argument has decimal numbers")
+})
+
+test_that("cftpStepGenerator $generate_events correctly initializes steps", {
+  obj <- cftpStepGenerator$new(singleStr_number = 3, singleStr_siteNumber = c(10, 8, 15), CFTP_highest_rate = 0.8)
+  steps <- 10000
   
   # Expect NULL output when arguments are correct but testing is (as default) FALSE
-  expect_null(cftp$generate_events(steps = 1000),
+  expect_null(obj$generate_events(steps = steps),
               info = "whith testing = FALSE method generates output")
   
-  # 1: Test length of events after calling the method once and twice
-  example_steps <- 1000
-  cftp <- cftpStepGenerator$new(singleStr_number = 3, singleStr_siteNumber = c(10, 8, 15), CFTP_highest_rate = 0.8)
-  output <- cftp$generate_events(steps = example_steps, testing = TRUE)
-  expect_equal(length(output$CFTP_chosen_singleStr), example_steps,
-               info = "length of CFTP_chosen_singleStr not equal to number of steps after first event generation")
-  expect_equal(length(output$CFTP_chosen_site), example_steps,
-               info = "length of CFTP_chosen_site not equal to number of steps after first event generation")
-  expect_equal(length(output$CFTP_event), example_steps,
-               info = "length of CFTP_event not equal to number of steps after first event generation")
-  expect_equal(length(output$CFTP_random), example_steps,
-               info = "length of CFTP_random not equal to number of steps after first event generation")
-  # Expect error if called again with smaller number of steps
-  expect_error(cftp$generate_events(steps = 50),
-               info = "method fails to stop when given steps have already been generated")
+  obj <- cftpStepGenerator$new(singleStr_number = 3, singleStr_siteNumber = c(10, 8, 15), CFTP_highest_rate = 0.8)
+  obj$generate_events(steps = steps)
   
-  total_steps <- 2000
-  output <- cftp$generate_events(steps = total_steps, testing = TRUE)
-  expect_equal(length(output$CFTP_chosen_singleStr), total_steps,
-               info = "length of CFTP_chosen_singleStr not equal to number of steps after second event generation")
-  expect_equal(length(output$CFTP_chosen_site), total_steps,
-               info = "length of CFTP_chosen_site not equal to number of steps after second event generation")
-  expect_equal(length(output$CFTP_event), total_steps,
-               info = "length of CFTP_event not equal to number of steps after first second generation")
-  expect_equal(length(output$CFTP_random), total_steps,
-               info = "length of CFTP_random not equal to number of steps after first second generation")
-  
-  # 2: Test content of events as expected
-  expect_true(all(output$CFTP_chosen_singleStr %in% c(1,2,3)),
-              info = "CFTP_chosen_singleStr contains singleStr index not in combiStr")
-  expect_true(all(output$CFTP_chosen_site %in% 1:15),
-              info = "CFTP_chosen_site contains site indexes not in combiStr")
-  expect_true(all(output$CFTP_event %in% 1:5),
-              info = "CFTP_event contains events not in 1:5")
-  expect_true(all(output$CFTP_random >= 0 & output$CFTP_random <= 1),
-              info = "CFTP_random contains threshold not between 0 and 1")
+  expect_equal(obj$steps_perVector, steps,
+               info = "non-correct $steps_perVector after first generate_events call")
+  expect_equal(obj$number_steps, steps,
+               info = "non-correct number of steps after first generate_events call")
+  expect_equal(length(obj$CFTP_chosen_singleStr), 1,
+               info = "non-correct number of list elements in $CFTP_chosen_singleStr after first generate_events call")
+  expect_equal(length(obj$CFTP_chosen_singleStr[[1]]), steps,
+               info = "non-correct number of steps in $CFTP_chosen_singleStr after first generate_events call")
+  expect_true(all(obj$CFTP_chosen_singleStr[[1]] %in% c(1,2,3)),
+              info = "non-correct structure indices in $CFTP_chosen_singleStr after first generate_events call")
+  expect_equal(length(obj$CFTP_chosen_site), 1,
+               info = "non-correct number of list elements in $CFTP_chosen_site after first generate_events call")
+  expect_equal(length(obj$CFTP_chosen_site[[1]]), steps,
+               info = "non-correct number of steps in $CFTP_chosen_site after first generate_events call")
+  expect_true(all(obj$CFTP_chosen_site[[1]] %in% 1:15),
+              info = "non-correct site indices in $CFTP_chosen_site after first generate_events call")
+  expect_equal(length(obj$CFTP_event), 1,
+               info = "non-correct number of list elements in $CFTP_event after first generate_events call")
+  expect_equal(length(obj$CFTP_event[[1]]), steps,
+               info = "non-correct number of steps in $CFTP_event after first generate_events call")
+  expect_true(all(obj$CFTP_event[[1]] %in% 1:5),
+              info = "non-correct event encoding in $CFTP_event after first generate_events call")
+  expect_equal(length(obj$CFTP_random), 1,
+               info = "non-correct number of list elements in $CFTP_random after first generate_events call")
+  expect_equal(length(obj$CFTP_random[[1]]), steps,
+               info = "non-correct number of steps in $CFTP_random after first generate_events call")
+  expect_true(all(obj$CFTP_random[[1]] >= 0 & obj$CFTP_random[[1]] <= 1),
+              info = "non-correct values in $CFTP_random after first generate_events call")
 })
+
+test_that("cftpStepGenerator $generate_events prevents duplicate steps", {
+  obj <- cftpStepGenerator$new(singleStr_number = 3, singleStr_siteNumber = c(10, 8, 15), CFTP_highest_rate = 0.8)
+  obj$generate_events(steps = 10000)
+  
+  expect_error(obj$generate_events(steps = 5000), "The given number of steps has already been generated")
+  expect_error(obj$generate_events(steps = 10000), "The given number of steps has already been generated")
+})
+
+test_that("cftpStepGenerator $generate_events handles step increments", {
+  obj <- cftpStepGenerator$new(singleStr_number = 3, singleStr_siteNumber = c(10, 8, 15), CFTP_highest_rate = 0.8)
+  steps <- 10000
+  obj$generate_events(steps = steps)
+  
+  # Increment steps as in second cftp iteration
+  steps <- steps*2
+  obj$generate_events(steps = steps)
+  
+  expect_equal(obj$steps_perVector, 10000,
+               info = "non-correct $steps_perVector after second generate_events call")
+  expect_equal(obj$number_steps, steps,
+               info = "non-correct number of steps after second generate_events call")
+  expect_equal(length(obj$CFTP_chosen_singleStr), 2,
+               info = "non-correct number of list elements in $CFTP_chosen_singleStr after second generate_events call")
+  expect_equal(length(obj$CFTP_chosen_singleStr[[2]]), 10000,
+               info = "non-correct number of steps in $CFTP_chosen_singleStr after second generate_events call")
+  expect_true(all(obj$CFTP_chosen_singleStr[[2]] %in% c(1,2,3)),
+              info = "non-correct structure indices in $CFTP_chosen_singleStr after second generate_events call")
+  expect_equal(length(obj$CFTP_chosen_site), 2,
+               info = "non-correct number of list elements in $CFTP_chosen_site after second generate_events call")
+  expect_equal(length(obj$CFTP_chosen_site[[2]]), 10000,
+               info = "non-correct number of steps in $CFTP_chosen_site after second generate_events call")
+  expect_true(all(obj$CFTP_chosen_site[[2]] %in% 1:15),
+              info = "non-correct site indices in $CFTP_chosen_site after second generate_events call")
+  expect_equal(length(obj$CFTP_event), 2,
+               info = "non-correct number of list elements in $CFTP_event after second generate_events call")
+  expect_equal(length(obj$CFTP_event[[2]]), 10000,
+               info = "non-correct number of steps in $CFTP_event after second generate_events call")
+  expect_true(all(obj$CFTP_event[[1]] %in% 1:5),
+              info = "non-correct event encoding in $CFTP_event after second generate_events call")
+  expect_equal(length(obj$CFTP_random), 2,
+               info = "non-correct number of list elements in $CFTP_random after second generate_events call")
+  expect_equal(length(obj$CFTP_random[[2]]), 10000,
+               info = "non-correct number of steps in $CFTP_random after second generate_events call")
+  expect_true(all(obj$CFTP_random[[2]] >= 0 & obj$CFTP_random[[2]] <= 1),
+              info = "non-correct values in $CFTP_random after second generate_events call")
+  
+  # Increment steps as in third cftp iteration
+  steps <- steps*2
+  obj$generate_events(steps = steps)
+  
+  expect_equal(obj$steps_perVector, 10000,
+               info = "non-correct $steps_perVector after third generate_events call")
+  expect_equal(obj$number_steps, steps,
+               info = "non-correct number of steps after third generate_events call")
+  expect_equal(length(obj$CFTP_chosen_singleStr), 4,
+               info = "non-correct number of list elements in $CFTP_chosen_singleStr after third generate_events call")
+  expect_equal(length(obj$CFTP_chosen_singleStr[[3]]), 10000,
+               info = "non-correct number of steps in $CFTP_chosen_singleStr after third generate_events call")
+  expect_equal(length(obj$CFTP_chosen_singleStr[[4]]), 10000,
+               info = "non-correct number of steps in $CFTP_chosen_singleStr after third generate_events call")
+  expect_true(all(obj$CFTP_chosen_singleStr[[3]] %in% c(1,2,3)),
+              info = "non-correct structure indices in $CFTP_chosen_singleStr after third generate_events call")
+  expect_true(all(obj$CFTP_chosen_singleStr[[4]] %in% c(1,2,3)),
+              info = "non-correct structure indices in $CFTP_chosen_singleStr after third generate_events call")
+  expect_equal(length(obj$CFTP_chosen_site), 4,
+               info = "non-correct number of list elements in $CFTP_chosen_site after third generate_events call")
+  expect_equal(length(obj$CFTP_chosen_site[[3]]), 10000,
+               info = "non-correct number of steps in $CFTP_chosen_site after third generate_events call")
+  expect_equal(length(obj$CFTP_chosen_site[[4]]), 10000,
+               info = "non-correct number of steps in $CFTP_chosen_site after third generate_events call")
+  expect_true(all(obj$CFTP_chosen_site[[3]] %in% 1:15),
+              info = "non-correct site indices in $CFTP_chosen_site after third generate_events call")
+  expect_true(all(obj$CFTP_chosen_site[[4]] %in% 1:15),
+              info = "non-correct site indices in $CFTP_chosen_site after third generate_events call")
+  expect_equal(length(obj$CFTP_event), 4,
+               info = "non-correct number of list elements in $CFTP_event after third generate_events call")
+  expect_equal(length(obj$CFTP_event[[3]]), 10000,
+               info = "non-correct number of steps in $CFTP_event after third generate_events call")
+  expect_equal(length(obj$CFTP_event[[4]]), 10000,
+               info = "non-correct number of steps in $CFTP_event after third generate_events call")
+  expect_true(all(obj$CFTP_event[[3]] %in% 1:5),
+              info = "non-correct event encoding in $CFTP_event after third generate_events call")
+  expect_true(all(obj$CFTP_event[[4]] %in% 1:5),
+              info = "non-correct event encoding in $CFTP_event after third generate_events call")
+  expect_equal(length(obj$CFTP_random), 4,
+               info = "non-correct number of list elements in $CFTP_random after third generate_events call")
+  expect_equal(length(obj$CFTP_random[[3]]), 10000,
+               info = "non-correct number of steps in $CFTP_random after third generate_events call")
+  expect_equal(length(obj$CFTP_random[[4]]), 10000,
+               info = "non-correct number of steps in $CFTP_random after third generate_events call")
+  expect_true(all(obj$CFTP_random[[3]] >= 0 & obj$CFTP_random[[3]] <= 1),
+              info = "non-correct values in $CFTP_random after third generate_events call")
+  expect_true(all(obj$CFTP_random[[4]] >= 0 & obj$CFTP_random[[4]] <= 1),
+              info = "non-correct values in $CFTP_random after third generate_events call")
+})
+
 
 test_that("combiStructureGenerator $cftp initialization of cftpStepGenerator instance", {
   
@@ -4491,12 +4611,12 @@ test_that("cftpStepGenerator $generate_events according to combi instance", {
                                 CFTP_highest_rate = c$get_highest_rate())
   cftp$generate_events()
 
-  expect_true(all(cftp$CFTP_chosen_singleStr %in% 1:6),
+  expect_true(all(unlist(cftp$CFTP_chosen_singleStr) %in% 1:6),
               info = paste("Samples singleStr indices not in combistrucutre instance in test:", test))
   
   for (str in 1:6){
-    singleStr_indices <- which(cftp$CFTP_chosen_singleStr == str)
-    expect_true(all(cftp$CFTP_chosen_site[singleStr_indices] %in% 1:infoStr$n[str]),
+    singleStr_indices <- which(unlist(cftp$CFTP_chosen_singleStr) == str)
+    expect_true(all(unlist(cftp$CFTP_chosen_site)[singleStr_indices] %in% 1:infoStr$n[str]),
                 info = paste("Samples site indice not within singleStr length in test:", test, "singleStr index:", str))
   }
   
@@ -4511,9 +4631,9 @@ test_that("cftpStepGenerator $generate_events according to combi instance", {
                                 CFTP_highest_rate = c$get_highest_rate())
   cftp$generate_events()
   
-  expect_true(all(cftp$CFTP_chosen_singleStr == 1),
+  expect_true(all(unlist(cftp$CFTP_chosen_singleStr) == 1),
               info = paste("Samples singleStr indices not in combistrucutre instance in test:", test))
-  expect_true(all(cftp$CFTP_chosen_site %in% 1:10),
+  expect_true(all(unlist(cftp$CFTP_chosen_site) %in% 1:10),
               info = paste("Samples site indices not in combistrucutre instance in test:", test))
   
   # test 3: one singleStr with one position
@@ -4526,9 +4646,9 @@ test_that("cftpStepGenerator $generate_events according to combi instance", {
                                 CFTP_highest_rate = c$get_highest_rate())
   cftp$generate_events()
   
-  expect_true(all(cftp$CFTP_chosen_singleStr == 1),
+  expect_true(all(unlist(cftp$CFTP_chosen_singleStr) == 1),
               info = paste("Samples singleStr indices not in combistrucutre instance in test:", test))
-  expect_true(all(cftp$CFTP_chosen_site == 1),
+  expect_true(all(unlist(cftp$CFTP_chosen_site) == 1),
               info = paste("Samples site indices not in combistrucutre instance in test:", test))
   
   
@@ -4556,12 +4676,12 @@ test_that("combiStructureGenerator $set_CFTP_info", {
                info = "Assigned cftp instance without steps has length of CFTP_event non 0")
   
   cftp$generate_events(100)
-  expect_equal(length(c$get_CFTP_info()$CFTP_event), 100,
+  expect_equal(length(unlist(c$get_CFTP_info()$CFTP_event)), 100,
                info = "Assigned cftp instance with 100 steps has length of CFTP_event non 100")
 })
 
 
-test_that("combiStructureGenerator $cftp_apply_events()", {
+test_that("combiStructureGenerator $cftp_apply_events input control", {
   
   # Initialize combiStructureGenerator instance
   infoStr <- data.frame(n = c(10, 10, 10),
@@ -4572,45 +4692,88 @@ test_that("combiStructureGenerator $cftp_apply_events()", {
   expect_error(c$cftp_apply_events(),
                info = "method fails to throw error when called before generating CFTP events")
   
-  # Test output
-  
-  # Set correspondence of event number and applied case
-  encoding_case <- data.frame(n = 1:5,
-                              case = c("SSEi_1", "SSEi_2", "SSEi_3", "SSEc_left", "SSEc_right"))
-  
   # Initialize cftpStepGenerator instance and assign it to combiStructureGenerator instance
   cftp <- cftpStepGenerator$new(singleStr_number = c$get_singleStr_number(),
                                 singleStr_siteNumber = c$get_singleStr_siteNumber(), 
                                 CFTP_highest_rate = c$get_highest_rate())
   c$set_CFTP_info(cftp)
+  # Fake two iterations
   cftp$generate_events(steps = 100)
+  cftp$generate_events(steps = 200)
+  # Delete the last list element in one of the lists
+  cftp$CFTP_random <- cftp$CFTP_random[1]
+  expect_error(c$cftp_apply_events(),
+               info = "method fails to throw error when not all lists with cftp info are of equal length")
+  
+})
+
+test_that("combiStructureGenerator $cftp_apply_events event acceptance/rejection", {
+  # Initialize combiStructureGenerator instance
+  infoStr <- data.frame(n = c(10, 10, 10),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  # Initialize cftpStepGenerator instance and assign it to combiStructureGenerator instance
+  cftp <- cftpStepGenerator$new(singleStr_number = c$get_singleStr_number(),
+                                singleStr_siteNumber = c$get_singleStr_siteNumber(), 
+                                CFTP_highest_rate = c$get_highest_rate())
+  c$set_CFTP_info(cftp)
+  # Fake two iterations
+  cftp$generate_events(steps = 100)
+  cftp$generate_events(steps = 200)
   output <- c$cftp_apply_events(testing = TRUE)
   
-  accepted_indeces <- which(output$event_acceptance == TRUE)
+  # Set correspondence of event number and applied case
+  encoding_case <- data.frame(n = 1:5,
+                              case = c("SSEi_1", "SSEi_2", "SSEi_3", "SSEc_left", "SSEc_right"))
+  
+  # Unlist testing output
+  event_acceptance <- unlist(output$event_acceptance)
+  r_jk <- unlist(output$r_jk)
+  r_m <- unlist(output$r_m)
+  CFTP_random <- unlist(output$CFTP_random)
+  CFTP_event <- unlist(output$CFTP_event)
+  applied_event <- unlist(output$applied_event)
+  
+  accepted_indeces <- which(event_acceptance == TRUE)
   if (length(accepted_indeces) > 0){
-    expect_true(all(output$r_jk[accepted_indeces]/output$r_m > output$CFTP_random[accepted_indeces]),
+    expect_true(all(r_jk[accepted_indeces]/r_m > CFTP_random[accepted_indeces]),
                 info = "Not all accepted events fulfill relative rate higher than sampled threshold")
-    expect_false(any(is.na(output$CFTP_event[accepted_indeces])),
+    expect_false(any(is.na(CFTP_event[accepted_indeces])),
                  info = "Not all cases of accepted events return non-NA value in testing output applied_event")
     for(e in 1:length(accepted_indeces)){
-      expect_equal(encoding_case[output$CFTP_event[accepted_indeces][e], "case"], output$applied_event[accepted_indeces][e],
+      expect_equal(encoding_case[CFTP_event[accepted_indeces][e], "case"], applied_event[accepted_indeces][e],
                    info = "Error in correspondence between CFTP_event encoding and applied event")
     }
     
   }
   
-  non_accepted_indeces <- which(output$event_acceptance == FALSE)
+  non_accepted_indeces <- which(event_acceptance == FALSE)
   if (length(non_accepted_indeces) > 0){
-    expect_true(all(output$CFTP_event[non_accepted_indeces][is.na(output$r_jk[non_accepted_indeces])] %in% c(1, 2, 3)),
+    expect_true(all(CFTP_event[non_accepted_indeces][is.na(r_jk[non_accepted_indeces])] %in% c(1, 2, 3)),
                 info = "Not all cases in which a rate was not sampled because of SSEi newSt and oldSt being equal correspond to SSEi events")
-    expect_true(all(output$r_jk[non_accepted_indeces][!is.na(output$r_jk[non_accepted_indeces])]/output$r_m <= output$CFTP_random[non_accepted_indeces][!is.na(output$r_jk[non_accepted_indeces])]),
+    expect_true(all(r_jk[non_accepted_indeces][!is.na(r_jk[non_accepted_indeces])]/r_m <= CFTP_random[non_accepted_indeces][!is.na(r_jk[non_accepted_indeces])]),
                 info = "Not all non_accepted_events with rate fulfill relative rate smaller or equal than sampled threshold")
-    expect_true(all(is.na(output$applied_event[non_accepted_indeces])),
+    expect_true(all(is.na(applied_event[non_accepted_indeces])),
                 info = "Not all cases of non-accepted events return NA in testing output applied_event")
     
   }
+})
+
+
+test_that("combiStructureGenerator $cftp_apply_events null default output", {
+  # Initialize combiStructureGenerator instance
+  infoStr <- data.frame(n = c(10, 10, 10),
+                        globalState = c("M", "U", "M"))
+  c <- combiStructureGenerator$new(infoStr)
+  # Initialize cftpStepGenerator instance and assign it to combiStructureGenerator instance
+  cftp <- cftpStepGenerator$new(singleStr_number = c$get_singleStr_number(),
+                                singleStr_siteNumber = c$get_singleStr_siteNumber(), 
+                                CFTP_highest_rate = c$get_highest_rate())
+  c$set_CFTP_info(cftp)
+  # Fake two iterations
+  cftp$generate_events(steps = 100)
+  cftp$generate_events(steps = 200)
   
-  # Expect NULL output when arguments are correct but testing is (as default) FALSE
   expect_null(c$cftp_apply_events(),
               info = "whith testing = FALSE method generates output")
 })
@@ -4676,7 +4839,7 @@ test_that("combiStructureGenerator $cftp", {
   c <- combiStructureGenerator$new(infoStr)
   output <- c$cftp(testing = TRUE)
   
-  expect_true(all(sort(unique(output$CFTP_chosen_site))==1:35),
+  expect_true(all(sort(unique(unlist(output$CFTP_chosen_site)))==1:35),
               info = "not all possible sites are chosen when singleStructures have different lengths")
   
   # Expect clones to have the same CFTP_info
@@ -4706,7 +4869,7 @@ test_that("treeMultiRegionSimulator initialize with cftp = TRUE", {
     self_seq <- c(self_seq, t$testing_output$cftp_output$self$get_singleStr(i)$get_seq())
   }
   
-  expect_true(all(unique(sort(t$testing_output$cftp_output$CFTP_chosen_site)) == 1:20),
+  expect_true(all(unique(sort(unlist(t$testing_output$cftp_output$CFTP_chosen_site))) == 1:20),
               info = "Not all sites chosen by $cftp")
   # Expect sequence changing after cftp and root sequence to be as in cftp output
   # Not always
