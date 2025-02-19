@@ -1866,8 +1866,7 @@ combiStructureGenerator <-
                 get_CFTP_info = function () {
                   private$CFTP_info
                 },
-                
-                ##TODO: Update documentation
+
                 #' @description
                 #' Public Method. Applies the CFTP events.
                 #' 
@@ -2068,7 +2067,6 @@ combiStructureGenerator <-
                 )
               )
 
-##TODO:Update documentation
 #' @title cftpStepGenerator
 #' @importFrom R6 R6Class
 #'
@@ -2107,24 +2105,22 @@ cftpStepGenerator <- R6::R6Class("cftpStepGenerator",
                                          
                                        },
                                        
-                                       ##TODO: document
+                                       #' @field number_steps Public attribute: counter of steps alredy generated
                                        number_steps = 0,
-                                       ##TODO: update documentation for lists
-                                       #' @field CFTP_chosen_singleStr Public attribute: chosen singleStr index at each CFTP step
+                                       #' @field CFTP_chosen_singleStr Public attribute: list with vectors of equal size with chosen singleStr index at each CFTP step
                                        CFTP_chosen_singleStr = list(),
-                                       #' @field CFTP_chosen_site Public attribute: chosen site index at each CFTP step
+                                       #' @field CFTP_chosen_site Public attribute: list with vectors of equal size with chosen site index at each CFTP step
                                        CFTP_chosen_site = list(),
-                                       #' @field CFTP_event Public attribute: type of CFTP event at each CFTP step.
+                                       #' @field CFTP_event Public attribute: list with vectors of equal size with type of CFTP event at each CFTP step.
                                        #' @description
                                        #' 1: SSEi to unmethylated, 2: SSEi to partially methylated, 3: SSEi to methylated
                                        #' 4: SSEc copy left state, 5: SSEc copy right state
                                        CFTP_event = list(),
-                                       #' @field CFTP_random Public attribute: CFTP threshold at each CFTP step
+                                       #' @field CFTP_random Public attribute: list with vectors of equal size with CFTP threshold at each CFTP step
                                        CFTP_random = list(),
-                                       ##TODO: document
+                                       #' @field steps_perVector Public attribute: size of vectors in lists CFTP_chosen_singleStr, CFTP_chosen_site, CFTP_event and CFTP_random 
                                        steps_perVector = NULL,
                                        
-                                       ##TODO: Update documentation
                                        #' @description
                                        #' Public Method. Generates the events to apply for CFTP.
                                        #' 
