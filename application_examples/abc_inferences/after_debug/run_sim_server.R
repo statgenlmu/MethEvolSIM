@@ -16,7 +16,7 @@ option_list <- list(
   make_option("--CFTP", type = "logical", default = FALSE, 
               metavar = "TRUE/FALSE", help = "Use CFTP algorithm at tree root [default: %default]"),
   make_option(c("--server-name"), type = "character", default = NULL, 
-              help = "Server name (fuego, chile, australia, mauritius, rio)")
+              help = "Server name (fuego, chile, australia, mauritius)")
 )
 
 # Parse command-line arguments
@@ -34,13 +34,14 @@ if (length(missing_options) > 0) {
 }
 
 # Check if server name is valid
-server_names <- c("fuego", "chile", "australia", "mauritius", "rio")
+server_names <- c("fuego", "chile", "australia", "mauritius")
 if (!(opt[["server-name"]] %in% server_names)) {
-  stop("Invalid server name. Choose from: fuego, chile, australia, mauritius, rio")
+  stop("Invalid server name. Choose from: fuego, chile, australia, mauritius")
 }
 
 # Load the simulation design file
 load(opt[["input"]])
+print(head(sampled_params))
 
 # Define index subsets
 all_indices <- 1:nrow(sampled_params)
@@ -51,7 +52,7 @@ indices <- subsets[[opt[["server-name"]]]]
 
 # Generate pad_n based on the number of digits in n_sim
 # To save the files with padded numbers so that are later listed in order with list.files()
-pad_n <- nchar(as.character(all_indices)) + 1
+pad_n <- nchar(as.character(length(all_indices))) + 1
 
 # Print the indices for the selected server
 print(paste("Simulating data in", opt[["server-name"]], "for the following indices:\n"))
@@ -106,8 +107,12 @@ mclapply(indices, function(i) {
   })
 }, mc.cores = opt[["n-cores"]])
 
-print("Done. Failed indices:")
-print(failed_indices)
+if(length(failed_indices) > 0) {
+  print("Done. Failed indices:")
+  print(failed_indices)
+} else {
+  print("Done.")
+}
 
 # Save time of end for the subset
 total_time_end <- Sys.time()
