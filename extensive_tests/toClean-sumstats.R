@@ -13,28 +13,6 @@ index_nonislands <- c(2,4)
 
 
 
-
-
-#undebug(countSites_cherryMethDiff)
-#undebug(get_cherryDist)
-
-##TODO: n_CpG not given but calculated. Each structure is assumed to have the same number of sites at all tips
-get_siteFChange_cherry_perMethDiffType <- function(tree, data, sample_n){
-  if(sample_n < 2){stop("Minimum number of tips/samples needed: 2")}
-  cherries <- get_cherryDist(tree = tree, sample_n = sample_n)
-  siteFChange_cherry_perMethDiffType <- countSites_cherryMethDiff(cherries = cherries, data = data)
-  str_n <- length(data[[1]]) # set the number of structures
-  sites_n <- numeric(length = str_n)
-  for(str in 1:str_n) sites_n[str] <- length(data[[1]][[str]])
-  # Each value is a count number of full methylation changes _f or changes in one strand _h.
-  # Each structure has a number of CpGs. Then, if we wanna count the proportion
-  # of sites, we divide each value by the number of CpGs. 
-  # Explicitly match sites_n to the columns of siteFChange_cherry_perMethDiffType
-  sites_n_repeated <- rep(sites_n, each = 2)
-  siteFChange_cherry_perMethDiffType[,3:ncol(siteFChange_cherry_perMethDiffType)] <- sweep(siteFChange_cherry_perMethDiffType[,3:ncol(siteFChange_cherry_perMethDiffType)], 2, sites_n_repeated, "/")
-  siteFChange_cherry_perMethDiffType
-}
-
 get_siteFChange_cherry <- function(tree, data, sample_n){
   if(sample_n < 2){stop("Minimum number of tips/samples needed: 2")}
   siteFChange_cherry_perMethDiffType <- get_siteFChange_cherry_perMethDiffType(tree = tree, data = data, sample_n = sample_n)

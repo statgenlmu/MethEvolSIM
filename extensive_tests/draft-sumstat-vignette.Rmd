@@ -262,4 +262,21 @@ Functions:
 
 - `countSites_cherryMethDiff(cherryDist, data)` to get for each cherry the counts of sites with half-methylation and full-methylation changes per genomic structure (island or non-island).
 
+- `freqSites_cherryMethDiff(tree,data)`. The function first validates the tree structure and extracts pairwise distances between cherry tips with `get_cherryDist`. It then validates the input data and counts half and full methylation differences for each cherry at each structure using `countSites_cherryMethDiff`. Finally, it normalizes these (half and full) counts by the number of sites per structure to compute frequencies. .
+
+- `get_siteFChange_cherry(tree,data)`. Uses `freqSites_cherryMethDiff(tree,data)` and then computes the frequency of sites with any change of methylation state (full or half) for each cherry at each genomic structure.
+
+```{r}
+# Set example tree and methylation data
+tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+data <- list(
+    list(rep(1,10), rep(0,5), rep(1,8)), # tip a
+    list(rep(1,10), rep(0.5,5), rep(0,8)), # tip b
+    list(rep(1,10), rep(0.5,5), rep(0,8)), # tip c
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6)))) # tip d 
+  
+get_siteFChange_cherry(tree = tree, data = data)
+```
+
+
 

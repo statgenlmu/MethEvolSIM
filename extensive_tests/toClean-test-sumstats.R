@@ -1,53 +1,5 @@
 
 
-test_that("get_siteFChange_cherry_perMethDiffType", {
-  
-  # Test error when tree has only one tip
-  newick_tree <- "(1:1);"
-  data <- list(rep(1,10), rep(0,10), rep(1,10))
-  expect_error(get_siteFChange_cherry_perMethDiffType(tree = newick_tree, data = data, sample_n = 1),
-               info = "fails to throw an error when number of tips is < 2")
-  
-  # Test error when arguments are missing
-  newick_tree <- "((1:1,2:1):1,3:2);"
-  data <- list(
-    list(rep(1,10), rep(0,10), rep(1,10)),
-    list(rep(1,10), rep(0.5,10), rep(0,10)),
-    list(rep(1,10), rep(0.5,10), rep(0,10)))
-  expect_error(get_siteFChange_cherry_perMethDiffType(data = data, sample_n = 3),
-               info = "fails to throw an error when argument 'tree' is not given")
-  expect_error(get_siteFChange_cherry_perMethDiffType(tree = newick_tree, sample_n = 3),
-               info = "fails to throw an error when argument 'data' is not given")
-  expect_error(get_siteFChange_cherry_perMethDiffType(tree = newick_tree, data = data),
-               info = "fails to throw an error when argument 'sample_n' is not given")
-  
-  # Test counts are transformed into frequencies correctly
-  tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
-  data <- list(
-    list(rep(1,10), rep(0,5), rep(1,8)),
-    list(rep(1,10), rep(0.5,5), rep(0,8)),
-    list(rep(1,10), rep(0.5,5), rep(0,8)),
-    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
-  o <- get_siteFChange_cherry_perMethDiffType(tree = tree, data = data, sample_n = 4)
-  expect_equal(o$tips[1], "1-2",
-               info = "incorrect tips id in cherry 1")
-  expect_equal(o$tips[2], "3-4",
-               info = "incorrect tips id in cherry 2")
-  expect_equal(o$dist[1], 3,
-               info = "incorrect tips distance in cherry 1")
-  expect_equal(o$dist[2], 4,
-               info = "incorrect tips distance in cherry 2")
-  column_CpGn <- rep(c(10, 5, 8), each=2)
-  f_h_count <- c(0, 0, 0, 5, 8, 0)
-  f_h_freq <- f_h_count/column_CpGn
-  expect_equal(as.numeric(o[1,3:ncol(o)]), f_h_freq,
-               info = "incorrect f and h freqs in cherry 1")
-  f_h_count <- c(5, 5, 0, 5, 1, 1)
-  f_h_freq <- f_h_count/column_CpGn
-  expect_equal(as.numeric(o[2,3:ncol(o)]), f_h_freq,
-               info = "incorrect f and h freqs in cherry 2")
-})
-
 test_that("get_siteFChange_cherry", {
   tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
   data <- list(

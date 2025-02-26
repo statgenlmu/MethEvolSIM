@@ -881,27 +881,43 @@ test_that("meanCor", {
                info = "MeanCor_ni returns non-correct value (shore 10 2 tips non-equal sizes)")
 })
 
+test_that("validate_tree input errors", {
+  # No input
+  expect_error(validate_tree(),
+               info = "function fails to throw an error when no tree is given")
+  
+  # Tree not character string or phylo class
+  tree <- 5
+  expect_error(validate_tree(tree),
+               info = "function fails to throw error when tree is not character string or phylo object")
+  
+  # Incorrect newick format
+  tree <- "a:1, b:2"
+  expect_error(validate_tree(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  tree <- "a:1, b:2;"
+  expect_error(validate_tree(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  # Test error when tree has only one tip
+  tree <- "(1:1);"
+  expect_error(validate_tree(tree),
+               info = "function fails to throw error when given tree has only one tip")
+})
+
+
+test_that("validate_tree returns phylo tree",{
+  tree <- "(a:1,b:2);"
+  o <- validate_tree(tree)
+  expect_equal(class(o), "phylo")
+})
+
+
 test_that("get_cherryDist input control errors", {
   
   # No input
   expect_error(get_cherryDist(),
                info = "function fails to throw an error when no tree is given")
-  # Tree not character string or phylo class
-  tree <- 5
-  expect_error(get_cherryDist(tree),
-               info = "function fails to throw error when tree is not character string or phylo object")
   
-  # Incorrect newick format
-  tree <- "a:1, b:2"
-  expect_error(get_cherryDist(tree),
-               info = "function fails to throw error when given tree has incorrect format")
-  tree <- "a:1, b:2;"
-  expect_error(get_cherryDist(tree),
-               info = "function fails to throw error when given tree has incorrect format")
-  # Test error when tree has only one tip
-  tree <- "(1:1);"
-  expect_error(get_cherryDist(tree),
-               info = "function fails to throw error when given tree has only one tip")
 })
 
 test_that("get_cherryDist processing of different input types", {
@@ -1016,6 +1032,65 @@ test_that("get_cherryDist processing of different input types", {
   expect_equal(output$dist, c(0.35, 10.1),
                info = paste("Fails to output correct $dist tip with input type:", type))
 
+})
+
+
+test_that("validate_data", {
+  
+  # Different number of structures across tips
+  type <- "Different number of structures across tips"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10))) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Tip without structures
+  type <- "Tip without structures"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list()) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Data with a structure of length 0
+  type <- "Data with a structure of length 0"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), c()), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), c()), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), c())) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Different number of sites in data
+  type <- "Different number of sites in data"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Number of tips in data smaller than given cherry tip indices
+  type <- "Number of tips in data smaller than given cherry tip indices"
+  tree <- "((1:1,2:1):2,(3:2,5:2):1);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
 })
 
 test_that("countSites_cherryMethDiff input control errors", {
@@ -1166,6 +1241,229 @@ test_that("countSites_cherryMethDiff correct output with different input types",
   
 })
 
+
+test_that("freqSites_cherryMethDiff input control error", {
+
+  # No input
+  expect_error(freqSites_cherryMethDiff(),
+               info = "function fails to throw an error when no tree is given")
+  
+  ## Check errors for incorrect tree argument ##
+  
+  # Tree not character string or phylo class
+  tree <- 5
+  expect_error(freqSites_cherryMethDiff(tree),
+               info = "function fails to throw error when tree is not character string or phylo object")
+  
+  # Incorrect newick format
+  tree <- "a:1, b:2"
+  expect_error(freqSites_cherryMethDiff(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  tree <- "a:1, b:2;"
+  expect_error(freqSites_cherryMethDiff(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  # Test error when tree has only one tip
+  tree <- "(1:1);"
+  expect_error(freqSites_cherryMethDiff(tree),
+               info = "function fails to throw error when given tree has only one tip")
+  
+  
+  ## Check errors for incorrect data argument ##
+  
+  # Different number of structures across tips
+  type <- "Different number of structures across tips"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10))) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Tip without structures
+  type <- "Tip without structures"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list()) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Data with a structure of length 0
+  type <- "Data with a structure of length 0"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), c()), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), c()), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), c())) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Different number of sites in data
+  type <- "Different number of sites in data"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Number of tips in data smaller than given cherry tip indices
+  type <- "Number of tips in data smaller than given cherry tip indices"
+  tree <- "((1:1,2:1):2,(3:2,5:2):1);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+})
+
+
+test_that("freqSites_cherryMethDiff output", {
+  
+  # Test counts are transformed into frequencies correctly
+  tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+  data <- list(
+    list(rep(1,10), rep(0,5), rep(1,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
+  o <- freqSites_cherryMethDiff(tree = tree, data = data)
+  expect_equal(o$tip_names[1], "a-b",
+               info = "incorrect tip names in cherry 1")
+  expect_equal(o$tip_names[2], "c-d",
+               info = "incorrect tip names in cherry 2")
+  expect_equal(o$tip_indices[1], "1-2",
+               info = "incorrect tip names in cherry 1")
+  expect_equal(o$tip_indices[2], "3-4",
+               info = "incorrect tip names in cherry 2")
+  expect_equal(o$dist[1], 3,
+               info = "incorrect tips distance in cherry 1")
+  expect_equal(o$dist[2], 4,
+               info = "incorrect tips distance in cherry 2")
+  column_CpGn <- rep(c(10, 5, 8), each=2)
+  f_h_count <- c(0, 0, 0, 5, 8, 0)
+  f_h_freq <- f_h_count/column_CpGn
+  expect_equal(as.numeric(o[1,4:ncol(o)]), f_h_freq,
+               info = "incorrect f and h freqs in cherry 1")
+  f_h_count <- c(5, 5, 0, 5, 1, 1)
+  f_h_freq <- f_h_count/column_CpGn
+  expect_equal(as.numeric(o[2,4:ncol(o)]), f_h_freq,
+               info = "incorrect f and h freqs in cherry 2")
+})
+
+test_that("get_siteFChange_cherry wrong input", {
+  
+  # No input
+  expect_error(get_siteFChange_cherry(),
+               info = "function fails to throw an error when no tree is given")
+  
+  ## Check errors for incorrect tree argument ##
+  
+  # Tree not character string or phylo class
+  tree <- 5
+  expect_error(get_siteFChange_cherry(tree),
+               info = "function fails to throw error when tree is not character string or phylo object")
+  
+  # Incorrect newick format
+  tree <- "a:1, b:2"
+  expect_error(get_siteFChange_cherry(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  tree <- "a:1, b:2;"
+  expect_error(get_siteFChange_cherry(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  # Test error when tree has only one tip
+  tree <- "(1:1);"
+  expect_error(get_siteFChange_cherry(tree),
+               info = "function fails to throw error when given tree has only one tip")
+  
+  
+  ## Check errors for incorrect data argument ##
+  
+  # Different number of structures across tips
+  type <- "Different number of structures across tips"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10))) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Tip without structures
+  type <- "Tip without structures"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list()) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Data with a structure of length 0
+  type <- "Data with a structure of length 0"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), c()), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), c()), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), c())) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Different number of sites in data
+  type <- "Different number of sites in data"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Number of tips in data smaller than given cherry tip indices
+  type <- "Number of tips in data smaller than given cherry tip indices"
+  tree <- "((1:1,2:1):2,(3:2,5:2):1);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+})
+
+test_that("get_siteFChange_cherry output", {
+  
+  # Test frequency of sites changing per structure and cherry is computed correctly
+  tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+  data <- list(
+    list(rep(1,10), rep(0,5), rep(1,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
+  
+  o <- get_siteFChange_cherry(tree = tree, data = data)
+  expect_equal(o$tip_names[1], "a-b",
+               info = "incorrect tip names in cherry 1")
+  expect_equal(o$tip_names[2], "c-d",
+               info = "incorrect tip names in cherry 2")
+  expect_equal(o$tip_indices[1], "1-2",
+               info = "incorrect tip names in cherry 1")
+  expect_equal(o$tip_indices[2], "3-4",
+               info = "incorrect tip names in cherry 2")
+  expect_equal(o$dist[1], 3,
+               info = "incorrect tips distance in cherry 1")
+  expect_equal(o$dist[2], 4,
+               info = "incorrect tips distance in cherry 2")
+  Fchange_firstCherry <- c(0,1,1)
+  expect_equal(as.numeric(o[1,4:ncol(o)]), Fchange_firstCherry,
+               info = "incorrect f and h freqs in cherry 1")
+  Fchange_secondCherry <- c(1,1,0.25)
+  expect_equal(as.numeric(o[2,4:ncol(o)]), Fchange_secondCherry,
+               info = "incorrect f and h freqs in cherry 2")
+})
 
 
 
