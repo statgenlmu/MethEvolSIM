@@ -266,6 +266,9 @@ Functions:
 
 - `get_siteFChange_cherry(tree,data)`. Uses `freqSites_cherryMethDiff(tree,data)` and then computes the frequency of sites with any change of methylation state (full or half) for each cherry at each genomic structure.
 
+- `MeanSiteFChange_cherry(tree, data, index_islands, index_nonislands)`. The function computes the per-cherry frequency of sites with different methylation states at each structure (islands and non-islands) using \code{get_siteFChange_cherry}. 
+Then it calculates the weighted mean site frequency of methylation changes for each cherry separately for islands and non-islands.
+
 ```{r}
 # Set example tree and methylation data
 tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
@@ -274,8 +277,14 @@ data <- list(
     list(rep(1,10), rep(0.5,5), rep(0,8)), # tip b
     list(rep(1,10), rep(0.5,5), rep(0,8)), # tip c
     list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6)))) # tip d 
-  
-get_siteFChange_cherry(tree = tree, data = data)
+# Set the index for islands and non-island structures
+index_islands <- c(2)
+index_nonislands <- c(1, 3)
+
+MeanSiteFChange_cherry(data = data, 
+                       tree = tree, 
+                       index_islands = index_islands, 
+                       index_nonislands = index_nonislands)
 ```
 
 

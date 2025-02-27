@@ -1,3 +1,56 @@
+#' Validate Structure Indices for Island and Non-Island Data
+#'
+#' This function checks whether the provided indices for islands and non-islands 
+#' are within the valid range of structures in the dataset. It also warns if 
+#' any indices are present in both `index_islands` and `index_nonislands`.
+#'
+#' @param data A nested list \code{data[[tip]][[structure]]}. 
+#'   Assumes that the number of structures is consistent across tips and that
+#'   within each structure, all tips have the same number of sites. 
+#'   The number of structures is inferred from `length(data[[1]])`.
+#' @param index_islands An integer vector specifying indices that correspond to island structures.
+#' @param index_nonislands An integer vector specifying indices that correspond to non-island structures.
+#'
+#' @details The funct@exportion performs the following checks:
+#' - Ensures that all indices in `index_islands` and `index_nonislands` are within 
+#'   the range of available structures.
+#' - Throws an error if any index is out of bounds.
+#' - Issues a warning if the same index appears in both `index_islands` and `index_nonislands`.
+#'
+#' @return No return value. The function stops execution if invalid indices are detected.
+validate_structureIndices <- function(data, index_islands, index_nonislands) {
+  
+  # Get the number of structures
+  str_n <- length(data[[1]])
+  
+  # Define the valid range
+  valid_indices <- 1:str_n
+  
+  # Check whether there are invalid indices
+  invalid_island_indices <- index_islands[!(index_islands %in% valid_indices)]
+  invalid_nonisland_indices <- index_nonislands[!(index_nonislands %in% valid_indices)]
+  
+  # If there are any invalid indices, throw an error
+  if (length(invalid_island_indices) > 0) {
+    stop(sprintf("Invalid island indices detected: %s. Number of structures in given data: %d", 
+                 paste(invalid_island_indices, collapse = ", "), str_n))
+  }
+  
+  if (length(invalid_nonisland_indices) > 0) {
+    stop(sprintf("Invalid non-island indices detected: %s. Number of structures in given data: %d", 
+                 paste(invalid_nonisland_indices, collapse = ", "), str_n))
+  }
+  
+  # Check for overlapping indices
+  overlapping_indices <- intersect(index_islands, index_nonislands)
+  
+  if (length(overlapping_indices) > 0) {
+    warning(sprintf("The following indices are present in both 'index_islands' and 'index_nonislands': %s", 
+                    paste(overlapping_indices, collapse = ", ")))
+  }
+}
+
+
 #### #### #### Frequency of methylation states per structure type #### #### ####
 
 #' Calculate the Mean Frequency of Partially Methylated Sites in Islands
@@ -29,6 +82,17 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  
   mean_island <- c()
   island_counter <- 1
   for (i in index_islands){
@@ -72,6 +136,16 @@ get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   mean_nonisland <- c()
   nonisland_counter <- 1
   for (i in index_nonislands){
@@ -117,6 +191,16 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   mean_island <- c()
   island_counter <- 1
   for (i in index_islands){
@@ -159,6 +243,16 @@ get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   mean_nonisland <- c()
   nonisland_counter <- 1
   for (i in index_nonislands){
@@ -203,6 +297,16 @@ get_islandSDFreqP <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   sd_tip <- c() 
   for (s in 1:sample_n){
     freq_island <- c()
@@ -246,6 +350,16 @@ get_nonislandSDFreqP <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   sd_tip <- c() 
   for (s in 1:sample_n){
     freq_nonisland <- c()
@@ -290,6 +404,16 @@ get_islandSDFreqM <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   sd_tip <- c() 
   for (s in 1:sample_n){
     freq_island <- c()
@@ -335,6 +459,16 @@ get_nonislandSDFreqM <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   sd_tip <- c() 
   for (s in 1:sample_n){
     freq_nonisland <- c()
@@ -390,6 +524,17 @@ compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sampl
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  
   str_counter <- 1
   cor <- c(NA) 
   for (tip in 1:sample_n){
@@ -452,6 +597,16 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   str_counter <- 1
   cor <- c(NA) 
   for (tip in 1:sample_n){
@@ -945,6 +1100,106 @@ get_siteFChange_cherry <- function(tree, data){
 
 
 
+
+
+
+#' Compute the Mean Site Frequency of Methylation Changes per Cherry
+#'
+#' This function calculates the weighted mean frequency of methylation changes at island and non-island genomic structures 
+#' for each cherry in a phylogenetic tree. A cherry is a pair of leaf nodes (also called tips or terminal nodes) 
+#' in a phylogenetic tree that share a direct common ancestor.
+#'
+#' @param data A list containing methylation states at tree tips for each genomic structure 
+#'   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, 
+#'   where each tip has the same number of structures, and each structure has the same number of sites across tips.
+#' @param tree A phylogenetic tree in Newick format or a \code{phylo} object from the \code{ape} package. 
+#'   The function ensures the tree has a valid structure and at least two tips.
+#' @param index_islands A numeric vector specifying the indices of genomic structures corresponding to islands.
+#' @param index_nonislands A numeric vector specifying the indices of genomic structures corresponding to non-islands.
+#'
+#' @details The function first validates the tree and the input data structure. It then computes the 
+#'   per-cherry frequency of sites with different methylation states using \code{get_siteFChange_cherry}. 
+#'   The indices provided for islands and non-islands are checked for validity using \code{validate_structureIndices}. 
+#'   Finally, the function calculates the weighted mean site frequency of methylation changes for each cherry, 
+#'   separately for islands and non-islands.
+#'
+#' @return A data frame with one row per cherry, containing the following columns:
+#'   \describe{
+#'     \item{tip_names}{A character string representing the names of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{tip_indices}{A character string representing the indices of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{dist}{A numeric value representing the sum of the branch distances between the cherry tips.}
+#'     \item{nonisland_meanFChange}{A numeric value representing the weighted mean frequency of methylation changes in non-island structures.}
+#'     \item{island_meanFChange}{A numeric value representing the weighted mean frequency of methylation changes in island structures.}
+#'   }
+#'
+#' @examples
+#' # Example data setup
+#' data <- list(
+#'   list(rep(1,10), rep(0,5), rep(1,8)),
+#'   list(rep(1,10), rep(0.5,5), rep(0,8)),
+#'   list(rep(1,10), rep(0.5,5), rep(0,8)),
+#'   list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6)))
+#' )
+#'
+#' tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+#' 
+#' index_islands <- c(1,3)
+#' index_nonislands <- c(2)
+#'
+#' MeanSiteFChange_cherry(data, tree, index_islands, index_nonislands)
+#'
+#' @export
+MeanSiteFChange_cherry <- function(data, tree, index_islands, index_nonislands){
+
+  # Check input tree format and minium two tips, get tree in phylo format (ape package),
+  # check input tree data format and minium number of tips, and 
+  # get per-cherry frequency of sites with different methylation states for each genomic structures
+  # Validate input structure indices
+  tryCatch({
+    siteFChange_cherry <- get_siteFChange_cherry(tree, data)
+    validate_structureIndices(data, index_islands, index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  # Subset the columns with frequencies (3 first columns correspond to tip_names, tip_indices and dist)
+  siteFChange <- as.data.frame(siteFChange_cherry[,-c(1,2,3)])
+  
+  # Initiate vectors to store per cherry the mean siteFChange at islands and nonislands 
+  island_meanFChange <- rep(NA, nrow(siteFChange))
+  nonisland_meanFChange <- rep(NA, nrow(siteFChange))
+  
+  # Get the number of structures
+  str_n <- length(data[[1]])
+  
+  # Get the number of sites per structure
+  sites_n <- numeric(length = str_n)
+  for(str in 1:str_n) sites_n[str] <- length(data[[1]][[str]]) 
+  
+  # Compute for non_islands
+  if(length(index_nonislands)>0){
+    nonisland_meanFChange <- apply(as.data.frame(siteFChange[,index_nonislands]),
+                                   1, stats::weighted.mean, w = sites_n[index_nonislands])
+  }
+  
+  # Compute for islands
+  if(length(index_islands)>0){
+    island_meanFChange <- apply(as.data.frame(siteFChange[,index_islands]),
+                                1, stats::weighted.mean, w = sites_n[index_islands])
+  }
+  
+  MeanSiteFChange_cherry  <- data.frame(
+    tip_names = siteFChange_cherry$tip_names,
+    tip_indices = siteFChange_cherry$tip_indices,
+    dist = siteFChange_cherry$dist,
+    nonisland_meanFChange = nonisland_meanFChange,
+    island_meanFChange = island_meanFChange
+  )
+  
+  MeanSiteFChange_cherry
+}
 
 
 

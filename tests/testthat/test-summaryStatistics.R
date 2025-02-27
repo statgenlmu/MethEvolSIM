@@ -1,3 +1,21 @@
+test_that("get_MeanFreqP non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(get_islandMeanFreqP(data = data, index_islands = index_islands, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(get_nonislandMeanFreqP(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
+})
+
 test_that("get_MeanFreqP structures with equal length islands and non-islands", {
   # Two tips and two islands
   index_islands <- c(1, 2)
@@ -104,6 +122,24 @@ test_that("get_MeanFreqP structures with different length (islands and non-islan
  
 })
 
+test_that("get_MeanFreqM non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(get_islandMeanFreqM(data = data, index_islands = index_islands, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(get_nonislandMeanFreqM(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
+})
+
 
 test_that("get_MeanFreqM structures with equal length islands and non-islands", {
   # Two tips and two islands
@@ -204,6 +240,23 @@ test_that("get_MeanFreqM structures with different length (islands and non-islan
                info = "incorrect mean in two tips and two non-islands, freq .5")
 })
 
+test_that("get_islandSDFreqP non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(get_islandSDFreqP(data = data, index_islands = index_islands, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(get_nonislandSDFreqP(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
+})
 
 test_that("get_SDFreqP structures with equal length islands and non-islands", {
   # One tip and four islands / non-islands
@@ -430,6 +483,24 @@ test_that("get_SDFreqP structures with different length islands and non-islands"
   expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), mean_SD,
                info = "incorrect non-island SD in two tips 4 islands and 4 non-islands (8 structures, last one only one site)")
   
+})
+
+test_that("get_islandSDFreqM non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(get_islandSDFreqM(data = data, index_islands = index_islands, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(get_nonislandSDFreqM(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
 })
 
 
@@ -660,7 +731,23 @@ test_that("get_SDFreqM structures with different length islands and non-islands"
   
 })
 
-
+test_that("menCor non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(compute_meanCor_i(data = data, index_islands = index_islands, minN_CpG = 1, shore_length = 0, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(compute_meanCor_ni(data = data, index_nonislands = index_nonislands, minN_CpG = 1, shore_length = 0, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
+})
 
 test_that("meanCor", {
   # Expect NA with structures under min_CpG
@@ -1175,6 +1262,8 @@ test_that("countSites_cherryMethDiff input control errors", {
                info = paste(type, "fails to throw error"))
 })
 
+
+
 test_that("countSites_cherryMethDiff correct output with different input types", {
   
   # One cherry numeric labels (left newick)
@@ -1463,6 +1552,217 @@ test_that("get_siteFChange_cherry output", {
   Fchange_secondCherry <- c(1,1,0.25)
   expect_equal(as.numeric(o[2,4:ncol(o)]), Fchange_secondCherry,
                info = "incorrect f and h freqs in cherry 2")
+})
+
+test_that("validate_structureIndices", {
+  
+  # Example data
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)), 
+    list(rep(1,10), rep(0.5,10), rep(0,10))
+  )
+  
+  expect_silent(validate_structureIndices(data, c(1, 2), c(3)))
+  expect_error(validate_structureIndices(data, c(4), c(1)), 
+               info = "fails to report incorrect island index") 
+  expect_error(validate_structureIndices(data, c(1), c(5)), 
+               info = "fails to report incorrect non-island index")
+  expect_warning(validate_structureIndices(data, c(1, 2), c(2, 3)), 
+                 info = "fails to report duplicated index in both islands and non_islands")
+  
+  
+})
+
+
+
+test_that("MeanSiteFChange_cherry input control", {
+  # Example data
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)), 
+    list(rep(1,10), rep(0.5,10), rep(0,10))
+  )
+  # Example tree
+  tree <- "((a:1,b:1):1,c:2);"
+  
+  # Test error when no argument is given
+  expect_error(MeanSiteFChange_cherry(),
+               info = "fails to throw an error when no argument is given")
+  
+  # Test errors incorrect structure indices
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(4), index_nonislands = c(1)), 
+               info = "fails to report incorrect island index") 
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(1), index_nonislands = c(5)), 
+               info = "fails to report incorrect non-island index")
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(1, 2), index_nonislands = c(2, 3)), 
+                 info = "fails to report duplicated index in both islands and non_islands")
+  
+  # Test errors with non-consistent number of structures
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)), 
+    list(rep(1,10), rep(0.5,10))
+  )
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(2,3), index_nonislands = c(1)),
+               info = "fails to throw an error when number of structures is non-equal at different tips")
+  
+  # Test errors with non-consistent number of sites for a given structure in different tips
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)), 
+    list(rep(1,10), rep(0.5,10), rep(0,8))
+  )
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(2,3), index_nonislands = c(1)),
+               info = "fails to throw an error when number of sites is non-equal for a given structure at different tips")
+})
+
+test_that("MeanSiteFChange_cherry output", {
+  
+  tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
+  data <- list(
+    list(rep(1,10), rep(0,5), rep(1,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
+  str1_sites_n <- 10
+  str2_sites_n <- 5
+  str3_sites_n <- 8
+  total_sites_n <- str1_sites_n + str2_sites_n + str3_sites_n
+  
+  # Test case all structures are islands
+  test <- "All structures are islands"
+  index_islands <- c(1,2,3)
+  index_nonislands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  exp_mean_ch1 <- (0+5+8)/total_sites_n
+  exp_mean_ch2 <- (10+5+2)/total_sites_n
+  expect_equal(o$island_meanFChange, c(exp_mean_ch1, exp_mean_ch2),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_true(all(is.na(o$nonisland_meanFChange)),
+              info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case all structures are non-islands
+  test <- "All structures are non-islands"
+  index_nonislands <- c(1,2,3)
+  index_islands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  exp_mean_ch1 <- (0+5+8)/total_sites_n
+  exp_mean_ch2 <- (10+5+2)/total_sites_n
+  expect_equal(o$nonisland_meanFChange, c(exp_mean_ch1, exp_mean_ch2),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  expect_true(all(is.na(o$island_meanFChange)),
+              info = paste("returns incorrect island_meanFChange in test case", test))
+  
+  # Test case 2 non-islands, 1 island
+  test <- "2 non-islands, 1 island"
+  index_nonislands <- c(1,3)
+  index_islands <- c(2)
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  exp_meanI_ch1 <- (5)/str2_sites_n
+  exp_meanNI_ch1 <- (0+8)/(str1_sites_n+str3_sites_n)
+  exp_meanI_ch2 <- (5)/str2_sites_n
+  exp_meanNI_ch2 <- (10+2)/(str1_sites_n+str3_sites_n)
+  expect_equal(o$island_meanFChange, c(exp_meanI_ch1, exp_meanI_ch2),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_equal(o$nonisland_meanFChange, c(exp_meanNI_ch1, exp_meanNI_ch2),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case 2 islands, 1 non-island
+  test <- "2 islands, 1 non-island"
+  index_islands <- c(1,3)
+  index_nonislands <- c(2)
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  exp_meanNI_ch1 <- (5)/str2_sites_n
+  exp_meanI_ch1 <- (0+8)/(str1_sites_n+str3_sites_n)
+  exp_meanNI_ch2 <- (5)/str2_sites_n
+  exp_meanI_ch2 <- (10+2)/(str1_sites_n+str3_sites_n)
+  expect_equal(o$island_meanFChange, c(exp_meanI_ch1, exp_meanI_ch2),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_equal(o$nonisland_meanFChange, c(exp_meanNI_ch1, exp_meanNI_ch2),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case data with one singlestr
+  test <- "Data with one singleStr: island"
+  data <- list(
+    list(rep(1,10)),
+    list(rep(1,10)),
+    list(rep(1,10)),
+    list(c(rep(0,5), rep(0.5, 5))))
+  str1_sites_n <- 10
+  index_islands <- c(1)
+  index_nonislands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$island_meanFChange, c(0, 1),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_true(all(is.na(o$nonisland_meanFChange)),
+              info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case data with one singlestr
+  test <- "Data with one singleStr: nonisland"
+  data <- list(
+    list(rep(1,10)),
+    list(rep(1,10)),
+    list(rep(1,10)),
+    list(c(rep(0,5), rep(0.5, 5))))
+  str1_sites_n <- 10
+  index_nonislands <- c(1)
+  index_islands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$nonisland_meanFChange, c(0, 1),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  expect_true(all(is.na(o$island_meanFChange)),
+              info = paste("returns incorrect island_meanFChange in test case", test))
+  
+  # Test case data with one singleStr and one site
+  test <- "Data with one singleStr with a single site: island"
+  data <- list(
+    list(c(1)),
+    list(c(1)),
+    list(c(1)),
+    list(c(0.5)))
+  str1_sites_n <- 10
+  index_islands <- c(1)
+  index_nonislands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$island_meanFChange, c(0, 1),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_true(all(is.na(o$nonisland_meanFChange)),
+              info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case data with one singleStr and one site
+  test <- "Data with one singleStr with a single site: nonisland"
+  data <- list(
+    list(c(1)),
+    list(c(1)),
+    list(c(1)),
+    list(c(0.5)))
+  str1_sites_n <- 10
+  index_islands <- c()
+  index_nonislands <- c(1)
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$nonisland_meanFChange, c(0, 1),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  expect_true(all(is.na(o$island_meanFChange)),
+              info = paste("returns incorrect island_meanFChange in test case", test))
+  
+  
+  # Test case with tree with a single cherry
+  test <- "Data with tree with a single cherry"
+  tree <- "((a:1,b:1):1,c:2);"
+  data <- list(
+    list(c(1)),
+    list(c(1)),
+    list(c(0.5)))
+  str1_sites_n <- 10
+  index_islands <- c()
+  index_nonislands <- c(1)
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$nonisland_meanFChange, 0,
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  expect_true(is.na(o$island_meanFChange),
+              info = paste("returns incorrect island_meanFChange in test case", test))
+  
 })
 
 
