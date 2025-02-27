@@ -1,0 +1,13 @@
+name: cftp_testConvergence  # Name of the environment
+
+channels:
+  - conda-forge        # Conda-forge is preferred for up-to-date packages
+  - defaults           # Defaults channel for any additional packages
+  - r                  # R channel for R packages (needed for Bioconductor)
+
+dependencies:
+  - snakemake          # Snakemake itself
+  - r-base>=4.0        # R version >= 4.0
+  - r-devtools         # devtools for R
+  - r-optparse         # optparse for R
+  - r-parallel

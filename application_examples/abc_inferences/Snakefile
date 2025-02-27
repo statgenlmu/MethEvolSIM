@@ -1,0 +1,197 @@
+# Import os for path manipulations
+import os
+
+# Set the configfile directive
+configfile: "config.yaml"
+
+# Define the working directory for the selected region
+region_workdir = os.path.join(
+    config["dir"],
+    config["selected_region"]["chr"] + "_" +
+    str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" +
+    str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" +
+    config["selected_region"]["name"]
+)
+
+
+rule setup_output_dir:
+    output:
+        region_dir=directory(region_workdir)
+    shell:
+        """
+        mkdir -p {output.region_dir}
+        """
+
+
+
+# Rule to get the CpG counts in island and non-island regions relative to the reference genome
+rule get_CpG_count:
+    input:
+        reference_genome = config["methSite_genomicDist"]["reference_genome"],
+        CGI_annotation = config["methSite_genomicDist"]["CGI_annotation"]
+    output:
+    	CpG_counts = config["methSite_genomicDist"]["CpG_count"]
+    log:
+        "get_CpG_count.out"
+    shell:
+        """
+        Rscript scripts/get_CpG_count.R --reference-genome {input.reference_genome} --CGI-annotation {input.CGI_annotation} --output {output.CpG_counts} > {log}
+        """
+        
+# Rule to filter the CpG counts in island and non-island regions relative to the genomic region of interest
+rule filter_CpG_count:
+    input:
+        CpG_counts = config["methSite_genomicDist"]["CpG_count"]
+    output:
+        filtered_CpG_count = config["methSite_genomicDist"]["filtered_CpG_count"]
+    params:
+    	region_name = config["selected_region"]["name"],
+    	region_chr = config["selected_region"]["chr"],
+    	region_start = config["selected_region"]["start"],
+    	region_end = config["selected_region"]["end"],
+    	region_side_bp = config["selected_region"]["side_bp"]
+    shell:
+        """
+        Rscript scripts/filter_CpG_count.R --input {input.CpG_counts} --output {output.filtered_CpG_count} --name-selected-region {params.region_name} --chr {params.region_chr} --start {params.region_start} --end {params.region_end} --side-bp {params.region_side_bp} 
+        """
+
+# Rule to get the spatial_str.RData file for the genomic region to simulate
+rule get_spatial_str:
+    input:
+        filtered_CpG_count = config["methSite_genomicDist"]["filtered_CpG_count"]
+    output:
+        spatial_str = os.path.join(region_workdir, config["selected_region"]["chr"] + "_" + str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" + str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" + config["selected_region"]["name"] + ".RData")
+    shell:
+        """
+        Rscript scripts/get_spatial_str.R --input {input.filtered_CpG_count} --output {output.spatial_str}
+        """
+    	
+
+# Rule to generate design files
+rule set_design:
+    input:
+        spatial_str = os.path.join(region_workdir, config["selected_region"]["chr"] + "_" + str(config["selected_region"]["start"] - config["selected_region"]["side_bp"]) + "_" + str(config["selected_region"]["end"] + config["selected_region"]["side_bp"]) + "_" + config["selected_region"]["name"] + ".RData")
+    output:
+        design_file= os.path.join(region_workdir, "design.RData")  # Path for the design file
+    params:
+        sim_number = config["n_sim"],
+        tree=config["tree"],  # Newick tree
+        seed=config["seed"],
+        alpha_pI_shape=config["prior_distributions"]["alpha_pI"]["shape"],
+        alpha_pI_scale=config["prior_distributions"]["alpha_pI"]["scale"],
+        beta_pI_shape=config["prior_distributions"]["beta_pI"]["shape"],
+        beta_pI_scale=config["prior_distributions"]["beta_pI"]["scale"],
+        alpha_pNI_shape=config["prior_distributions"]["alpha_pNI"]["shape"],
+        alpha_pNI_scale=config["prior_distributions"]["alpha_pNI"]["scale"],
+        beta_pNI_shape=config["prior_distributions"]["beta_pNI"]["shape"],
+        beta_pNI_scale=config["prior_distributions"]["beta_pNI"]["scale"],
+        alpha_mI_shape=config["prior_distributions"]["alpha_mI"]["shape"],
+        alpha_mI_scale=config["prior_distributions"]["alpha_mI"]["scale"],
+        beta_mI_shape=config["prior_distributions"]["beta_mI"]["shape"],
+        beta_mI_scale=config["prior_distributions"]["beta_mI"]["scale"],
+        alpha_mNI_shape=config["prior_distributions"]["alpha_mNI"]["shape"],
+        alpha_mNI_scale=config["prior_distributions"]["alpha_mNI"]["scale"],
+        beta_mNI_shape=config["prior_distributions"]["beta_mNI"]["shape"],
+        beta_mNI_scale=config["prior_distributions"]["beta_mNI"]["scale"],
+        alpha_Ri_rate=config["prior_distributions"]["alpha_Ri"]["rate"],
+        mu_rate=config["prior_distributions"]["mu"]["rate"],
+        iota_min=config["prior_distributions"]["iota"]["min"],
+        iota_max=config["prior_distributions"]["iota"]["max"],
+        tree_scale_min=config["prior_distributions"]["tree_scale"]["min"],
+        tree_scale_max=config["prior_distributions"]["tree_scale"]["max"]
+    shell:
+        """
+        Rscript scripts/set_sim_design.R \
+            --n-sim {params.sim_number} \
+            --dir {output.design_file} \
+            --genome-dist {input.spatial_str} \
+            --tree '{params.tree}' \
+            --seed {params.seed} \
+            --alpha_pI_shape {params.alpha_pI_shape} \
+            --alpha_pI_scale {params.alpha_pI_scale} \
+            --beta_pI_shape {params.beta_pI_shape} \
+            --beta_pI_scale {params.beta_pI_scale} \
+            --alpha_pNI_shape {params.alpha_pNI_shape} \
+            --alpha_pNI_scale {params.alpha_pNI_scale} \
+            --beta_pNI_shape {params.beta_pNI_shape} \
+            --beta_pNI_scale {params.beta_pNI_scale} \
+            --alpha_mI_shape {params.alpha_mI_shape} \
+            --alpha_mI_scale {params.alpha_mI_scale} \
+            --beta_mI_shape {params.beta_mI_shape} \
+            --beta_mI_scale {params.beta_mI_scale} \
+            --alpha_mNI_shape {params.alpha_mNI_shape} \
+            --alpha_mNI_scale {params.alpha_mNI_scale} \
+            --beta_mNI_shape {params.beta_mNI_shape} \
+            --beta_mNI_scale {params.beta_mNI_scale} \
+            --alpha_Ri_rate {params.alpha_Ri_rate} \
+            --mu_rate {params.mu_rate} \
+            --iota_min {params.iota_min} \
+            --iota_max {params.iota_max} \
+            --tree_scale_min {params.tree_scale_min} \
+            --tree_scale_max {params.tree_scale_max}
+        """
+
+# Rule to run the simulations
+rule run_sim:
+    input:
+        design_file= os.path.join(region_workdir, "design.RData")
+    params:
+        output_path = region_workdir,
+        cores_number = config["n_cores"],
+        tip_number = config["n_tips"],
+        cftp = config["CFTP"]
+    output:
+        [os.path.join(region_workdir, f"abc_dataSIM_{str(i).zfill(len(str(config['n_sim'])) + 1)}.RData")
+         for i in range(1, config["n_sim"] + 1)]
+    log:
+        "run_sim.out"
+    shell:
+        """
+        Rscript scripts/run_sim.R --input {input.design_file} --output-path {params.output_path} --n-tips {params.tip_number} --n-cores {params.cores_number} --CFTP {params.cftp} > {log}
+        """
+
+# Rule to get the CpG position indices relative to the reference genome (cytosine index relative to positive strand)
+rule get_CpG_positions:
+    input:
+        CpG_counts = config["methSite_genomicDist"]["CpG_count"]
+    output:
+    	CpG_positions = config["methSite_genomicDist"]["CpG_positions"]
+    params:
+        reference_genome = config["methSite_genomicDist"]["reference_genome"]
+    log:
+        "get_CpG_positions.out"
+    shell:
+        """
+        Rscript scripts/get_CpG_positions.R --reference-genome {params.reference_genome} --input {input.CpG_counts} --output {output.CpG_positions} > {log}
+        """
+        
+# Rule to filter the CpG position indices within to the genomic region of interest
+rule filter_CpG_positions:
+    input:
+        CpG_positions = config["methSite_genomicDist"]["CpG_positions"],
+        filtered_CpG_count = config["methSite_genomicDist"]["filtered_CpG_count"]
+    output:
+        filtered_CpG_positions = config["methSite_genomicDist"]["filtered_CpG_positions"]
+    log:
+        "filter_CpG_positions.out"
+    shell:
+        """
+        Rscript scripts/filter_CpG_positions.R --filtered-CpGcount-region {input.filtered_CpG_count} --CpG-positions {input.CpG_positions} --output {output.filtered_CpG_positions} > {log}
+        """
+
+# Rule to compute the summary statistics
+rule compute_sumStats:
+    input:
+        file_list = [expand("abc_dataSIM_{n}.RData", n=[str(i).zfill(len(str(config["n_sim"])) + 1) for i in range(1, config["n_sim"] + 1)])]
+    params:
+        sim_number = config["n_sim"]
+    log:
+        "compute_sumStats.out"
+    shell:
+        """
+        Rscript scripts/compute_sumStats.R --n-sim {params.sim_number} > {log}
+        """
+
+
+
+
