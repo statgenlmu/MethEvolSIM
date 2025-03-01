@@ -85,6 +85,7 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n){
   
   # Validate index islands
   tryCatch({
+    if(length(index_islands) == 0) stop("'index_islands' has no indices")
     validate_structureIndices(data, index_islands, index_nonislands = c())
   }, warning = function(w) {
     stop(conditionMessage(w))
@@ -139,6 +140,7 @@ get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n){
   
   # Validate index non-islands
   tryCatch({
+    if(length(index_nonislands) == 0) stop("'index_nonislands' has no indices")
     validate_structureIndices(data, index_islands = c(), index_nonislands)
   }, warning = function(w) {
     stop(conditionMessage(w))
@@ -194,6 +196,7 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n){
   
   # Validate index islands
   tryCatch({
+    if(length(index_islands) == 0) stop("'index_islands' has no indices")
     validate_structureIndices(data, index_islands, index_nonislands = c())
   }, warning = function(w) {
     stop(conditionMessage(w))
@@ -246,6 +249,7 @@ get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n){
   
   # Validate index non-islands
   tryCatch({
+    if(length(index_nonislands) == 0) stop("'index_nonislands' has no indices")
     validate_structureIndices(data, index_islands = c(), index_nonislands)
   }, warning = function(w) {
     stop(conditionMessage(w))
@@ -685,6 +689,11 @@ validate_tree <- function(tree){
   
   # Check given tree has minium two tips
   if (length(tree$tip.label)<2) stop("The input 'tree' must have a minimum of 2 tips.")
+  
+  # Check given tree has unique tip labels
+  if (any(duplicated(tree$tip.label))) {
+    stop(paste("The input tree has duplicated tree labels:", paste(unique(tree$tip.label[duplicated(tree$tip.label)]), collapse = ", ")))
+  }
   
   # Return tree as phylo object
   tree
@@ -1200,6 +1209,184 @@ MeanSiteFChange_cherry <- function(data, tree, index_islands, index_nonislands){
   
   MeanSiteFChange_cherry
 }
+
+#### #### #### Fitch estimation of minimum number of global methylation changes per island #### #### ####
+##TODO: Check again name
+
+##TODO: document
+# data: A list containing methylation states at tree tips for each genomic structure 
+#   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, 
+#   where each tip has the same number of structures, and each structure has the same number of sites across tips.
+# index_islands: a vector with the structure indices corresponding to islands
+get_meanMeth_islands <- function(index_islands, data){
+  
+  tryCatch({
+    
+    # Validate index islands
+    if(length(index_islands) == 0) stop("'index_islands' has no indices")
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+    
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  # Compute the mean methylation of CpG islands
+  meanMeth <- lapply(data, function(x) sapply(x[index_islands], mean))
+  
+  meanMeth
+}
+
+
+# meanMeth_islands: vector with the average methylation at each of 
+# the islands in a given tip
+# u_threshold: numeric threshold value between 0 and 1 to categorize as unmethylated
+# m_threshold: numeric threshold value between 0 and 1 to categorize as methylated
+categorize_islandGlbSt <- function(meanMeth_islands, u_threshold, m_threshold) {
+  
+  # Check correct values for u and m thresholds
+  if (!all(c(u_threshold, m_threshold) >= 0 & c(u_threshold, m_threshold) <= 1) || u_threshold >= m_threshold) {
+    stop("Both 'u_threshold' and 'm_threshold' must be between 0 and 1, and 'u_threshold' must be smaller than 'm_threshold'.")
+  }
+  
+  ## categorize region global states as
+  # "u" if globalfrequency is equal or lower to u_threshold 
+  # as "m" if globalfrequency is higher or equal to m_threshold
+  # or as "p" if globalfrequency is in between
+  categorized_state <- character()
+  for(i in 1:length(meanMeth_islands)) {
+    if(meanMeth_islands[[i]] <= u_threshold) {
+      categorized_state[i] <- "u"
+    } else {
+      if(meanMeth_islands[[i]] >= m_threshold) {
+        categorized_state[i] <- "m"
+      } else {
+        categorized_state[i] <- "p"
+      }
+    }
+  }
+  return(categorized_state)
+}
+
+## tree: rooted binary tree in newick format (character string) or as an ape's phylo object. Minimum two tips
+## meth: matrix with methylation categories at the tips of the tree
+## "u" for unmethylated, "p" for partially-methylated and "m" for methylated
+## one row per tip, with rownames according to the tip labels (same order as in newick tree from left to right)
+## one column per site or structure (e.g. islands) to compare
+## input_control: defaulted as TRUE for user input control
+## returns list containing
+## -optStateSet a list of sets of optimal states for the root of tree for each site or structure and
+## -minChange_number a vector of minimum number of changes needed for each site or structure
+compute_fitch <- function(tree, meth, input_control = TRUE) {
+  
+  if (input_control){
+    
+    tryCatch({
+      
+      # Validate tree
+      phylo_tree <- validate_tree(tree)
+      
+      # If tree is an ape's phylo object, convert it to Newick format
+      if (inherits(tree, "phylo")) {
+        tree <- ape::write.tree(tree)  # Convert to Newick string
+      }
+      
+    }, warning = function(w) {
+      stop(conditionMessage(w))
+    }, error = function(e) {
+      stop(conditionMessage(e))
+    })
+    
+    # Check rownames in meth matrix correspond to the tips of the tree
+    if (!identical(rownames(meth), phylo_tree$tip.label)) {
+      stop("Input 'meth' matrix rownames must match tree tip labels exactly, in the same order as tips from left to right in the Newick tree.")
+    }
+  }
+  
+  ## If tree corresponds to a tip set a list with 
+  # [[1]] the states at the tip for each structure and
+  # [[2]] initialize a vector for the counts of minimum number of changes with 0s 
+  if(substr(tree,1,1)!="(") {
+    ## 'tree' here corresponds to the tip name
+    return(list(meth[tree, ], rep(0, dim(meth)[2])))
+  }
+  
+  ## I tree is not a tip, subset again
+  subtree <- split_newick(tree)$unit
+
+  if(length(subtree)!=2) stop("function compute_fitch works only for rooted binary trees")
+  
+  # Recursively call the function to start counting from the tree tips
+  L <- compute_fitch(subtree[1], meth, input_control = FALSE)
+  R <- compute_fitch(subtree[2], meth, input_control = FALSE)
+  
+  # Save the minimum number of changes needed for the states at the two subtrees
+  minchan <- L[[2]] + R[[2]]
+  
+  # Initialize a list to store the optimal state at the root of a each subtree
+  optset <- list()
+  
+  # For each island
+  for(i in 1:length(minchan)) {
+    
+    # Check whether there is a common state
+    optset[[i]] <- intersect(L[[1]][[i]], R[[1]][[i]])
+    
+    # If they dont have the same state
+    if(length(optset[[i]])==0) { 
+      
+      # Save both states
+      optset[[i]] <- union(L[[1]][[i]], R[[1]][[i]]) 
+      
+      # Increase the number of minimum changes needed for that island
+      minchan[i] <- minchan[i] + 1 
+    } 
+  }
+  
+  return(list(optStateSet = optset, minChange_number = minchan))
+}
+
+# index_islands: a vector with the structure indices corresponding to islands
+# data: A list containing methylation states at tree tips for each genomic structure 
+#   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, 
+#   where each tip has the same number of structures, and each structure has the same number of sites across tips.
+## tree: rooted binary tree in newick format (character string) or as an ape's phylo object. Minimum two tips
+computeFitch_islandGlbSt <- function(index_islands, data, tree, u_threshold, m_threshold, testing = FALSE){
+  
+  tryCatch({
+    
+    # Validate tree
+    tree <- validate_tree(tree)
+    
+    # Validate index islands and get mean methylation of CpG islands
+    meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+    
+    # Validate u and m thresholds and convert mean methylation to categories "u", "p", and "m"
+    upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+    
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  # Organize data in matrix with rownames as the corresponding tip labels
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  
+  # Compute fitch to extract the minimum number of changes for the observed methylation states at the tips
+  result <- compute_fitch(ape::write.tree(tree), upmdata, input_control = FALSE)$minChange_number
+  
+  if (testing){
+    list(upmdata_list = upmdata_list,
+         upmdata = upmdata)
+  } else {
+    result
+  }
+}
+
+
 
 
 
