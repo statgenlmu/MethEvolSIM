@@ -1211,13 +1211,34 @@ MeanSiteFChange_cherry <- function(data, tree, index_islands, index_nonislands){
 }
 
 #### #### #### Fitch estimation of minimum number of global methylation changes per island #### #### ####
-##TODO: Check again name
 
-##TODO: document
-# data: A list containing methylation states at tree tips for each genomic structure 
-#   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, 
-#   where each tip has the same number of structures, and each structure has the same number of sites across tips.
-# index_islands: a vector with the structure indices corresponding to islands
+#' Compute the Mean Methylation of CpG Islands
+#'
+#' This function calculates the mean methylation level for CpG islands across all tree tips.
+#'
+#' @param index_islands A numeric vector specifying the indices of genomic structures corresponding to islands.
+#' @param data A list containing methylation states at tree tips for each genomic structure 
+#'   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, 
+#'   where each tip has the same number of structures, and each structure has the same number of sites across tips.
+#'
+#' @return A list where each element corresponds to a tree tip and contains a numeric vector 
+#'   representing the mean methylation levels for the indexed CpG islands.
+#'
+#' @examples
+#' # Example data setup
+#' 
+#' data <- list(
+#'   # Tip 1
+#'   list(rep(1,10), rep(0,5), rep(1,8)),
+#'   # Tip 2
+#'   list(rep(1,10), rep(0.5,5), rep(0,8))
+#' )
+#' 
+#' index_islands <- c(1,3)
+#' 
+#' get_meanMeth_islands(index_islands, data)
+#'
+#' @export
 get_meanMeth_islands <- function(index_islands, data){
   
   tryCatch({
@@ -1239,10 +1260,30 @@ get_meanMeth_islands <- function(index_islands, data){
 }
 
 
-# meanMeth_islands: vector with the average methylation at each of 
-# the islands in a given tip
-# u_threshold: numeric threshold value between 0 and 1 to categorize as unmethylated
-# m_threshold: numeric threshold value between 0 and 1 to categorize as methylated
+#' Categorize Global States of CpG Islands
+#'
+#' This function categorizes CpG islands into unmethylated, methylated, or partially methylated states 
+#' based on specified thresholds.
+#'
+#' @param meanMeth_islands A numeric vector containing the mean methylation levels for CpG islands at each tip.
+#' @param u_threshold A numeric value (0-1) defining the threshold for categorization as unmethylated.
+#' @param m_threshold A numeric value (0-1) defining the threshold for categorization as methylated.
+#'
+#' @details The function assigns each island a state:
+#'   \describe{
+#'     \item{"u"}{if mean methylation ≤ \code{u_threshold}}
+#'     \item{"m"}{if mean methylation ≥ \code{m_threshold}}
+#'     \item{"p"}{if mean methylation is in between}
+#'   }
+#'
+#' @return A character vector of length equal to \code{meanMeth_islands}, containing "u", "p", or "m" for each island.
+#'
+#' @examples
+#' meanMeth_islands <- c(0.1, 0.4, 0.8)
+#' 
+#' categorize_islandGlbSt(meanMeth_islands, 0.2, 0.8)
+#'
+#' @export
 categorize_islandGlbSt <- function(meanMeth_islands, u_threshold, m_threshold) {
   
   # Check correct values for u and m thresholds
@@ -1250,10 +1291,7 @@ categorize_islandGlbSt <- function(meanMeth_islands, u_threshold, m_threshold) {
     stop("Both 'u_threshold' and 'm_threshold' must be between 0 and 1, and 'u_threshold' must be smaller than 'm_threshold'.")
   }
   
-  ## categorize region global states as
-  # "u" if globalfrequency is equal or lower to u_threshold 
-  # as "m" if globalfrequency is higher or equal to m_threshold
-  # or as "p" if globalfrequency is in between
+  ## categorize region global states 
   categorized_state <- character()
   for(i in 1:length(meanMeth_islands)) {
     if(meanMeth_islands[[i]] <= u_threshold) {
@@ -1269,15 +1307,32 @@ categorize_islandGlbSt <- function(meanMeth_islands, u_threshold, m_threshold) {
   return(categorized_state)
 }
 
-## tree: rooted binary tree in newick format (character string) or as an ape's phylo object. Minimum two tips
-## meth: matrix with methylation categories at the tips of the tree
-## "u" for unmethylated, "p" for partially-methylated and "m" for methylated
-## one row per tip, with rownames according to the tip labels (same order as in newick tree from left to right)
-## one column per site or structure (e.g. islands) to compare
-## input_control: defaulted as TRUE for user input control
-## returns list containing
-## -optStateSet a list of sets of optimal states for the root of tree for each site or structure and
-## -minChange_number a vector of minimum number of changes needed for each site or structure
+#' Compute Fitch Parsimony for Methylation Categories
+#'
+#' This function applies Fitch parsimony to determine the minimum number of changes required for 
+#' methylation categories at tree tips.
+#'
+#' @param tree A rooted binary tree in Newick format (character string) or as an \code{ape} phylo object. 
+#'   Must have at least two tips.
+#' @param meth A matrix of methylation categories at the tree tips, with rows corresponding to tips 
+#'   (names matching tree tip labels) and columns corresponding to sites or structures.
+#' @param input_control Logical; if \code{TRUE}, validates input consistency.
+#'
+#' @return A list containing:
+#'   \describe{
+#'     \item{\code{optStateSet}}{A list of sets of optimal states for the root at each site/structure.}
+#'     \item{\code{minChange_number}}{A numeric vector indicating the minimum number of changes for each site.}
+#'   }
+#'
+#' @examples
+#' tree <- "((a:1,b:1):2,(c:2,d:2):1.5);"
+#' 
+#' meth <- matrix(c("u", "m", "p", "u", "p", "m", "m", "u"), 
+#'                nrow=4, byrow=TRUE, dimnames=list(c("a", "b", "c", "d")))
+#'                
+#' compute_fitch(tree, meth)
+#'
+#' @export
 compute_fitch <- function(tree, meth, input_control = TRUE) {
   
   if (input_control){
@@ -1347,11 +1402,40 @@ compute_fitch <- function(tree, meth, input_control = TRUE) {
   return(list(optStateSet = optset, minChange_number = minchan))
 }
 
-# index_islands: a vector with the structure indices corresponding to islands
-# data: A list containing methylation states at tree tips for each genomic structure 
-#   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, 
-#   where each tip has the same number of structures, and each structure has the same number of sites across tips.
-## tree: rooted binary tree in newick format (character string) or as an ape's phylo object. Minimum two tips
+#' Compute Fitch Parsimony for Global Methylation States at CpG Islands
+#'
+#' This function categorizes CpG islands into methylation states and applies Fitch parsimony 
+#' to estimate the minimum number of state changes in a phylogenetic tree.
+#'
+#' @param index_islands A numeric vector specifying the indices of genomic structures corresponding to islands.
+#' @param data A list containing methylation states at tree tips, structured as \code{data[[tip]][[structure]]}, 
+#'   where each tip has the same number of structures, and each structure has the same number of sites across tips.
+#' @param tree A rooted binary tree in Newick format (character string) or as an \code{ape} phylo object. 
+#'   Must have at least two tips.
+#' @param u_threshold A numeric threshold value (0-1) defining the unmethylated category.
+#' @param m_threshold A numeric threshold value (0-1) defining the methylated category.
+#' @param testing Logical; if \code{TRUE}, returns additional intermediate data.
+#'
+#' @details The function first validates the input data and categorizes CpG islands using \code{categorize_islandGlbSt}. 
+#'   It then structures the data into a matrix matching tree tip labels and applies \code{compute_fitch} 
+#'   to infer the minimum number of changes.
+#'
+#' @return If \code{testing = TRUE}, returns a list containing the categorized data matrix; otherwise, 
+#'   returns a numeric vector of minimum state changes.
+#'
+#' @examples
+#' tree <- "((a:1,b:1):2,(c:2,d:2):1.5);"
+#' 
+#' data <- list(
+#'   list(rep(1,10), rep(0,5), rep(1,8)),
+#'   list(rep(1,10), rep(0.5,5), rep(0,8))
+#' )
+#' 
+#' index_islands <- c(1,3)
+#' 
+#' computeFitch_islandGlbSt(index_islands, data, tree, 0.2, 0.6)
+#'
+#' @export
 computeFitch_islandGlbSt <- function(index_islands, data, tree, u_threshold, m_threshold, testing = FALSE){
   
   tryCatch({
