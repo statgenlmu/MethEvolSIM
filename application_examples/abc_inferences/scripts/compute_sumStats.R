@@ -41,3 +41,5 @@ RData_files <- list.files(pattern = paste0("^abc_dataSIM_\\d{", pad_n, "}\\.RDat
 
 # Check that the number of simulated files is equal to the number of simulations
 if (length(RData_files) != opt[["n-sim"]]) stop("Number of simulated files not equal to number of simulations")
+
+
