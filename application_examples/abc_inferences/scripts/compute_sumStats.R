@@ -1,52 +1,49 @@
 library(optparse)
 # TODO: ADD when source is eliminated
-# library(devtools); load_all()
+library(devtools); load_all()
 
-## TODO: Once functions are commented and tested and belong to the package, this should be library(MethEvolSIM) / while developing library(devtools); load_all()
-source("../../functions_summaryStats.R") # Load functions to compute summary statistics
-
-if (FALSE){
-  # Define the command-line options
-  option_list <- list(
-    make_option("--data-dir", type = "character", default = NULL,
-                help = "Full path to the directory containing the .RData files", metavar = "character"),
-    make_option("--input-file", type = "character", default = NULL,
-                help = "Name of the input .RData file", metavar = "character"),
-    make_option("--design-file", type = "character", default = NULL,
-                help = "Name of the simulation design file", metavar = "character"),
-    make_option("--spatialStr-file", type = "character", default = NULL,
-                help = "Name of the file with the spatial structure of the genomic region", metavar = "character"),
-    make_option("--sample-n", type = "integer", default = NULL,
-                help = "Number of samples per file", metavar = "integer"),
-    make_option("--n-sim", type = "character", default = NULL,
-                help = "Total number of simulations", metavar = "integer"),
-    make_option("--u-threshold", type = "numeric", default = NULL,
-                help = "Threshold for category unmethylated", metavar = "numeric"),
-    make_option("--m-threshold", type = "numeric", default = NULL,
-                help = "Threshold for category methylated", metavar = "numeric"),
-    make_option("--cherry-index", type = "integer", default = NULL,
-                help = "Index for cherry to use", metavar = "integer"),
-    make_option("--minN-CpG", type = "integer", default = NULL,
-                help = "Minimum number of CpGs to compute mean correlations", metavar = "integer"),
-    make_option("--shore-length", type = "integer", default = NULL,
-                help = "Number of CpGs at each side of an island to exclude when computing mean correlations", metavar = "integer")
-  )
-}
-
-
-
-# Define command-line options
+# Define the command-line options
 option_list <- list(
+  make_option("--data-dir", type = "character", default = NULL,
+              help = "Full path to the directory containing the .RData files", metavar = "character"),
+  make_option("--input-file", type = "character", default = NULL,
+              help = "Name of the input .RData file", metavar = "character"),
+  make_option("--design-file", type = "character", default = NULL,
+              help = "Name of the simulation design file", metavar = "character"),
+  make_option("--spatialStr-file", type = "character", default = NULL,
+              help = "Name of the file with the spatial structure of the genomic region", metavar = "character"),
+  make_option("--sample-n", type = "integer", default = NULL,
+              help = "Number of samples per file", metavar = "integer"),
   make_option("--n-sim", type = "integer", default = NULL,
-              help = "Number of simulations", metavar = "integer")
-)
+              help = "Total number of simulations", metavar = "integer"),
+  make_option("--u-threshold", type = "numeric", default = NULL,
+              help = "Threshold for category unmethylated", metavar = "numeric"),
+  make_option("--m-threshold", type = "numeric", default = NULL,
+              help = "Threshold for category methylated", metavar = "numeric"),
+  make_option("--cherry-index", type = "integer", default = NULL,
+              help = "Index for cherry to use", metavar = "integer"),
+  make_option("--minN-CpG", type = "integer", default = NULL,
+              help = "Minimum number of CpGs to compute mean correlations", metavar = "integer"),
+  make_option("--shore-length", type = "integer", default = NULL,
+              help = "Number of CpGs at each side of an island to exclude when computing mean correlations", metavar = "integer")
+  )
 
-# Parse the arguments
+
+
+# Parse command line arguments
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
-# Check if the required arguments are provided
-##TODO: Finish this
+# Get the names of required options (you can update this based on what's mandatory)
+required_options <- c("data-dir", "input-file", "design-file", "spatialStr-file", "sample-n", "n-sim", "u-threshold", "m-threshold", "cherry-index", "minN-CpG", "shore-length")
+
+# Check that all required options are not NULL
+missing_options <- required_options[sapply(required_options, function(x) is.null(opt[[x]]))]
+
+if (length(missing_options) > 0) {
+  print_help(opt_parser)
+  stop(paste("The following arguments need to be provided:", paste(missing_options, collapse = ", ")))
+}
 
 # Arguments as variables
 dir <- opt[["data-dir"]]
@@ -57,7 +54,7 @@ m_threshold <- opt[["m-threshold"]]
 cherry <- opt[["cherry-index"]]
 minN_CpG <- opt[["minN-CpG"]]
 shore_length <- opt[["shore-length"]]
-pad_n <- nchar(as.character(length(opt[["n-sim"]]))) + 1
+pad_n <- nchar(as.character(opt[["n-sim"]])) + 1
 load(file.path(dir, opt[["design-file"]]))
 load(file.path(dir, opt[["spatialStr-file"]]))
 
@@ -86,7 +83,7 @@ compute_sumStats <- function(input_file, dir) {
                          nonislandMeanFreqM = get_nonislandMeanFreqM(index_nonislands, data, sample_n),
                          nonislandSDFreqM = get_nonislandSDFreqM(index_nonislands, data, sample_n),
                          meanCor_i = compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 5, data, sample_n),
-                         meanCor_ni = compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 5, data, sample_n),
+                         meanCor_ni = compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, sample_n),
                          MeanSiteFChange_i = MeanSiteFChange$island_meanFChange[cherry],
                          MeanSiteFChange_ni = MeanSiteFChange$nonisland_meanFChange[cherry],
                          cherryDist = MeanSiteFChange$dist[cherry],
@@ -104,4 +101,6 @@ compute_sumStats <- function(input_file, dir) {
   # Print progress
   cat(sprintf("Processed: %s -> %s\n", input_file, output_file))
 }
+
+compute_sumStats(input_file, dir)
 
