@@ -1,3 +1,30 @@
+test_that("get_MeanFreqP non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(get_islandMeanFreqP(data = data, index_islands = index_islands, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(get_nonislandMeanFreqP(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
+  
+  index_islands <- c()
+  index_nonislands <- c()
+  
+  expect_error(get_islandMeanFreqP(data = data, index_islands = index_islands, sample_n =2),
+               "'index_islands' has no indices")
+  expect_error(get_nonislandMeanFreqP(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "'index_nonislands' has no indices")
+  
+})
+
 test_that("get_MeanFreqP structures with equal length islands and non-islands", {
   # Two tips and two islands
   index_islands <- c(1, 2)
@@ -104,6 +131,32 @@ test_that("get_MeanFreqP structures with different length (islands and non-islan
  
 })
 
+test_that("get_MeanFreqM non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(get_islandMeanFreqM(data = data, index_islands = index_islands, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(get_nonislandMeanFreqM(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
+  
+  index_islands <- c()
+  index_nonislands <- c()
+  
+  expect_error(get_islandMeanFreqM(data = data, index_islands = index_islands, sample_n =2),
+               "'index_islands' has no indices")
+  expect_error(get_nonislandMeanFreqM(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "'index_nonislands' has no indices")
+})
+
 
 test_that("get_MeanFreqM structures with equal length islands and non-islands", {
   # Two tips and two islands
@@ -204,6 +257,23 @@ test_that("get_MeanFreqM structures with different length (islands and non-islan
                info = "incorrect mean in two tips and two non-islands, freq .5")
 })
 
+test_that("get_islandSDFreqP non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(get_islandSDFreqP(data = data, index_islands = index_islands, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(get_nonislandSDFreqP(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
+})
 
 test_that("get_SDFreqP structures with equal length islands and non-islands", {
   # One tip and four islands / non-islands
@@ -430,6 +500,24 @@ test_that("get_SDFreqP structures with different length islands and non-islands"
   expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), mean_SD,
                info = "incorrect non-island SD in two tips 4 islands and 4 non-islands (8 structures, last one only one site)")
   
+})
+
+test_that("get_islandSDFreqM non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(get_islandSDFreqM(data = data, index_islands = index_islands, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(get_nonislandSDFreqM(data = data, index_nonislands = index_nonislands, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
 })
 
 
@@ -660,7 +748,23 @@ test_that("get_SDFreqM structures with different length islands and non-islands"
   
 })
 
-
+test_that("menCor non-valid structureIndices", {
+  
+  data <- list(
+    list(c(0, 0, 0), c(0, 0, 0)), # tip 1
+    list(c(0, 0, 0), c(1, 1, 1)) # tip 2
+  )
+  
+  index_islands <- c(1,3)
+  index_nonislands <- c(1,3)
+  
+  expect_error(compute_meanCor_i(data = data, index_islands = index_islands, minN_CpG = 1, shore_length = 0, sample_n =2),
+               "Invalid island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect island index")
+  expect_error(compute_meanCor_ni(data = data, index_nonislands = index_nonislands, minN_CpG = 1, shore_length = 0, sample_n =2),
+               "Invalid non-island indices detected: 3. Number of structures in given data: 2",
+               info = "fails to throw error with incorrect nonisland index")
+})
 
 test_that("meanCor", {
   # Expect NA with structures under min_CpG
@@ -881,27 +985,59 @@ test_that("meanCor", {
                info = "MeanCor_ni returns non-correct value (shore 10 2 tips non-equal sizes)")
 })
 
+test_that("validate_tree input errors", {
+  # No input
+  expect_error(validate_tree(),
+               info = "function fails to throw an error when no tree is given")
+  
+  # Tree not character string or phylo class
+  tree <- 5
+  expect_error(validate_tree(tree),
+               info = "function fails to throw error when tree is not character string or phylo object")
+  
+  # Incorrect newick format
+  tree <- "a:1, b:2"
+  expect_error(validate_tree(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  tree <- "a:1, b:2;"
+  expect_error(validate_tree(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  # Test error when tree has only one tip
+  tree <- "(1:1);"
+  expect_error(validate_tree(tree),
+               info = "function fails to throw error when given tree has only one tip")
+  
+  # Test error when tree has one duplicated tip label
+  tree <- "((a:1,b:1):2,(d:1.25,d:1.25):0.5);"
+  expect_error(validate_tree(tree),
+               "The input tree has duplicated tree labels: d",
+               info = "function fails to throw error when given tree has one duplicated tip label")
+  # Test error when tree has one triplicated tip label
+  tree <- "((a:1,d:1):2,(d:1.25,d:1.25):0.5);"
+  expect_error(validate_tree(tree),
+               "The input tree has duplicated tree labels: d",
+               info = "function fails to throw error when given tree has one triplicated tip label")
+  # Test error when tree has two duplicated tip labels
+  tree <- "((5:1,5:1):2,(d:1.25,d:1.25):0.5);"
+  expect_error(validate_tree(tree),
+               "The input tree has duplicated tree labels: 5, d",
+               info = "function fails to throw error when given tree has two duplicated tip labels")
+})
+
+
+test_that("validate_tree returns phylo tree",{
+  tree <- "(a:1,b:2);"
+  o <- validate_tree(tree)
+  expect_equal(class(o), "phylo")
+})
+
+
 test_that("get_cherryDist input control errors", {
   
   # No input
   expect_error(get_cherryDist(),
                info = "function fails to throw an error when no tree is given")
-  # Tree not character string or phylo class
-  tree <- 5
-  expect_error(get_cherryDist(tree),
-               info = "function fails to throw error when tree is not character string or phylo object")
   
-  # Incorrect newick format
-  tree <- "a:1, b:2"
-  expect_error(get_cherryDist(tree),
-               info = "function fails to throw error when given tree has incorrect format")
-  tree <- "a:1, b:2;"
-  expect_error(get_cherryDist(tree),
-               info = "function fails to throw error when given tree has incorrect format")
-  # Test error when tree has only one tip
-  tree <- "(1:1);"
-  expect_error(get_cherryDist(tree),
-               info = "function fails to throw error when given tree has only one tip")
 })
 
 test_that("get_cherryDist processing of different input types", {
@@ -1018,6 +1154,65 @@ test_that("get_cherryDist processing of different input types", {
 
 })
 
+
+test_that("validate_data", {
+  
+  # Different number of structures across tips
+  type <- "Different number of structures across tips"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10))) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Tip without structures
+  type <- "Tip without structures"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list()) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Data with a structure of length 0
+  type <- "Data with a structure of length 0"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), c()), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), c()), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), c())) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Different number of sites in data
+  type <- "Different number of sites in data"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Number of tips in data smaller than given cherry tip indices
+  type <- "Number of tips in data smaller than given cherry tip indices"
+  tree <- "((1:1,2:1):2,(3:2,5:2):1);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  cherryDist <- get_cherryDist(tree)
+  expect_error(validate_data(cherryDist, data),
+               info = paste(type, "fails to throw error"))
+})
+
 test_that("countSites_cherryMethDiff input control errors", {
   
   # Incomplete argument cherryDist
@@ -1100,6 +1295,8 @@ test_that("countSites_cherryMethDiff input control errors", {
                info = paste(type, "fails to throw error"))
 })
 
+
+
 test_that("countSites_cherryMethDiff correct output with different input types", {
   
   # One cherry numeric labels (left newick)
@@ -1165,6 +1362,1200 @@ test_that("countSites_cherryMethDiff correct output with different input types",
               info = "case two cherries incorrect count output for second cherry")
   
 })
+
+
+test_that("freqSites_cherryMethDiff input control error", {
+
+  # No input
+  expect_error(freqSites_cherryMethDiff(),
+               info = "function fails to throw an error when no tree is given")
+  
+  ## Check errors for incorrect tree argument ##
+  
+  # Tree not character string or phylo class
+  tree <- 5
+  expect_error(freqSites_cherryMethDiff(tree),
+               info = "function fails to throw error when tree is not character string or phylo object")
+  
+  # Incorrect newick format
+  tree <- "a:1, b:2"
+  expect_error(freqSites_cherryMethDiff(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  tree <- "a:1, b:2;"
+  expect_error(freqSites_cherryMethDiff(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  # Test error when tree has only one tip
+  tree <- "(1:1);"
+  expect_error(freqSites_cherryMethDiff(tree),
+               info = "function fails to throw error when given tree has only one tip")
+  
+  
+  ## Check errors for incorrect data argument ##
+  
+  # Different number of structures across tips
+  type <- "Different number of structures across tips"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10))) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Tip without structures
+  type <- "Tip without structures"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list()) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Data with a structure of length 0
+  type <- "Data with a structure of length 0"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), c()), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), c()), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), c())) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Different number of sites in data
+  type <- "Different number of sites in data"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Number of tips in data smaller than given cherry tip indices
+  type <- "Number of tips in data smaller than given cherry tip indices"
+  tree <- "((1:1,2:1):2,(3:2,5:2):1);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  expect_error(freqSites_cherryMethDiff(tree, data),
+               info = paste(type, "fails to throw error"))
+})
+
+
+test_that("freqSites_cherryMethDiff output", {
+  
+  # Test counts are transformed into frequencies correctly
+  tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+  data <- list(
+    list(rep(1,10), rep(0,5), rep(1,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
+  o <- freqSites_cherryMethDiff(tree = tree, data = data)
+  expect_equal(o$tip_names[1], "a-b",
+               info = "incorrect tip names in cherry 1")
+  expect_equal(o$tip_names[2], "c-d",
+               info = "incorrect tip names in cherry 2")
+  expect_equal(o$tip_indices[1], "1-2",
+               info = "incorrect tip names in cherry 1")
+  expect_equal(o$tip_indices[2], "3-4",
+               info = "incorrect tip names in cherry 2")
+  expect_equal(o$dist[1], 3,
+               info = "incorrect tips distance in cherry 1")
+  expect_equal(o$dist[2], 4,
+               info = "incorrect tips distance in cherry 2")
+  column_CpGn <- rep(c(10, 5, 8), each=2)
+  f_h_count <- c(0, 0, 0, 5, 8, 0)
+  f_h_freq <- f_h_count/column_CpGn
+  expect_equal(as.numeric(o[1,4:ncol(o)]), f_h_freq,
+               info = "incorrect f and h freqs in cherry 1")
+  f_h_count <- c(5, 5, 0, 5, 1, 1)
+  f_h_freq <- f_h_count/column_CpGn
+  expect_equal(as.numeric(o[2,4:ncol(o)]), f_h_freq,
+               info = "incorrect f and h freqs in cherry 2")
+})
+
+test_that("get_siteFChange_cherry wrong input", {
+  
+  # No input
+  expect_error(get_siteFChange_cherry(),
+               info = "function fails to throw an error when no tree is given")
+  
+  ## Check errors for incorrect tree argument ##
+  
+  # Tree not character string or phylo class
+  tree <- 5
+  expect_error(get_siteFChange_cherry(tree),
+               info = "function fails to throw error when tree is not character string or phylo object")
+  
+  # Incorrect newick format
+  tree <- "a:1, b:2"
+  expect_error(get_siteFChange_cherry(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  tree <- "a:1, b:2;"
+  expect_error(get_siteFChange_cherry(tree),
+               info = "function fails to throw error when given tree has incorrect format")
+  # Test error when tree has only one tip
+  tree <- "(1:1);"
+  expect_error(get_siteFChange_cherry(tree),
+               info = "function fails to throw error when given tree has only one tip")
+  
+  
+  ## Check errors for incorrect data argument ##
+  
+  # Different number of structures across tips
+  type <- "Different number of structures across tips"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10))) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Tip without structures
+  type <- "Tip without structures"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list()) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Data with a structure of length 0
+  type <- "Data with a structure of length 0"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), c()), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), c()), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), c())) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Different number of sites in data
+  type <- "Different number of sites in data"
+  tree <- "((1:1,2:1):1,3:2);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+  
+  # Number of tips in data smaller than given cherry tip indices
+  type <- "Number of tips in data smaller than given cherry tip indices"
+  tree <- "((1:1,2:1):2,(3:2,5:2):1);"
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,11)), # tip 1 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
+    list(rep(1,10), rep(0.5,10), rep(0,10))) 
+  expect_error(get_siteFChange_cherry(tree, data),
+               info = paste(type, "fails to throw error"))
+})
+
+test_that("get_siteFChange_cherry output", {
+  
+  # Test frequency of sites changing per structure and cherry is computed correctly
+  tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+  data <- list(
+    list(rep(1,10), rep(0,5), rep(1,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
+  
+  o <- get_siteFChange_cherry(tree = tree, data = data)
+  expect_equal(o$tip_names[1], "a-b",
+               info = "incorrect tip names in cherry 1")
+  expect_equal(o$tip_names[2], "c-d",
+               info = "incorrect tip names in cherry 2")
+  expect_equal(o$tip_indices[1], "1-2",
+               info = "incorrect tip names in cherry 1")
+  expect_equal(o$tip_indices[2], "3-4",
+               info = "incorrect tip names in cherry 2")
+  expect_equal(o$dist[1], 3,
+               info = "incorrect tips distance in cherry 1")
+  expect_equal(o$dist[2], 4,
+               info = "incorrect tips distance in cherry 2")
+  Fchange_firstCherry <- c(0,1,1)
+  expect_equal(as.numeric(o[1,4:ncol(o)]), Fchange_firstCherry,
+               info = "incorrect f and h freqs in cherry 1")
+  Fchange_secondCherry <- c(1,1,0.25)
+  expect_equal(as.numeric(o[2,4:ncol(o)]), Fchange_secondCherry,
+               info = "incorrect f and h freqs in cherry 2")
+})
+
+test_that("validate_structureIndices", {
+  
+  # Example data
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)), 
+    list(rep(1,10), rep(0.5,10), rep(0,10))
+  )
+  
+  expect_silent(validate_structureIndices(data, c(1, 2), c(3)))
+  expect_error(validate_structureIndices(data, c(4), c(1)), 
+               info = "fails to report incorrect island index") 
+  expect_error(validate_structureIndices(data, c(1), c(5)), 
+               info = "fails to report incorrect non-island index")
+  expect_warning(validate_structureIndices(data, c(1, 2), c(2, 3)), 
+                 info = "fails to report duplicated index in both islands and non_islands")
+  
+  
+})
+
+
+
+test_that("MeanSiteFChange_cherry input control", {
+  # Example data
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)), 
+    list(rep(1,10), rep(0.5,10), rep(0,10))
+  )
+  # Example tree
+  tree <- "((a:1,b:1):1,c:2);"
+  
+  # Test error when no argument is given
+  expect_error(MeanSiteFChange_cherry(),
+               info = "fails to throw an error when no argument is given")
+  
+  # Test errors incorrect structure indices
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(4), index_nonislands = c(1)), 
+               info = "fails to report incorrect island index") 
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(1), index_nonislands = c(5)), 
+               info = "fails to report incorrect non-island index")
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(1, 2), index_nonislands = c(2, 3)), 
+                 info = "fails to report duplicated index in both islands and non_islands")
+  
+  # Test errors with non-consistent number of structures
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)), 
+    list(rep(1,10), rep(0.5,10))
+  )
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(2,3), index_nonislands = c(1)),
+               info = "fails to throw an error when number of structures is non-equal at different tips")
+  
+  # Test errors with non-consistent number of sites for a given structure in different tips
+  data <- list(
+    list(rep(1,10), rep(0,10), rep(1,10)),
+    list(rep(1,10), rep(0.5,10), rep(0,10)), 
+    list(rep(1,10), rep(0.5,10), rep(0,8))
+  )
+  expect_error(MeanSiteFChange_cherry(data, tree, index_islands = c(2,3), index_nonislands = c(1)),
+               info = "fails to throw an error when number of sites is non-equal for a given structure at different tips")
+})
+
+test_that("MeanSiteFChange_cherry output", {
+  
+  tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
+  data <- list(
+    list(rep(1,10), rep(0,5), rep(1,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(rep(1,10), rep(0.5,5), rep(0,8)),
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
+  str1_sites_n <- 10
+  str2_sites_n <- 5
+  str3_sites_n <- 8
+  total_sites_n <- str1_sites_n + str2_sites_n + str3_sites_n
+  
+  # Test case all structures are islands
+  test <- "All structures are islands"
+  index_islands <- c(1,2,3)
+  index_nonislands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  exp_mean_ch1 <- (0+5+8)/total_sites_n
+  exp_mean_ch2 <- (10+5+2)/total_sites_n
+  expect_equal(o$island_meanFChange, c(exp_mean_ch1, exp_mean_ch2),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_true(all(is.na(o$nonisland_meanFChange)),
+              info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case all structures are non-islands
+  test <- "All structures are non-islands"
+  index_nonislands <- c(1,2,3)
+  index_islands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  exp_mean_ch1 <- (0+5+8)/total_sites_n
+  exp_mean_ch2 <- (10+5+2)/total_sites_n
+  expect_equal(o$nonisland_meanFChange, c(exp_mean_ch1, exp_mean_ch2),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  expect_true(all(is.na(o$island_meanFChange)),
+              info = paste("returns incorrect island_meanFChange in test case", test))
+  
+  # Test case 2 non-islands, 1 island
+  test <- "2 non-islands, 1 island"
+  index_nonislands <- c(1,3)
+  index_islands <- c(2)
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  exp_meanI_ch1 <- (5)/str2_sites_n
+  exp_meanNI_ch1 <- (0+8)/(str1_sites_n+str3_sites_n)
+  exp_meanI_ch2 <- (5)/str2_sites_n
+  exp_meanNI_ch2 <- (10+2)/(str1_sites_n+str3_sites_n)
+  expect_equal(o$island_meanFChange, c(exp_meanI_ch1, exp_meanI_ch2),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_equal(o$nonisland_meanFChange, c(exp_meanNI_ch1, exp_meanNI_ch2),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case 2 islands, 1 non-island
+  test <- "2 islands, 1 non-island"
+  index_islands <- c(1,3)
+  index_nonislands <- c(2)
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  exp_meanNI_ch1 <- (5)/str2_sites_n
+  exp_meanI_ch1 <- (0+8)/(str1_sites_n+str3_sites_n)
+  exp_meanNI_ch2 <- (5)/str2_sites_n
+  exp_meanI_ch2 <- (10+2)/(str1_sites_n+str3_sites_n)
+  expect_equal(o$island_meanFChange, c(exp_meanI_ch1, exp_meanI_ch2),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_equal(o$nonisland_meanFChange, c(exp_meanNI_ch1, exp_meanNI_ch2),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case data with one singlestr
+  test <- "Data with one singleStr: island"
+  data <- list(
+    list(rep(1,10)),
+    list(rep(1,10)),
+    list(rep(1,10)),
+    list(c(rep(0,5), rep(0.5, 5))))
+  str1_sites_n <- 10
+  index_islands <- c(1)
+  index_nonislands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$island_meanFChange, c(0, 1),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_true(all(is.na(o$nonisland_meanFChange)),
+              info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case data with one singlestr
+  test <- "Data with one singleStr: nonisland"
+  data <- list(
+    list(rep(1,10)),
+    list(rep(1,10)),
+    list(rep(1,10)),
+    list(c(rep(0,5), rep(0.5, 5))))
+  str1_sites_n <- 10
+  index_nonislands <- c(1)
+  index_islands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$nonisland_meanFChange, c(0, 1),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  expect_true(all(is.na(o$island_meanFChange)),
+              info = paste("returns incorrect island_meanFChange in test case", test))
+  
+  # Test case data with one singleStr and one site
+  test <- "Data with one singleStr with a single site: island"
+  data <- list(
+    list(c(1)),
+    list(c(1)),
+    list(c(1)),
+    list(c(0.5)))
+  str1_sites_n <- 10
+  index_islands <- c(1)
+  index_nonislands <- c()
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$island_meanFChange, c(0, 1),
+               info = paste("returns incorrect island_meanFChange in test case", test))
+  expect_true(all(is.na(o$nonisland_meanFChange)),
+              info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  
+  # Test case data with one singleStr and one site
+  test <- "Data with one singleStr with a single site: nonisland"
+  data <- list(
+    list(c(1)),
+    list(c(1)),
+    list(c(1)),
+    list(c(0.5)))
+  str1_sites_n <- 10
+  index_islands <- c()
+  index_nonislands <- c(1)
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$nonisland_meanFChange, c(0, 1),
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  expect_true(all(is.na(o$island_meanFChange)),
+              info = paste("returns incorrect island_meanFChange in test case", test))
+  
+  
+  # Test case with tree with a single cherry
+  test <- "Data with tree with a single cherry"
+  tree <- "((a:1,b:1):1,c:2);"
+  data <- list(
+    list(c(1)),
+    list(c(1)),
+    list(c(0.5)))
+  str1_sites_n <- 10
+  index_islands <- c()
+  index_nonislands <- c(1)
+  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  expect_equal(o$nonisland_meanFChange, 0,
+               info = paste("returns incorrect nonisland_meanFChange in test case", test))
+  expect_true(is.na(o$island_meanFChange),
+              info = paste("returns incorrect island_meanFChange in test case", test))
+  
+})
+
+
+test_that("get_meanMeth_islands input control",{
+  data <- list(
+    #Tip 1
+    list(c(rep(1,5), rep(0,5)), # mean 0.5
+         c(rep(0,9), 1), # mean 0.1
+         c(rep(1,8), rep(0.5,2))), # mean 0.9
+    #Tip 2
+    list(c(rep(1,9), rep(0.5,1)), # mean 0.95
+         c(rep(0.5,9), 1), # mean 0.55
+         c(rep(1,8), rep(0.5,2))), # mean 0.9
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # mean 0.95
+         c(rep(0.5,9), 1), # mean 0.55
+         c(rep(1,8), rep(0.5,2))), # mean 0.9
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), # mean 0.95
+         c(rep(1,9), 0), # mean 0.9
+         c(rep(1,8), rep(0.5,2)))) # mean 0.9
+  
+  index_islands <- c(1,4)
+  
+  expect_error(get_meanMeth_islands(index_islands = index_islands, data = data),
+               "Invalid island indices detected: 4. Number of structures in given data: 3",
+               info = "fails to throw error with incorrect island index")
+  
+  index_islands <- c()
+  expect_error(get_meanMeth_islands(index_islands = index_islands, data = data),
+               "'index_islands' has no indices")
+  
+})
+
+test_that("get_meanMeth_islands several sites per island", {
+  data <- list(
+    #Tip 1
+    list(c(rep(1,5), rep(0,5)), # mean 0.5
+         c(rep(0,9), 1), # mean 0.1
+         c(rep(1,8), rep(0.5,2))), # mean 0.9
+    #Tip 2
+    list(c(rep(1,9), rep(0.5,1)), # mean 0.95
+         c(rep(0.5,9), 1), # mean 0.55
+         c(rep(1,8), rep(0.5,2))), # mean 0.9
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # mean 0.95
+         c(rep(0.5,9), 1), # mean 0.55
+         c(rep(1,8), rep(0.5,2))), # mean 0.9
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), # mean 0.95
+         c(rep(1,9), 0), # mean 0.9
+         c(rep(1,8), rep(0.5,2)))) # mean 0.9
+  
+  index_islands <- c(1,3)
+  o <- get_meanMeth_islands(index_islands = index_islands, data = data)
+  expect_equal(o[[1]], c(0.5, 0.9),
+               info = "incorrect output tip 1")
+  expect_equal(o[[2]], c(0.95, 0.9),
+               info = "incorrect output tip 2")
+  expect_equal(o[[3]], c(0.95, 0.9),
+               info = "incorrect output tip 3")
+  expect_equal(o[[4]], c(0.95, 0.9),
+               info = "incorrect output tip 4")
+  
+  index_islands <- c(2)
+  o <- get_meanMeth_islands(index_islands = index_islands, data = data)
+  expect_equal(o[[1]], 0.1,
+               info = "incorrect output tip 1")
+  expect_equal(o[[2]], 0.55,
+               info = "incorrect output tip 2")
+  expect_equal(o[[3]], 0.55,
+               info = "incorrect output tip 3")
+  expect_equal(o[[4]], 0.9,
+               info = "incorrect output tip 4")
+})
+
+test_that("categorize_islandGlbSt input control", {
+  data <- list(
+    list(c(rep(1,5), rep(0,5)), # mean 0.5
+         c(rep(0,9), 1), # mean 0.1
+         c(rep(1,8), rep(0.5,2)))) # mean 0.9
+  index_islands <- c(1,3)
+  meanMeth_islands <- get_meanMeth_islands(index_islands = index_islands, data = data)
+
+  u_threshold <- -0.1
+  m_threshold <- 0.9
+  expect_error(categorize_islandGlbSt(meanMeth_islands[[1]], u_threshold = u_threshold, m_threshold = m_threshold),
+               "Both 'u_threshold' and 'm_threshold' must be between 0 and 1, and 'u_threshold' must be smaller than 'm_threshold'.",
+               info = "fails to throw an error with 'u_threshold' smaller than 0")
+  
+  u_threshold <- 0.1
+  m_threshold <- 1.1
+  expect_error(categorize_islandGlbSt(meanMeth_islands[[1]], u_threshold = u_threshold, m_threshold = m_threshold),
+               "Both 'u_threshold' and 'm_threshold' must be between 0 and 1, and 'u_threshold' must be smaller than 'm_threshold'.",
+               info = "fails to throw an error with 'm_threshold' larger than 1")
+  
+  u_threshold <- 0.5
+  m_threshold <- 0.4
+  expect_error(categorize_islandGlbSt(meanMeth_islands[[1]], u_threshold = u_threshold, m_threshold = m_threshold),
+               "Both 'u_threshold' and 'm_threshold' must be between 0 and 1, and 'u_threshold' must be smaller than 'm_threshold'.",
+               info = "fails to throw an error with 'm_threshold' larger than 'm_threshold'")
+  
+})
+
+test_that("categorize_islandGlbSt categorizes correctly for different thresholds", {
+  data <- list(
+    #Tip 1
+    list(c(rep(1,5), rep(0,5)), # mean 0.5
+         c(rep(0,9), 1), # mean 0.1
+         c(rep(1,8), rep(0.5,2)))) # mean 0.9
+  index_islands <- c(1,3)
+  meanMeth_islands <- get_meanMeth_islands(index_islands = index_islands, data = data)
+  expect_equal(categorize_islandGlbSt(meanMeth_islands[[1]], u_threshold = 0.2, m_threshold = 0.9),
+               c("p", "m"))
+  expect_equal(categorize_islandGlbSt(meanMeth_islands[[1]], u_threshold = 0.2, m_threshold = 0.91),
+               c("p", "p"))
+  index_islands <- c(2)
+  meanMeth_islands <- get_meanMeth_islands(index_islands = index_islands, data = data)
+  expect_equal(categorize_islandGlbSt(meanMeth_islands[[1]], u_threshold = 0.2, m_threshold = 0.9),
+               "u")
+  expect_equal(categorize_islandGlbSt(meanMeth_islands[[1]], u_threshold = 0.09, m_threshold = 0.91),
+               "p")
+})
+
+test_that("compute_fitch input control", {
+  
+  # Non-valid tree, less than 2 tips
+  tree <- "(1:1);"
+  meth <- matrix(c("m"))
+  rownames(meth) <- "1"
+  expect_error(compute_fitch(tree, meth),
+               "The input 'tree' must have a minimum of 2 tips.")
+  
+  # Non-valid Newick format
+  tree <- "1:1"
+  expect_error(compute_fitch(tree, meth),
+               info = "fails to throw error with non-valid Newick format")
+  
+  # Non-valid tree, duplicated tree labels
+  tree <- "((a:1,a:1):2,(b:1.25,c:1.25):0.5);"
+  meth <- matrix(rep("m",4), nrow = 4)
+  rownames(meth) <- c("a", "a", "b", "c")
+  expect_error(compute_fitch(tree, meth),
+               "The input tree has duplicated tree labels: a")
+  
+  # meth matrix rownames not identical to tree tip labels
+  tree <- "((a:1,d:1):2,(b:1.25,c:1.25):0.5);"
+  meth <- matrix(rep("m",4), nrow = 4)
+  rownames(meth) <- c("a", "e", "b", "c")
+  expect_error(compute_fitch(tree, meth),
+               "Input 'meth' matrix rownames must match tree tip labels exactly, in the same order as tips from left to right in the Newick tree.")
+  
+  # Check that with input control FALSE no initial error is given
+  # (only uninformative error)
+  expect_error(compute_fitch(tree, meth, input_control = FALSE),
+               "subscript out of bounds")
+})
+
+test_that("computeFitch_islandGlbSt input control",{
+  
+  # Non-valid tree, less than 2 tips
+  tree <- "(1:1);"
+  data <- list(list(rep(1,5)))
+  index_islands <- c(1)
+  expect_error(computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9),
+               "The input 'tree' must have a minimum of 2 tips.")
+  
+  # Non-valid tree, duplicated tree labels
+  tree <- "(a:1,a:1);"
+  data <- list(
+    list(rep(1,5)),
+    list(rep(1,5))
+  )
+  expect_error(computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9),
+               "The input tree has duplicated tree labels: a")
+  
+  # Non-valid island index
+  tree <- "(a:1,b:1);"
+  index_islands <- c(2)
+  expect_error(computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9),
+               "Invalid island indices detected: 2. Number of structures in given data: 1")
+  
+  # Incorrect u_threshold
+  index_islands <- c(1)
+  expect_error(computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 5, m_threshold = 0.9),
+               "Both 'u_threshold' and 'm_threshold' must be between 0 and 1, and 'u_threshold' must be smaller than 'm_threshold'.")
+  
+  # Incorrect m_threshold
+  expect_error(computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0),
+               "Both 'u_threshold' and 'm_threshold' must be between 0 and 1, and 'u_threshold' must be smaller than 'm_threshold'.")
+})
+
+test_that("computeFitch_islandGlbSt testing output",{
+  
+  # Set tree and data
+  tree <- "((1:1,2:1):2,(3:1.25,4:1.25):0.5);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,5), rep(0,5)), # mean 0.5
+         c(rep(0,9), 1), # mean 0.1
+         c(rep(1,8), rep(0.5,2))), # mean 0.9
+    #Tip 2
+    list(c(rep(1,9), rep(0.5,1)), # mean 0.95
+         c(rep(0.5,9), 1), # mean 0.55
+         c(rep(1,8), rep(0.5,2))), # mean 0.9
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # mean 0.95
+         c(rep(0.5,9), 1), # mean 0.55
+         c(rep(1,8), rep(0.5,2))), # mean 0.9
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), # mean 0.95
+         c(rep(1,9), 0), # mean 0.9
+         c(rep(1,8), rep(0.5,2)))) # mean 0.9
+  
+  index_islands <- c(1,3)
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9, testing = TRUE)
+  expect_equal(rownames(o$upmdata), c("1", "2", "3", "4"))
+  expect_equal(o$upmdata_list[[1]], c("p", "m"))
+  expect_equal(o$upmdata[1,], c("p", "m"))
+  expect_equal(o$upmdata_list[[2]], c("m", "m"))
+  expect_equal(o$upmdata[2,], c("m", "m"))
+  expect_equal(o$upmdata_list[[3]], c("m", "m"))
+  expect_equal(o$upmdata[3,], c("m", "m"))
+  expect_equal(o$upmdata_list[[4]], c("m", "m"))
+  expect_equal(o$upmdata[4,], c("m", "m"))
+  
+  # Test with non-numeric labels
+  tree <- "((a:1,b:1):2,(c:1.25,d:1.25):0.5);"
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9, testing = TRUE)
+  expect_equal(rownames(o$upmdata), c("a", "b", "c", "d"))
+  expect_equal(o$upmdata_list[[1]], c("p", "m"))
+  expect_equal(o$upmdata[1,], c("p", "m"))
+  expect_equal(o$upmdata_list[[2]], c("m", "m"))
+  expect_equal(o$upmdata[2,], c("m", "m"))
+  expect_equal(o$upmdata_list[[3]], c("m", "m"))
+  expect_equal(o$upmdata[3,], c("m", "m"))
+  expect_equal(o$upmdata_list[[4]], c("m", "m"))
+  expect_equal(o$upmdata[4,], c("m", "m"))
+})
+
+test_that("compute_fitch 8 tips numeric labels 2 structures", {
+  
+  # Set tree and data
+  tree <- "(((1:1,2:1):1,(3:1,4:1):1):1,((5:1,6:1):1,(7:1,8:1):1):1);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,5), rep(0,5)), # p
+         c(rep(0,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 2
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(1,9), 0), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 5
+    list(c(rep(1,5), rep(0,5)), # p
+         c(rep(0,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 6
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 7
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 8
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(1,9), 0), 
+         c(rep(0,9), rep(0.5,1)))) # u
+  
+  index_islands <- c(1,3)
+  u_threshold <- 0.1
+  m_threshold <- 0.9
+  
+  tree <- validate_tree(tree)
+  meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+  upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  o <- compute_fitch(ape::write.tree(tree), upmdata)
+  expect_equal(o$optStateSet[[1]], "m")
+  expect_equal(o$optStateSet[[2]], "m")
+  expect_equal(o$minChange_number, c(3,1))
+})
+
+test_that("computeFitch_islandGlbSt 8 tips numeric labels 2 structures", {
+  
+  # Set tree and data
+  tree <- "(((1:1,2:1):1,(3:1,4:1):1):1,((5:1,6:1):1,(7:1,8:1):1):1);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,5), rep(0,5)), # p
+         c(rep(0,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 2
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(1,9), 0), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 5
+    list(c(rep(1,5), rep(0,5)), # p
+         c(rep(0,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 6
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 7
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 8
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(1,9), 0), 
+         c(rep(0,9), rep(0.5,1)))) # u
+  
+  index_islands <- c(1,3)
+  
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9)
+  expect_equal(o, c(3,1))
+})
+
+
+test_that("compute_fitch 8 tips non-numeric labels 2 structures", {
+  
+  # Set tree and data
+  tree <- "(((a:1,b:1):1,(c:1,d:1):1):1,((e:1,f:1):1,(g:1,h:1):1):1);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,5), rep(0,5)), # p
+         c(rep(0,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 2
+    list(c(rep(0.5,9), rep(0.5,1)), # p
+         c(rep(0.5,9), 1), 
+         c(rep(0,8), rep(0.5,2))), # u
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(0.5,8), rep(0.5,2))), # p
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(1,9), 0), 
+         c(rep(0.5,8), rep(0.5,2))), # p
+    #Tip 5
+    list(c(rep(0,5), rep(0,5)), # u
+         c(rep(0,9), 1), 
+         c(rep(0.5,8), rep(0.5,2))), # p
+    #Tip 6
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 7
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(0,8), rep(0.5,2))), # u
+    #Tip 8
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(1,9), 0), 
+         c(rep(0,9), rep(0.5,1)))) # u
+  
+  index_islands <- c(1,3)
+  u_threshold <- 0.1
+  m_threshold <- 0.9
+  
+  tree <- validate_tree(tree)
+  meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+  upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  o <- compute_fitch(ape::write.tree(tree), upmdata)
+  expect_true(all(c("u", "p", "m") %in% o$optStateSet[[1]]))
+  expect_true(all(c("u", "p", "m") %in% o$optStateSet[[2]]))
+  expect_equal(o$minChange_number, c(2,4))
+})
+
+test_that("computeFitch_islandGlbSt 8 tips non-numeric labels 2 structures", {
+
+  # Set tree and data
+  tree <- "(((a:1,b:1):1,(c:1,d:1):1):1,((e:1,f:1):1,(g:1,h:1):1):1);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,5), rep(0,5)), # p
+         c(rep(0,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 2
+    list(c(rep(0.5,9), rep(0.5,1)), # p
+         c(rep(0.5,9), 1), 
+         c(rep(0,8), rep(0.5,2))), # u
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(0.5,8), rep(0.5,2))), # p
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(1,9), 0), 
+         c(rep(0.5,8), rep(0.5,2))), # p
+    #Tip 5
+    list(c(rep(0,5), rep(0,5)), # u
+         c(rep(0,9), 1), 
+         c(rep(0.5,8), rep(0.5,2))), # p
+    #Tip 6
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2))), # m
+    #Tip 7
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(0,8), rep(0.5,2))), # u
+    #Tip 8
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(1,9), 0), 
+         c(rep(0,9), rep(0.5,1)))) # u
+  
+  index_islands <- c(1,3)
+  
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9)
+  expect_equal(o, c(2,4))
+})
+
+
+test_that("compute_fitch 4 tips numeric labels 2 structures", {
+  
+  # Set tree and data
+  tree <- "((1:1,2:1):2,(3:1.25,4:1.25):0.5);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), # m
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), # u
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))), # m
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0.5,1))), # u
+    #Tip 4
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1)))) # m
+  
+  index_islands <- c(1,3)
+  u_threshold <- 0.1
+  m_threshold <- 0.9
+  
+  tree <- validate_tree(tree)
+  meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+  upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  o <- compute_fitch(ape::write.tree(tree), upmdata)
+  expect_true(all(c("u", "m") %in% o$optStateSet[[1]]))
+  expect_true(all(c("u", "m") %in% o$optStateSet[[2]]))
+  expect_equal(o$minChange_number, c(2,2))
+})
+
+test_that("computeFitch_islandGlbSt 4 tips numeric labels 2 structures", {
+  
+  # Set tree and data
+  tree <- "((1:1,2:1):2,(3:1.25,4:1.25):0.5);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), # m
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), # u
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))), # m
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0.5,1))), # u
+    #Tip 4
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1)))) # m
+  
+  index_islands <- c(1,3)
+  
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9)
+  expect_equal(o, c(2,2))
+})
+
+
+test_that("compute_fitch 4 tips non-numeric labels 2 structures", {
+  
+  # Set tree and data
+  tree <- "((d:1,e:1):2,(a:1.25,b:1.25):0.5);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), # m
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), # u
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))), # m
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0.5,1))), # u
+    #Tip 4
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1)))) # m
+  
+  index_islands <- c(1,3)
+  u_threshold <- 0.1
+  m_threshold <- 0.9
+  
+  tree <- validate_tree(tree)
+  meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+  upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  o <- compute_fitch(ape::write.tree(tree), upmdata)
+  expect_true(all(c("u", "m") %in% o$optStateSet[[1]]))
+  expect_true(all(c("u", "m") %in% o$optStateSet[[2]]))
+  expect_equal(o$minChange_number, c(2,2))
+})
+
+test_that("computeFitch_islandGlbSt 4 tips non-numeric labels 2 structures", {
+  
+  # Set tree and data
+  tree <- "((d:1,e:1):2,(a:1.25,b:1.25):0.5);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), # m
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), # u
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))), # m
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), # m
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0.5,1))), # u
+    #Tip 4
+    list(c(rep(0,9), rep(0.5,1)), # u
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1)))) # m
+  
+  index_islands <- c(1,3)
+  
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9)
+  expect_equal(o, c(2,2))
+})
+
+
+test_that("compute_fitch 3 tips unordered numeric labels 1 structure", {
+  
+  # Set tree and data
+  tree <- "((3:1,2:1):2,5:2);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1))), # m
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1))), # u
+    #Tip 3
+    list(c(rep(0.5,9), rep(0.5,1)))) # p
+  
+  index_islands <- c(1)
+  u_threshold <- 0.1
+  m_threshold <- 0.9
+  
+  tree <- validate_tree(tree)
+  meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+  upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  o <- compute_fitch(ape::write.tree(tree), upmdata)
+  expect_true(all(c("u", "p", "m") %in% o$optStateSet[[1]]))
+  expect_equal(o$minChange_number, 2)
+})
+
+test_that("computeFitch_islandGlbSt 3 tips unordered numeric labels 1 structure", {
+  
+  # Set tree and data
+  tree <- "((3:1,2:1):2,5:2);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1))), # m
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1))), # u
+    #Tip 3
+    list(c(rep(0.5,9), rep(0.5,1)))) # p
+  
+  index_islands <- c(1)
+  
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9)
+  expect_equal(o, 2)
+})
+
+
+test_that("compute_fitch 3 tips non-numeric labels 1 structure", {
+  
+  # Set tree and data
+  tree <- "((bla:1,bah:1):2,booh:2);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1))), # m
+    #Tip 2
+    list(c(rep(0.5,9), rep(0.5,1))), # p
+    #Tip 3
+    list(c(rep(0.5,9), rep(0.5,1)))) # p
+  
+  index_islands <- c(1)
+  u_threshold <- 0.1
+  m_threshold <- 0.9
+  
+  tree <- validate_tree(tree)
+  meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+  upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  o <- compute_fitch(ape::write.tree(tree), upmdata)
+  expect_equal(o$optStateSet[[1]], "p")
+  expect_equal(o$minChange_number, 1)
+})
+
+test_that("computeFitch_islandGlbSt 3 tips non-numeric labels 1 structure", {
+  
+  # Set tree and data
+  tree <- "((bla:1,bah:1):2,booh:2);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1))), # m
+    #Tip 2
+    list(c(rep(0.5,9), rep(0.5,1))), # p
+    #Tip 3
+    list(c(rep(0.5,9), rep(0.5,1)))) # p
+  
+  index_islands <- c(1)
+  
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9)
+  expect_equal(o, 1)
+})
+
+
+
+test_that("compute_fitch 4 tips asymmetric tree numeric labels 1 structure", {
+  
+  # Set tree and data
+  tree <- "(((1:1,2:1):2,3:2):1,4:4);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1))), # m
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1))), # u
+    #Tip 3
+    list(c(rep(0.5,9), rep(0.5,1))), # p
+    #Tip 4
+    list(c(rep(0.5,9), rep(0.5,1)))) # p
+  
+  index_islands <- c(1)
+  u_threshold <- 0.1
+  m_threshold <- 0.9
+  
+  tree <- validate_tree(tree)
+  meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+  upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  o <- compute_fitch(ape::write.tree(tree), upmdata)
+  expect_equal(o$optStateSet[[1]], "p")
+  expect_equal(o$minChange_number, 2)
+})
+
+test_that("computeFitch_islandGlbSt 4 tips asymmetric tree labels 1 structure", {
+  
+  # Set tree and data
+  tree <- "(((1:1,2:1):2,3:2):1,4:4);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1))), # m
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1))), # u
+    #Tip 3
+    list(c(rep(0.5,9), rep(0.5,1))), # p
+    #Tip 4
+    list(c(rep(0.5,9), rep(0.5,1)))) # p
+  
+  index_islands <- c(1)
+  
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9)
+  expect_equal(o, 2)
+})
+
+
+test_that("compute_fitch 4 tips asymmetric tree non-numeric labels 1 structure", {
+  
+  # Set tree and data
+  tree <- "(((d5:1,epsilon:1):2,f501267:2):1,iota:4);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1))), # m
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1))), # u
+    #Tip 3
+    list(c(rep(0.5,9), rep(0.5,1))), # p
+    #Tip 4
+    list(c(rep(0.5,9), rep(0.5,1)))) # p
+  
+  index_islands <- c(1)
+  u_threshold <- 0.1
+  m_threshold <- 0.9
+  
+  tree <- validate_tree(tree)
+  meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+  upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  o <- compute_fitch(ape::write.tree(tree), upmdata)
+  expect_equal(o$optStateSet[[1]], "p")
+  expect_equal(o$minChange_number, 2)
+})
+
+test_that("computeFitch_islandGlbSt 4 tips asymmetric tree non-numeric labels 1 structure", {
+  
+  # Set tree and data
+  tree <- "(((d5:1,epsilon:1):2,f501267:2):1,iota:4);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1))), # m
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1))), # u
+    #Tip 3
+    list(c(rep(0.5,9), rep(0.5,1))), # p
+    #Tip 4
+    list(c(rep(0.5,9), rep(0.5,1)))) # p
+  
+  index_islands <- c(1)
+  
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9)
+  expect_equal(o, 2)
+})
+
+
+
+
+
 
 
 

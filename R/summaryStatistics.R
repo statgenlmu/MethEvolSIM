@@ -1,3 +1,56 @@
+#' Validate Structure Indices for Island and Non-Island Data
+#'
+#' This function checks whether the provided indices for islands and non-islands 
+#' are within the valid range of structures in the dataset. It also warns if 
+#' any indices are present in both `index_islands` and `index_nonislands`.
+#'
+#' @param data A nested list \code{data[[tip]][[structure]]}. 
+#'   Assumes that the number of structures is consistent across tips and that
+#'   within each structure, all tips have the same number of sites. 
+#'   The number of structures is inferred from `length(data[[1]])`.
+#' @param index_islands An integer vector specifying indices that correspond to island structures.
+#' @param index_nonislands An integer vector specifying indices that correspond to non-island structures.
+#'
+#' @details The funct@exportion performs the following checks:
+#' - Ensures that all indices in `index_islands` and `index_nonislands` are within 
+#'   the range of available structures.
+#' - Throws an error if any index is out of bounds.
+#' - Issues a warning if the same index appears in both `index_islands` and `index_nonislands`.
+#'
+#' @return No return value. The function stops execution if invalid indices are detected.
+validate_structureIndices <- function(data, index_islands, index_nonislands) {
+  
+  # Get the number of structures
+  str_n <- length(data[[1]])
+  
+  # Define the valid range
+  valid_indices <- 1:str_n
+  
+  # Check whether there are invalid indices
+  invalid_island_indices <- index_islands[!(index_islands %in% valid_indices)]
+  invalid_nonisland_indices <- index_nonislands[!(index_nonislands %in% valid_indices)]
+  
+  # If there are any invalid indices, throw an error
+  if (length(invalid_island_indices) > 0) {
+    stop(sprintf("Invalid island indices detected: %s. Number of structures in given data: %d", 
+                 paste(invalid_island_indices, collapse = ", "), str_n))
+  }
+  
+  if (length(invalid_nonisland_indices) > 0) {
+    stop(sprintf("Invalid non-island indices detected: %s. Number of structures in given data: %d", 
+                 paste(invalid_nonisland_indices, collapse = ", "), str_n))
+  }
+  
+  # Check for overlapping indices
+  overlapping_indices <- intersect(index_islands, index_nonislands)
+  
+  if (length(overlapping_indices) > 0) {
+    warning(sprintf("The following indices are present in both 'index_islands' and 'index_nonislands': %s", 
+                    paste(overlapping_indices, collapse = ", ")))
+  }
+}
+
+
 #### #### #### Frequency of methylation states per structure type #### #### ####
 
 #' Calculate the Mean Frequency of Partially Methylated Sites in Islands
@@ -29,6 +82,18 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    if(length(index_islands) == 0) stop("'index_islands' has no indices")
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  
   mean_island <- c()
   island_counter <- 1
   for (i in index_islands){
@@ -72,6 +137,17 @@ get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    if(length(index_nonislands) == 0) stop("'index_nonislands' has no indices")
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   mean_nonisland <- c()
   nonisland_counter <- 1
   for (i in index_nonislands){
@@ -117,6 +193,17 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    if(length(index_islands) == 0) stop("'index_islands' has no indices")
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   mean_island <- c()
   island_counter <- 1
   for (i in index_islands){
@@ -159,6 +246,17 @@ get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    if(length(index_nonislands) == 0) stop("'index_nonislands' has no indices")
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   mean_nonisland <- c()
   nonisland_counter <- 1
   for (i in index_nonislands){
@@ -203,6 +301,16 @@ get_islandSDFreqP <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   sd_tip <- c() 
   for (s in 1:sample_n){
     freq_island <- c()
@@ -246,6 +354,16 @@ get_nonislandSDFreqP <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   sd_tip <- c() 
   for (s in 1:sample_n){
     freq_nonisland <- c()
@@ -290,6 +408,16 @@ get_islandSDFreqM <- function(index_islands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   sd_tip <- c() 
   for (s in 1:sample_n){
     freq_island <- c()
@@ -335,6 +463,16 @@ get_nonislandSDFreqM <- function(index_nonislands, data, sample_n){
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   sd_tip <- c() 
   for (s in 1:sample_n){
     freq_nonisland <- c()
@@ -390,6 +528,17 @@ compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sampl
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index islands
+  tryCatch({
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  
   str_counter <- 1
   cor <- c(NA) 
   for (tip in 1:sample_n){
@@ -452,6 +601,16 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
     data_list[[1]] <- data
     data <- data_list
   }
+  
+  # Validate index non-islands
+  tryCatch({
+    validate_structureIndices(data, index_islands = c(), index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   str_counter <- 1
   cor <- c(NA) 
   for (tip in 1:sample_n){
@@ -477,7 +636,68 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
   return(mean(cor))
 }
 
+
+
 #### #### #### Tree cherries comparisons #### #### ####
+
+#' Validate and Parse a Phylogenetic Tree
+#'
+#' This function checks whether the input is a valid phylogenetic tree, either as a character string in Newick format
+#' or as an object of class \code{phylo} from the \code{ape} package. If the input is a Newick string, it is parsed into 
+#' a \code{phylo} object. The function also ensures that the tree contains at least two tips.
+#'
+#' @param tree A phylogenetic tree in Newick format (as a character string) or an object of class \code{phylo} from the \code{ape} package.
+#'   - If the input is a character string, it must follow the Newick format (e.g., \code{"((tip_1:1,tip_2:1):5,tip_3:6);"}).
+#'   - If an object of class \code{phylo} is provided, it should be a valid phylogenetic tree.
+#'
+#' @return A \code{phylo} object representing the validated and parsed tree.
+#'
+#' @details 
+#' - The function first verifies that the input is either a valid \code{phylo} object or a character string.
+#' - If the input is a Newick string, it attempts to parse it into a \code{phylo} object using \code{ape::read.tree()}.
+#' - If parsing fails, an informative error message is returned.
+#' - The function also checks that the tree contains at least two tips, as a valid phylogenetic tree should have at least one split.
+#'
+#' @importFrom ape read.tree
+validate_tree <- function(tree){
+  
+  # Check that the input is a character string or phylo object
+  if (!is.character(tree) && !inherits(tree, "phylo")) {
+    stop(paste("Argument 'tree' must be a character string in newick format (e.g. '((tip_1:1,tip_2:1):5,tip_3:6);').\n",
+               "or an object of class 'phylo' from the 'ape' package. For more details, see ?phylo or ?ape."))
+  }
+  
+  # Transform the newick tree in a phylo object managing issues with given tree format
+  if(!inherits(tree, "phylo")) {
+    tryCatch({
+      # Attempt to read the tree
+      tree <- ape::read.tree(text = tree)
+      # Check if the result is NULL, which indicates an issue with the tree format
+      if (is.null(tree)) {
+        stop("Error in ape::read.tree(tree): Tree could not be parsed. Invalid format.")
+      }
+    }, warning = function(w) {
+      stop(paste("Error in ape::read.tree(tree): Invalid 'tree' format: ", conditionMessage(w), "\n",
+                 "Argument 'tree' must be a character string in newick format (e.g. '((tip_1:1,tip_2:1):5,tip_3:6);').\n",
+                 "or an object of class 'phylo' from the 'ape' package. For more details, see ?phylo or ?ape."))
+    }, error = function(e) {
+      stop(paste("Error in ape::read.tree(tree): Invalid 'tree' format: ", conditionMessage(e), "\n",
+                 "Argument 'tree' must be a character string in newick format (e.g. '((tip_1:1,tip_2:1):5,tip_3:6);').\n",
+                 "or an object of class 'phylo' from the 'ape' package. For more details, see ?phylo or ?ape."))
+    })
+  }
+  
+  # Check given tree has minium two tips
+  if (length(tree$tip.label)<2) stop("The input 'tree' must have a minimum of 2 tips.")
+  
+  # Check given tree has unique tip labels
+  if (any(duplicated(tree$tip.label))) {
+    stop(paste("The input tree has duplicated tree labels:", paste(unique(tree$tip.label[duplicated(tree$tip.label)]), collapse = ", ")))
+  }
+  
+  # Return tree as phylo object
+  tree
+}
 
 #' Get Cherry Pair Distances from a Phylogenetic Tree
 #'
@@ -492,6 +712,10 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
 #' If the input is a character string, it must follow the Newick or New Hampshire format (e.g. \code{"((tip_1:1,tip_2:1):5,tip_3:6);"}).
 #' If an object of class \code{phylo} is provided, it should represent a valid phylogenetic tree.
 #'
+#' @param input_control A logical value indicating whether to validate the input tree. 
+#' If \code{TRUE} (default), the function checks that the tree is in a valid format and has at least two tips.
+#' If \code{FALSE}, the function assumes the tree is already valid and skips the validation step.
+#'
 #' @return A data frame with five columns:
 #'   \item{first_tip_name}{A character string representing the name of the first tip in the cherry.}
 #'   \item{second_tip_name}{A character string representing the name of the second tip in the cherry.}
@@ -499,13 +723,14 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
 #'   \item{second_tip_index}{An integer representing the index of the second tip in the cherry.}
 #'   \item{dist}{A numeric value representing the sum of the branch lengths between the two tips (i.e., the distance between the cherries).}
 #'   
-#' @details The function first checks if the input is either a character string in the Newick format or an object of class \code{phylo}.
-#'   It then computes the pairwise distances between the tips in the tree and identifies the sister pairs (cherries).
-#'   The distance between each cherry is the sum of the branch lengths leading to the sister tips.
-#'   The tips of each cherry are identified by the tip names and the tip indices. 
-#'   The tip indices correspond to (a) the index from left to right on the newick string,
-#'   (b) the order of the tip label in the phylo_object$tip.label, and (c) the index in the methylation data list
-#'   (\code{data[[tip]][[structure]]}) as obtained with the function simulate_evolData() when the given tree has several tips.
+#' @details The function first checks if the input is either a character string in the Newick format or an object of class \code{phylo}, 
+#' unless \code{input_control} is set to \code{FALSE}. It then computes the pairwise distances between the tips in the tree and 
+#' identifies the sister pairs (cherries). The distance between each cherry is the sum of the branch lengths leading to the sister tips.
+#'   
+#'   The tips of each cherry are identified by their names and indices. 
+#'   The tip indices correspond to (a) the index from left to right on the Newick string, 
+#'   (b) the order of the tip label in the \code{phylo_object$tip.label}, and 
+#'   (c) the index in the methylation data list (\code{data[[tip]][[structure]]}) as obtained with the function \code{simulate_evolData()} when the given tree has several tips.
 #'   
 #'   If the tree is provided in Newick format, it will be parsed using the \code{ape::read.tree} function.
 #'   
@@ -513,41 +738,23 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
 #'   
 #' @examples
 #' # Example of a tree in Newick format
+#' 
 #' newick_tree <- "((a:1,b:2):5,c:6);"
+#' 
 #' get_cherryDist(newick_tree)
 #' 
 #' # Example of using a phylo object from ape
+#' 
 #' library(ape)
 #' tree_phylo <- read.tree(text = "((a:1,b:1):5,c:6);")
+#' 
 #' get_cherryDist(tree_phylo)
 #' 
 #' @export
-get_cherryDist <- function(tree){
+get_cherryDist <- function(tree, input_control = TRUE){
   
-  # Check that the input is a character string or phylo object
-  if (!is.character(tree) && !inherits(tree, "phylo")) {
-    stop(paste("Argument 'tree' must be a character string in newick format (e.g. '((tip_1:1,tip_2:1):5,tip_3:6);').\n",
-               "or an object of class 'phylo' from the 'ape'. For more details, see ?phylo or ?ape."))
-  }
-  
-  # Transform the newick tree in a phylo object managing issues with given tree format
-  if(!inherits(tree, "phylo")) {
-    tryCatch({
-      # Attempt to read the tree
-      tree <- ape::read.tree(text = tree)
-      # Check if the result is NULL, which indicates an issue with the tree format
-      if (is.null(tree)) {
-        stop("Error in ape::read.tree(tree): Tree could not be parsed. Invalid format.")
-      }
-    }, warning = function(w) {
-      stop("Error in ape::read.tree(tree): Invalid 'tree' format: ", conditionMessage(w))
-    }, error = function(e) {
-      stop("Error in ape::read.tree(tree): Invalid 'tree' format: ", conditionMessage(e))
-    })
-  }
-  
-  # Check given tree has minium two tips
-  if (length(tree$tip.label)<2) stop("The input 'tree' must have a minimum of 2 tips.")
+  # Check input tree format and minium two tips, get tree in phylo format (ape package)
+  if (input_control) tree <- validate_tree(tree)
   
   # Compute the pairwise distances between the tips from a phylogenetic tree
   dist <- ape::cophenetic.phylo(tree)
@@ -590,6 +797,49 @@ get_cherryDist <- function(tree){
 }
 
 
+#' Validate Structure of Input Data for Cherry Distance Computation
+#'
+#' This function checks whether the provided input data has the required structure.
+#' It ensures that the number of tips is sufficient and that the data structure is consistent across tips and structures.
+#'
+#' @param cherryDist A data frame containing cherry pair distances, including tip indices (output from \code{get_cherryDist})
+#' @param data A nested list representing structured data for each tip, following the format \code{data[[tip]][[structure]]}.
+#'
+#' @details The function performs several validation steps:
+#' - Ensures that the number of tips in \code{data} is at least as large as the highest tip index in \code{cherryDist}.
+#' - Checks that all tips contain at least one structure and that the number of structures is consistent across tips.
+#' - Verifies that within each structure, all tips have the same number of sites and no zero-length structures.
+#'
+#' If any of these conditions fail, the function throws an error with a descriptive message.
+validate_data <- function(cherryDist, data){
+  
+  # Get the number of tips in data
+  num_tips<- length(data)
+  
+  # Check the number of tips is equal or greater to the maximum tip index in cherryDist argument
+  if(!num_tips>=max(c(cherryDist$first_tip_index, cherryDist$second_tip_index))){
+    stop("Argument 'data' with required structure data[[tip]][[structure]] does not have enough tips")
+  }
+  
+  # Ensure the number of structures is > 0 and equal across tips
+  lengths_per_tip <- sapply(seq_len(num_tips), function(tip) length(data[[tip]]))
+  if (!(all(lengths_per_tip > 0) && length(unique(lengths_per_tip)) == 1)) {
+    stop("Input 'data' with required structure data[[tip]][[structure]] has some tips with zero or differing number of structures. Check given 'data' structure.")
+  }
+  
+  # Set the number of structures after checking consistency across tips
+  str_n <- length(data[[1]]) 
+  
+  # Iterate over each structure and check length (number of sites) consistency across tips
+  for (structure in seq_len(str_n)) {
+    lengths_per_tip <- sapply(seq_len(num_tips), function(tip) length(data[[tip]][[structure]]))
+    
+    # Ensure all lengths are > 0 and equal across tips
+    if (!(all(lengths_per_tip > 0) && length(unique(lengths_per_tip)) == 1)) {
+      stop(paste("Error: Input 'data' with required structure data[[tip]][[structure]] has inconsistent lengths across tips or zero length at some tips at structure", structure, "."))
+    }
+  }
+}
 
 #' Count Methylation Differences Between Cherry Pairs
 #'
@@ -610,38 +860,42 @@ get_cherryDist <- function(tree){
 #' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
 #'   The data should be structured as \code{data[[tip]][[structure]]}, where each structure has the same number of sites across tips.
 #'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
+#'   
+#' @param input_control A logical value indicating whether to validate the input data. 
+#' If \code{TRUE} (default), the function checks that the data has the required structure.
+#' It ensures that the number of tips is sufficient and that the data structure is consistent across tips and structures.
+#' If \code{FALSE}, the function assumes the tree is already valid and skips the validation step.
 #'
 #' @return A data frame with one row per cherry, containing the following columns:
 #'   \describe{
 #'     \item{tip_names}{A character string representing the names of the two tips in the cherry, concatenated with a hyphen.}
 #'     \item{tip_indices}{A character string representing the indices of the two tips in the cherry, concatenated with a hyphen.}
 #'     \item{dist}{A numeric value representing the sum of the branch distances between the cherry tips.}
-#'     \item{\code{[str_number]_f}}{An integer count of the sites with a full methylation difference (where one tip is methylated and the other is unmethylated) for the given structure (str).}
-#'     \item{\code{[str_number]_h}}{An integer count of the sites with a half methylation difference (where one tip is partially methylated and the other is either fully methylated or unmethylated) for the given structure (str).}
+#'     \item{One column for each structure named with the structure number followed by _f}{An integer count of the sites with a full methylation difference (where one tip is methylated and the other is unmethylated) for the given structure.}
+#'     \item{One column for each structure named with the structure number followed by _h}{An integer count of the sites with a half methylation difference (where one tip is partially methylated and the other is either fully methylated or unmethylated) for the given structure.}
 #'   }
 #'
 #' @details The function first verifies that \code{cherryDist} contains the required columns and has at least one row.
 #'   It also ensures that \code{data} contains a sufficient number of tips and that all structures have the same number of sites.
-#'   The function then iterates over each cherry and genomic structure to compute the full and half methylation differences
+#'   The function then iterates over each cherry and genomic structure to compute the number of full and half methylation differences
 #'   between the two tips of each cherry.
 #'
 #' @examples
 #' # Example data setup
+#' 
 #' data <- list(
 #'   list(c(0, 1, 2, 0), c(1, 1, 0, 2)),
 #'   list(c(1, 0, 2, 1), c(0, 1, 2, 2))
 #' )
-#' cherryDist <- data.frame(
-#'   first_tip_name = c("tip1"),
-#'   second_tip_name = c("tip2"),
-#'   first_tip_index = c(1),
-#'   second_tip_index = c(2),
-#'   dist = c(0.5)
-#' )
+#' 
+#' tree <- "(tip1:0.25, tip2:0.25);"
+#' 
+#' cherryDist <- get_cherryDist(tree)
+#' 
 #' countSites_cherryMethDiff(cherryDist, data)
 #'
 #' @export
-countSites_cherryMethDiff <- function(cherryDist, data) {
+countSites_cherryMethDiff <- function(cherryDist, data, input_control = TRUE) {
   
   # Check argument cherryDist has all columns
   if(!all(c("first_tip_name", "second_tip_name", "first_tip_index", "second_tip_index", "dist") %in% names(cherryDist))){
@@ -650,31 +904,12 @@ countSites_cherryMethDiff <- function(cherryDist, data) {
   
   # Check argument cherryDist has at least one row
   if(!nrow(cherryDist)>0) stop("Argument cherryDist has 0 rows.")
-  num_tips<- length(data)
   
-  # Check the number of tips is equal or greater to the maximum tip index in cherryDist argument
-  if(!num_tips>=max(c(cherryDist$first_tip_index, cherryDist$second_tip_index))){
-    stop("Argument 'data' with required structure data[[tip]][[structure]] does not have enough tips according to argument 'cherryDist'")
-  }
-  
-  # Ensure the number of structures is > 0 and equal across tips
-  lengths_per_tip <- sapply(seq_len(num_tips), function(tip) length(data[[tip]]))
-  if (!(all(lengths_per_tip > 0) && length(unique(lengths_per_tip)) == 1)) {
-    stop("Input 'data' with required structure data[[tip]][[structure]] has some tips zero or differing number of structures. Check given 'data' structure.")
-  }
+  # Check input data format and minium number of tips
+  if (input_control) validate_data(cherryDist, data)
   
   # Set the number of structures after checking consistency across tips
   str_n <- length(data[[1]]) 
-  
-  # Iterate over each structure and check length (number of sites) consistency across tips
-  for (structure in seq_len(str_n)) {
-    lengths_per_tip <- sapply(seq_len(num_tips), function(tip) length(data[[tip]][[structure]]))
-    
-    # Ensure all lengths are > 0 and equal across tips
-    if (!(all(lengths_per_tip > 0) && length(unique(lengths_per_tip)) == 1)) {
-      stop(paste("Error: Structure", structure, "has inconsistent lengths across tips or zero length at some tips."))
-    }
-  }
   
   # Initialize a data frame to store the count of methylation differences at each cherry
   df <- data.frame(tip_names=character(), tip_indices=character(), dist=numeric()) 
@@ -713,4 +948,531 @@ countSites_cherryMethDiff <- function(cherryDist, data) {
   # Return the data frame
   df
 }
+
+#' Compute Methylation Frequency Differences Between Cherry Pairs
+#'
+#' This function calculates the frequency of methylation differences between pairs of cherry tips in a phylogenetic tree.
+#' A cherry is a pair of leaf nodes that share a direct common ancestor. The function quantifies full and half methylation
+#' differences for each genomic structure (e.g., island/non-island) across all sites and normalizes these counts by the number
+#' of sites per structure to obtain frequencies.
+#'
+#' @param tree A phylogenetic tree object. The function assumes it follows an appropriate format for downstream processing.
+#'
+#' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
+#'   The data should be structured as `data[[tip]][[structure]]`, where each structure has the same number of sites across tips.
+#'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
+#'
+#' @param input_control A logical value indicating whether to validate the input data.
+#'   If `TRUE` (default), the function checks that the data has the required structure.
+#'   It ensures that the number of tips is sufficient and that the data structure is consistent across tips and structures.
+#'   If `FALSE`, the function assumes the tree is already valid and skips the validation step.
+#'
+#' @return A data frame with one row per cherry, containing the following columns:
+#'   \describe{
+#'     \item{tip_names}{A character string representing the names of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{tip_indices}{A character string representing the indices of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{dist}{A numeric value representing the sum of the branch distances between the cherry tips.}
+#'     \item{One column for each structure named with the structure number followed by _f}{A numeric value representing the frequency of sites with a full methylation difference (where one tip is methylated and the other is unmethylated) for the given structure.}
+#'     \item{One column for each structure named with the structure number followed by _h}{A numeric value representing the frequency of sites with a half methylation difference (where one tip is partially methylated and the other is either fully methylated or unmethylated) for the given structure.}
+#'   }
+#'
+#' @details The function first validates the tree structure and extracts pairwise distances between cherry tips.
+#'   It then counts methylation differences using `countSites_cherryMethDiff` and normalizes these counts by the number
+#'   of sites per structure to compute frequencies. The resulting data frame provides a per-cherry frequency
+#'   of methylation differences (half or full difference) across different genomic structures.
+#'
+#' @examples
+#' # Example data setup
+#' 
+#' data <- list(
+#' list(rep(1,10), rep(0,5), rep(1,8)),
+#' list(rep(1,10), rep(0.5,5), rep(0,8)),
+#' list(rep(1,10), rep(0.5,5), rep(0,8)),
+#' list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
+#' 
+#' tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+#' 
+#' freqSites_cherryMethDiff(tree, data)
+#'
+#' @export
+freqSites_cherryMethDiff <- function(tree, data, input_control = TRUE){
+  
+  # Check input tree format and minium two tips, get tree in phylo format (ape package)
+  if (input_control) tree <- validate_tree(tree)
+  
+  # Get cherry distances aoviding duplicate input control
+  cherryDist <- get_cherryDist(tree, input_control = FALSE)
+  
+  # Check input tree data format and minium number of tips
+  if (input_control) validate_data(cherryDist, data)
+    
+  # Get the count numbers per type (full or half) of methylation change per cherry
+  # avoiding duplicate input control
+  df <- countSites_cherryMethDiff(cherryDist, data, input_control = FALSE)
+  
+  # Get the number of structures
+  str_n <- length(data[[1]])
+  
+  # Get the number of sites per structure
+  sites_n <- numeric(length = str_n)
+  for(str in 1:str_n) sites_n[str] <- length(data[[1]][[str]]) 
+  
+  # Duplicate them so that there is one-to-one correspondence with the counts in df
+  dup_str_n <- rep(sites_n, each = 2)
+  
+  # Filter the counts (3 first columns correspond to tip_names, tip_indices and dist)
+  # to be transformed to frequencies per structure and methylation type
+  freqs <- df[,4:ncol(df)]
+  
+  # Divide each value by the number of sites in the corresponding strucute
+  for(cherry in 1:nrow(freqs)) freqs[cherry,] <- freqs[cherry,]/dup_str_n
+  
+  # Update the frequencies in the dataframe containing tip_names, tip_indices and dist
+  df[,4:ncol(df)] <- freqs
+  
+  df
+}
+
+
+#' Compute Site Frequency of Methylation Changes per Cherry
+#'
+#' This function calculates the total frequency of methylation differences (both full and half changes)
+#' for each genomic structure for each cherry in a phylogenetic tree. 
+#' A cherry is a pair of leaf nodes (also called tips or terminal nodes) 
+#' in a phylogenetic tree that share a direct common ancestor. 
+#' In other words, if two leaves are connected to the same internal node and no other leaves 
+#' are connected to that internal node, they form a cherry.
+#'
+#' @param tree A phylogenetic tree in Newick format or a phylo object from the ape package. The function ensures
+#'   the tree has a valid structure and at least two tips.
+#'
+#' @param data A list containing methylation states at tree tips for each genomic structure
+#'   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, where
+#'   each structure has the same number of sites across tips.
+#'
+#' @return A data frame with one row per cherry, containing the following columns:
+#'   \describe{
+#'     \item{tip_names}{A character string representing the names of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{tip_indices}{A character string representing the indices of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{dist}{A numeric value representing the sum of the branch distances between the cherry tips.}
+#'     \item{One column for each structure named with the structure number}{A numeric value representing the total frequency of methylation changes (both full and half) for the given structure.}
+#'   }
+#'
+#' @details The function first verifies that \code{tree} and \code{data} have valid structures and the minimum number of tips.
+#'   It then extracts per-cherry methylation differences using \code{freqSites_cherryMethDiff}, handling potential errors.
+#'   Finally, it aggregates the full and half methylation differences for each genomic structure at each cherry.
+#'
+#' @examples
+#' # Example data setup
+#' 
+#' data <- list(
+#' list(rep(1,10), rep(0,5), rep(1,8)),
+#' list(rep(1,10), rep(0.5,5), rep(0,8)),
+#' list(rep(1,10), rep(0.5,5), rep(0,8)),
+#' list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
+#' 
+#' tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+#' 
+#' get_siteFChange_cherry(tree, data)
+#'
+#' @export
+get_siteFChange_cherry <- function(tree, data){
+  
+  # Check input tree format and minium two tips, get tree in phylo format (ape package),
+  # check input tree data format and minium number of tips, and 
+  # get per-cherry frequency of (half and full) methylation differences across different genomic structures
+  tryCatch({
+    freqSites_perMethDiffType <- freqSites_cherryMethDiff(tree, data)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+
+  # Identify the unique structures in the column names (3 first columns correspond to tip_names, tip_indices and dist)
+  structures <- unique(sub("_[fh]$", "", names(freqSites_perMethDiffType)[-c(1, 2, 3)]))
+  
+  # Create the new dataframe
+  siteFChange_cherry <- data.frame(
+    tip_names = freqSites_perMethDiffType$tip_names,
+    tip_indices = freqSites_perMethDiffType$tip_indices,
+    dist = freqSites_perMethDiffType$dist
+  )
+  
+  # Sum for each structure the total frequency of methylation change (both half and full)
+  for (str in structures){
+    siteFChange_cherry[[str]] <- rowSums(freqSites_perMethDiffType[, grep(paste0("^", str, "_"), names(freqSites_perMethDiffType))])
+  }
+  
+  siteFChange_cherry
+}
+
+
+
+
+
+
+#' Compute the Mean Site Frequency of Methylation Changes per Cherry
+#'
+#' This function calculates the weighted mean frequency of methylation changes at island and non-island genomic structures 
+#' for each cherry in a phylogenetic tree. A cherry is a pair of leaf nodes (also called tips or terminal nodes) 
+#' in a phylogenetic tree that share a direct common ancestor.
+#'
+#' @param data A list containing methylation states at tree tips for each genomic structure 
+#'   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, 
+#'   where each tip has the same number of structures, and each structure has the same number of sites across tips.
+#' @param tree A phylogenetic tree in Newick format or a \code{phylo} object from the \code{ape} package. 
+#'   The function ensures the tree has a valid structure and at least two tips.
+#' @param index_islands A numeric vector specifying the indices of genomic structures corresponding to islands.
+#' @param index_nonislands A numeric vector specifying the indices of genomic structures corresponding to non-islands.
+#'
+#' @details The function first validates the tree and the input data structure. It then computes the 
+#'   per-cherry frequency of sites with different methylation states using \code{get_siteFChange_cherry}. 
+#'   The indices provided for islands and non-islands are checked for validity using \code{validate_structureIndices}. 
+#'   Finally, the function calculates the weighted mean site frequency of methylation changes for each cherry, 
+#'   separately for islands and non-islands.
+#'
+#' @return A data frame with one row per cherry, containing the following columns:
+#'   \describe{
+#'     \item{tip_names}{A character string representing the names of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{tip_indices}{A character string representing the indices of the two tips in the cherry, concatenated with a hyphen.}
+#'     \item{dist}{A numeric value representing the sum of the branch distances between the cherry tips.}
+#'     \item{nonisland_meanFChange}{A numeric value representing the weighted mean frequency of methylation changes in non-island structures.}
+#'     \item{island_meanFChange}{A numeric value representing the weighted mean frequency of methylation changes in island structures.}
+#'   }
+#'
+#' @examples
+#' # Example data setup
+#' data <- list(
+#'   list(rep(1,10), rep(0,5), rep(1,8)),
+#'   list(rep(1,10), rep(0.5,5), rep(0,8)),
+#'   list(rep(1,10), rep(0.5,5), rep(0,8)),
+#'   list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6)))
+#' )
+#'
+#' tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+#' 
+#' index_islands <- c(1,3)
+#' index_nonislands <- c(2)
+#'
+#' MeanSiteFChange_cherry(data, tree, index_islands, index_nonislands)
+#'
+#' @export
+MeanSiteFChange_cherry <- function(data, tree, index_islands, index_nonislands){
+
+  # Check input tree format and minium two tips, get tree in phylo format (ape package),
+  # check input tree data format and minium number of tips, and 
+  # get per-cherry frequency of sites with different methylation states for each genomic structures
+  # Validate input structure indices
+  tryCatch({
+    siteFChange_cherry <- get_siteFChange_cherry(tree, data)
+    validate_structureIndices(data, index_islands, index_nonislands)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  # Subset the columns with frequencies (3 first columns correspond to tip_names, tip_indices and dist)
+  siteFChange <- as.data.frame(siteFChange_cherry[,-c(1,2,3)])
+  
+  # Initiate vectors to store per cherry the mean siteFChange at islands and nonislands 
+  island_meanFChange <- rep(NA, nrow(siteFChange))
+  nonisland_meanFChange <- rep(NA, nrow(siteFChange))
+  
+  # Get the number of structures
+  str_n <- length(data[[1]])
+  
+  # Get the number of sites per structure
+  sites_n <- numeric(length = str_n)
+  for(str in 1:str_n) sites_n[str] <- length(data[[1]][[str]]) 
+  
+  # Compute for non_islands
+  if(length(index_nonislands)>0){
+    nonisland_meanFChange <- apply(as.data.frame(siteFChange[,index_nonislands]),
+                                   1, stats::weighted.mean, w = sites_n[index_nonislands])
+  }
+  
+  # Compute for islands
+  if(length(index_islands)>0){
+    island_meanFChange <- apply(as.data.frame(siteFChange[,index_islands]),
+                                1, stats::weighted.mean, w = sites_n[index_islands])
+  }
+  
+  MeanSiteFChange_cherry  <- data.frame(
+    tip_names = siteFChange_cherry$tip_names,
+    tip_indices = siteFChange_cherry$tip_indices,
+    dist = siteFChange_cherry$dist,
+    nonisland_meanFChange = nonisland_meanFChange,
+    island_meanFChange = island_meanFChange
+  )
+  
+  MeanSiteFChange_cherry
+}
+
+#### #### #### Fitch estimation of minimum number of global methylation changes per island #### #### ####
+
+#' Compute the Mean Methylation of CpG Islands
+#'
+#' This function calculates the mean methylation level for CpG islands across all tree tips.
+#'
+#' @param index_islands A numeric vector specifying the indices of genomic structures corresponding to islands.
+#' @param data A list containing methylation states at tree tips for each genomic structure 
+#'   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, 
+#'   where each tip has the same number of structures, and each structure has the same number of sites across tips.
+#'
+#' @return A list where each element corresponds to a tree tip and contains a numeric vector 
+#'   representing the mean methylation levels for the indexed CpG islands.
+#'
+#' @examples
+#' # Example data setup
+#' 
+#' data <- list(
+#'   # Tip 1
+#'   list(rep(1,10), rep(0,5), rep(1,8)),
+#'   # Tip 2
+#'   list(rep(1,10), rep(0.5,5), rep(0,8))
+#' )
+#' 
+#' index_islands <- c(1,3)
+#' 
+#' get_meanMeth_islands(index_islands, data)
+#'
+#' @export
+get_meanMeth_islands <- function(index_islands, data){
+  
+  tryCatch({
+    
+    # Validate index islands
+    if(length(index_islands) == 0) stop("'index_islands' has no indices")
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+    
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  # Compute the mean methylation of CpG islands
+  meanMeth <- lapply(data, function(x) sapply(x[index_islands], mean))
+  
+  meanMeth
+}
+
+
+#' Categorize Global States of CpG Islands
+#'
+#' This function categorizes CpG islands into unmethylated, methylated, or partially methylated states 
+#' based on specified thresholds.
+#'
+#' @param meanMeth_islands A numeric vector containing the mean methylation levels for CpG islands at each tip.
+#' @param u_threshold A numeric value (0-1) defining the threshold for categorization as unmethylated.
+#' @param m_threshold A numeric value (0-1) defining the threshold for categorization as methylated.
+#'
+#' @details The function assigns each island a state:
+#'   \describe{
+#'     \item{"u"}{if mean methylation ≤ \code{u_threshold}}
+#'     \item{"m"}{if mean methylation ≥ \code{m_threshold}}
+#'     \item{"p"}{if mean methylation is in between}
+#'   }
+#'
+#' @return A character vector of length equal to \code{meanMeth_islands}, containing "u", "p", or "m" for each island.
+#'
+#' @examples
+#' meanMeth_islands <- c(0.1, 0.4, 0.8)
+#' 
+#' categorize_islandGlbSt(meanMeth_islands, 0.2, 0.8)
+#'
+#' @export
+categorize_islandGlbSt <- function(meanMeth_islands, u_threshold, m_threshold) {
+  
+  # Check correct values for u and m thresholds
+  if (!all(c(u_threshold, m_threshold) >= 0 & c(u_threshold, m_threshold) <= 1) || u_threshold >= m_threshold) {
+    stop("Both 'u_threshold' and 'm_threshold' must be between 0 and 1, and 'u_threshold' must be smaller than 'm_threshold'.")
+  }
+  
+  ## categorize region global states 
+  categorized_state <- character()
+  for(i in 1:length(meanMeth_islands)) {
+    if(meanMeth_islands[[i]] <= u_threshold) {
+      categorized_state[i] <- "u"
+    } else {
+      if(meanMeth_islands[[i]] >= m_threshold) {
+        categorized_state[i] <- "m"
+      } else {
+        categorized_state[i] <- "p"
+      }
+    }
+  }
+  return(categorized_state)
+}
+
+#' Compute Fitch Parsimony for Methylation Categories
+#'
+#' This function applies Fitch parsimony to determine the minimum number of changes required for 
+#' methylation categories at tree tips.
+#'
+#' @param tree A rooted binary tree in Newick format (character string) or as an \code{ape} phylo object. 
+#'   Must have at least two tips.
+#' @param meth A matrix of methylation categories at the tree tips, with rows corresponding to tips 
+#'   (names matching tree tip labels) and columns corresponding to sites or structures.
+#' @param input_control Logical; if \code{TRUE}, validates input consistency.
+#'
+#' @return A list containing:
+#'   \describe{
+#'     \item{\code{optStateSet}}{A list of sets of optimal states for the root at each site/structure.}
+#'     \item{\code{minChange_number}}{A numeric vector indicating the minimum number of changes for each site.}
+#'   }
+#'
+#' @examples
+#' tree <- "((a:1,b:1):2,(c:2,d:2):1.5);"
+#' 
+#' meth <- matrix(c("u", "m", "p", "u", "p", "m", "m", "u"), 
+#'                nrow=4, byrow=TRUE, dimnames=list(c("a", "b", "c", "d")))
+#'                
+#' compute_fitch(tree, meth)
+#'
+#' @export
+compute_fitch <- function(tree, meth, input_control = TRUE) {
+  
+  if (input_control){
+    
+    tryCatch({
+      
+      # Validate tree
+      phylo_tree <- validate_tree(tree)
+      
+      # If tree is an ape's phylo object, convert it to Newick format
+      if (inherits(tree, "phylo")) {
+        tree <- ape::write.tree(tree)  # Convert to Newick string
+      }
+      
+    }, warning = function(w) {
+      stop(conditionMessage(w))
+    }, error = function(e) {
+      stop(conditionMessage(e))
+    })
+    
+    # Check rownames in meth matrix correspond to the tips of the tree
+    if (!identical(rownames(meth), phylo_tree$tip.label)) {
+      stop("Input 'meth' matrix rownames must match tree tip labels exactly, in the same order as tips from left to right in the Newick tree.")
+    }
+  }
+  
+  ## If tree corresponds to a tip set a list with 
+  # [[1]] the states at the tip for each structure and
+  # [[2]] initialize a vector for the counts of minimum number of changes with 0s 
+  if(substr(tree,1,1)!="(") {
+    ## 'tree' here corresponds to the tip name
+    return(list(meth[tree, ], rep(0, dim(meth)[2])))
+  }
+  
+  ## I tree is not a tip, subset again
+  subtree <- split_newick(tree)$unit
+
+  if(length(subtree)!=2) stop("function compute_fitch works only for rooted binary trees")
+  
+  # Recursively call the function to start counting from the tree tips
+  L <- compute_fitch(subtree[1], meth, input_control = FALSE)
+  R <- compute_fitch(subtree[2], meth, input_control = FALSE)
+  
+  # Save the minimum number of changes needed for the states at the two subtrees
+  minchan <- L[[2]] + R[[2]]
+  
+  # Initialize a list to store the optimal state at the root of a each subtree
+  optset <- list()
+  
+  # For each island
+  for(i in 1:length(minchan)) {
+    
+    # Check whether there is a common state
+    optset[[i]] <- intersect(L[[1]][[i]], R[[1]][[i]])
+    
+    # If they dont have the same state
+    if(length(optset[[i]])==0) { 
+      
+      # Save both states
+      optset[[i]] <- union(L[[1]][[i]], R[[1]][[i]]) 
+      
+      # Increase the number of minimum changes needed for that island
+      minchan[i] <- minchan[i] + 1 
+    } 
+  }
+  
+  return(list(optStateSet = optset, minChange_number = minchan))
+}
+
+#' Compute Fitch Parsimony for Global Methylation States at CpG Islands
+#'
+#' This function categorizes CpG islands into methylation states and applies Fitch parsimony 
+#' to estimate the minimum number of state changes in a phylogenetic tree.
+#'
+#' @param index_islands A numeric vector specifying the indices of genomic structures corresponding to islands.
+#' @param data A list containing methylation states at tree tips, structured as \code{data[[tip]][[structure]]}, 
+#'   where each tip has the same number of structures, and each structure has the same number of sites across tips.
+#' @param tree A rooted binary tree in Newick format (character string) or as an \code{ape} phylo object. 
+#'   Must have at least two tips.
+#' @param u_threshold A numeric threshold value (0-1) defining the unmethylated category.
+#' @param m_threshold A numeric threshold value (0-1) defining the methylated category.
+#' @param testing Logical; if \code{TRUE}, returns additional intermediate data.
+#'
+#' @details The function first validates the input data and categorizes CpG islands using \code{categorize_islandGlbSt}. 
+#'   It then structures the data into a matrix matching tree tip labels and applies \code{compute_fitch} 
+#'   to infer the minimum number of changes.
+#'
+#' @return If \code{testing = TRUE}, returns a list containing the categorized data matrix; otherwise, 
+#'   returns a numeric vector of minimum state changes.
+#'
+#' @examples
+#' tree <- "((a:1,b:1):2,(c:2,d:2):1.5);"
+#' 
+#' data <- list(
+#'   list(rep(1,10), rep(0,5), rep(1,8)),
+#'   list(rep(1,10), rep(0.5,5), rep(0,8))
+#' )
+#' 
+#' index_islands <- c(1,3)
+#' 
+#' computeFitch_islandGlbSt(index_islands, data, tree, 0.2, 0.6)
+#'
+#' @export
+computeFitch_islandGlbSt <- function(index_islands, data, tree, u_threshold, m_threshold, testing = FALSE){
+  
+  tryCatch({
+    
+    # Validate tree
+    tree <- validate_tree(tree)
+    
+    # Validate index islands and get mean methylation of CpG islands
+    meanMeth_islands <- get_meanMeth_islands(index_islands, data)
+    
+    # Validate u and m thresholds and convert mean methylation to categories "u", "p", and "m"
+    upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
+    
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  # Organize data in matrix with rownames as the corresponding tip labels
+  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata)<-tree$tip.label
+  
+  # Compute fitch to extract the minimum number of changes for the observed methylation states at the tips
+  result <- compute_fitch(ape::write.tree(tree), upmdata, input_control = FALSE)$minChange_number
+  
+  if (testing){
+    list(upmdata_list = upmdata_list,
+         upmdata = upmdata)
+  } else {
+    result
+  }
+}
+
+
+
+
+
+
 

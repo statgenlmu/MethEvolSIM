@@ -227,33 +227,48 @@ compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, samp
 
 ## Comparison of tree tips
 
-### Frequency of Methylation State Changes at Single Sites
+### Mean Frequency of Methylation State Changes at Single Sites per Structure Type
 
-We compare the methylation state of single sites at the tree cherries. A cherry is a pair of leaf nodes (also called tips or terminal nodes) in a phylogenetic tree that share a direct common ancestor. In other words, if two leaves are connected to the same internal node and no other leaves are connected to that internal node, they form a cherry.
+Let \(S_k\) be the set of sites in the genomic structure indexed by \(k\). For each site \(s \in S_k\), let the methylation state at a given tip \(t\) be denoted as \(m_{k,s,t}\), where \(m_{k,s,t} \in \{0, 0.5, 1\}\) represents the unmethylated, partially-methylated, or methylated state, respectively.
 
-We calculate the frequency of sites that changes for each structure (island and non-island structures).
-
-Let $S_k$ be the set of sites in the cherry structure of interest, where $k$ represents the index of the cherry structure. For each site in $S_k$, let the methylation state at a given tip $t$ be denoted as $m_{k,s,t}$, where $s \in S_k$ is the index of the site, and $m_{k,s,t} \in {0, 0.5, 1}$ represents the methylation state at tip $t$ (unmethylated, partially-methylated, or methylated, respectively).
-
-For a given cherry structure, we compute in the proportion of sites that have a different methylation state between two tips, say $t_1$ and $t_2$.
+For a given cherry \((t_1, t_2)\), we compute the proportion of sites with differing methylation states between the two tips.
 
 Define the indicator variable:
-\[
+$$
 \delta_{k,s,t_1,t_2} =
 \begin{cases}
 1, & \text{if } m_{k,s,t_1} \neq m_{k,s,t_2}, \\
 0, & \text{if } m_{k,s,t_1} = m_{k,s,t_2}.
 \end{cases}
-\]
+$$
 
-Then, the summary statistic for the proportion of sites with different methylation states between tips $t_1$ and $t_2$ in the cherry structure $k$ is:
-\[
-\text{Proportion}_k(t_1, t_2) = \frac{1}{|S_k|} \sum_{s \in S_k} \delta_{k,s,t_1,t_2}
-\]
+Then, the proportion of sites with different methylation states in structure \(k\) for the cherry \((t_1, t_2)\) is given by:
 
-where $|S_k|$ is the total number of sites in the cherry structure $k$, and the sum counts the number of sites with different methylation states between tips $t_1$ and $t_2$.
+$$
+F_k(t_1, t_2) = \frac{1}{|S_k|} \sum_{s \in S_k} \delta_{k,s,t_1,t_2}
+$$
 
-This statistic gives the proportion of sites in the cherry structure $k$ where the methylation state differs between the two tips of interest.
+where \(|S_k|\) is the total number of sites in structure \(k\), and the sum counts the number of sites where the methylation state differs between tips \(t_1\) and \(t_2\).
+
+This statistic quantifies the proportion of differing methylation states for a given genomic structure in a cherry.
+
+To compute the weighted mean frequency of methylation changes across all structures in a cherry, we separate island and non-island structures.
+
+For a given cherry \((t_1, t_2)\), let \( \mathcal{I} \) be the set of indices for island structures and \( \mathcal{N} \) be the set of indices for non-island structures. Each structure \( k \) has a total number of sites \( |S_k| \), which we use as weights.
+
+The weighted mean frequency of methylation changes for island structures is:
+
+$$
+\bar{F}_{\text{island}}(t_1, t_2) = \frac{\sum_{k \in \mathcal{I}} |S_k| F_k(t_1, t_2)}{\sum_{k \in \mathcal{I}} |S_k|}
+$$
+
+Similarly, the weighted mean frequency for non-island structures is:
+
+$$
+\bar{F}_{\text{non-island}}(t_1, t_2) = \frac{\sum_{k \in \mathcal{N}} |S_k| F_k(t_1, t_2)}{\sum_{k \in \mathcal{N}} |S_k|}
+$$
+
+These expressions compute the mean frequency of methylation state differences across all island and non-island structures, weighted by the number of sites in each structure.
 
 
 Functions:
@@ -261,5 +276,36 @@ Functions:
 - `get_cherryDist(tree)` to get the distances between the tips of each cherry. It identifies each cherry by the tip names and the tip indices. The tip indices correspond to (a) the index from left to right on the newick string, (b) the order of the tip label in the `phylo_object$tip.label`, and (c) the index in the methylation data list `data[[tip]][[structure]]` as obtained with the function `simulate_evolData()` when the given tree has several tips.
 
 - `countSites_cherryMethDiff(cherryDist, data)` to get for each cherry the counts of sites with half-methylation and full-methylation changes per genomic structure (island or non-island).
+
+- `freqSites_cherryMethDiff(tree,data)`. The function first validates the tree structure and extracts pairwise distances between cherry tips with `get_cherryDist`. It then validates the input data and counts half and full methylation differences for each cherry at each structure using `countSites_cherryMethDiff`. Finally, it normalizes these (half and full) counts by the number of sites per structure to compute frequencies. .
+
+- `get_siteFChange_cherry(tree,data)`. Uses `freqSites_cherryMethDiff(tree,data)` and then computes the frequency of sites with any change of methylation state (full or half) for each cherry at each genomic structure.
+
+- `MeanSiteFChange_cherry(tree, data, index_islands, index_nonislands)`. The function computes the per-cherry frequency of sites with different methylation states at each structure (islands and non-islands) using \code{get_siteFChange_cherry}. 
+Then it calculates the weighted mean site frequency of methylation changes for each cherry separately for islands and non-islands.
+
+```{r}
+# Set example tree and methylation data
+tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
+data <- list(
+    list(rep(1,10), rep(0,5), rep(1,8)), # tip a
+    list(rep(1,10), rep(0.5,5), rep(0,8)), # tip b
+    list(rep(1,10), rep(0.5,5), rep(0,8)), # tip c
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6)))) # tip d 
+# Set the index for islands and non-island structures
+index_islands <- c(2)
+index_nonislands <- c(1, 3)
+
+MeanSiteFChange_cherry(data = data, 
+                       tree = tree, 
+                       index_islands = index_islands, 
+                       index_nonislands = index_nonislands)
+```
+
+
+# Fitch
+
+- `get_meanMeth_islands` computes the mean methylation state of all the islands. **Maybe this should allow excluding island borders**
+
 
 
