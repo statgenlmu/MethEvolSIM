@@ -21,38 +21,121 @@ knitr::opts_chunk$set(
 library(devtools)
 load_all()
 ```
+# Introduction
+
+This document presents summary statistics related to the evolution of methylation 
+states across different genomic structures. The statistics include mean 
+frequencies, standard deviations, neighbor correlations of methylation states in 
+island and non-island regions. Additionally, for analysis comparing different 
+samples (comparison of tree tips), the included summary statistics compute
+the mean per-site frequency of methylation changes and the Fitch estimate for
+the minimum number of changes per islands leading to different global methylation
+states.
+
+The provided set of functions allows the computation of summary statistics for 
+methylation data in a genomic region with structural categorization. In this 
+vignette, we will refer to these structures as **islands** and 
+**non-island structures**.  
+
+The `data` argument must be in one of the following formats, depending on the 
+analysis:
+
+1. **For analyses without tip comparison:** A list where each element represents 
+the methylation states in a given structure (`data[[structure]]`):
+
+```{r}
+# Example: a single sample with 3 genomic structures
+# (1) island with 10 partially-methylated sites
+# (2) non-island with 5 methylated sites
+# (3) island with 15 unmethylated sites
+
+data <- list(rep(0.5, 10),  # Partially methylated
+             rep(1,5),      # Methylated
+             rep(0,15))     # Unmethylated
+data
+```
+
+2. **For analyses comparing multiple tips in a phylogenetic tree:** A nested 
+list where the first level represents the tips, and the second level represents 
+the structures within each tip (`data[[tip]][[structure]]`).
+
+```{r}
+# Example: data from 3 tips of a tree,
+# each with 3 genomic structures
+data <- list(
+    # Tip 1
+    list(c(rep(0.5,5), rep(0,5)),  # 5 partially methylated, 5 unmethylated
+         c(rep(1,4), 0.5),         # 4 methylated, 1 unmethylated
+         c(rep(0,7), rep(0.5,8))), # 7 unmethylated, 8 partially methylated
+    # Tip 2
+    list(c(rep(0.5,9), 1), # 9 partially methylated, 1 methylated
+         c(rep(0.5,4), 1), # 4 partially methylated, 1 methylated
+         c(rep(0,8), rep(0.5,7))), # 8 unmethylated, 7 partially-methylated
+    # Tip 3
+    list(c(1, rep(0,8), 1), # first and last methylated, rest unmethylated
+         c(rep(0.5,3), rep(1,2)), # 3 methylated, 1 unmethylated
+         c(rep(0.5,15)))) # all partially methylated
+```
+
+In this case, `data` must be pre-filtered to include only sites present in all 
+tips, ensuring a valid comparison between species or samples.  
+
+Regardless of the format, methylation values should be represented as follows:
+
+- `0` for unmethylated sites,  
+
+- `0.5` for partially methylated sites,  
+
+- `1` for methylated sites.  
+
+Intermediate values (e.g., obtained from pooled empirical data) should be 
+categorized before analysis.  
+
+Finally, when phylogenetic data is provided, the order of tips in `data` must 
+match the tip order in the Newick tree format (left to right) or the order of 
+`tree$tip.label()` when the tree is provided as a `phylo` object from the `ape` 
+package.
+
+```{r}
+# Example tree in Newick format for the above data
+newick_tree <- "((tip1:1, tip2:1):1, tip3:2);"
+
+# Example tree as a phylo object from the ape package
+library(ape)
+phylo_tree <- read.tree(text = newick_tree)
+phylo_tree$tip.label
+```
 
 
-Interpretation of arguments: 
+# Summary Statistics
 
- - tip can be interpreted as sample or replicate
- 
- - structure can be interpreted as island or non-island
-
-## Frequency of methylation states per genomic structure type
+## Frequency of Methylation States per Genomic Structure Type
 
 ### Global Mean
 
-- **Partially-methylated sites**: Let $x_{i,t}$ and $y_{j,t}$ be the frequency of methylation state $p$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$ at tip $t$, respectively. We define the mean global frequency of $x$ and $y$ as:
+- **Partially-methylated sites**: Let $x_{i,t}$ and $y_{j,t}$ be the frequency 
+of methylation state $p$ in island $i \in\{1, \cdots, I\}$ and non-island 
+$j \in\{1, \cdots, J\}$ at tip $t$, respectively. We define the mean global 
+frequency of $x$ and $y$ as:
 
-\[
+$$
 \overline{x}=\frac1I\sum_{i=1}^{I}\frac1T\sum_{t=1}^{T}x_{i,t} \\
 \overline{y}=\frac1J\sum_{j=1}^{J}\frac1T\sum_{t=1}^{T}y_{j,t}
-\]
+$$
 
-, where $x_{i,t}$ is the frequency of state $p$ in island $i$ and tip $t$ and $y_{j,t}$ is the frequency of state $p$ in non-island $j$ and tip $t$. 
+where $x_{i,t}$ and $y_{j,t}$ represent the respective frequencies at each tip.
 
-- **Methylated sites**: Let $w_{i,t}$ and $z_{j,t}$ be the frequency of methylation state $m$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$ at tip $t$, respectively. We define the mean global frequency of $w$ and $z$ as:
+- **Methylated sites**: Similarly, let $w_{i,t}$ and $z_{j,t}$ be the frequency 
+of methylation state $m$ in islands and non-islands. The mean global frequencies 
+are:
 
-\[
+$$
 \overline{w}=\frac1I\sum_{i=1}^{I}\frac1T\sum_{t=1}^{T}w_{i,t} \\
 \overline{z}=\frac1J\sum_{j=1}^{J}\frac1T\sum_{t=1}^{T}z_{j,t}
-\]
+$$
 
-, where $w_{i,t}$ is the frequency of state $p$ in island $i$ and tip $t$ and $z_{j,t}$ is the frequency of state $m$ in non-island $j$ and tip $t$. 
+These values can be computed using the following functions:
 
-
-These values can be computed with the functions `get_islandMeanFreqP`, `get_nonislandMeanFreqP`,`get_islandMeanFreqM` and `get_nonislandMeanFreqM` as in the following examples:
 
 ```{r}
 # 1 tip / sample / replicate
@@ -81,60 +164,39 @@ get_islandMeanFreqM(index_islands, data, sample_n)
 get_nonislandMeanFreqM(index_nonislands, data, sample_n)
 ```
 
-### Mean SD of observed frequencies per structure type at tree tips
+### Mean SD of Observed Frequencies per Structure Type at Tree Tips
 
-- **Partially-methylated sites**: Let $x_{i,t}$ and $y_{j,t}$ be the frequency of methylation state $p$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$, respectively. We define the standard deviation of the frequency of $x$ and $y$ at tip $t$ as:
+- **Partially-methylated sites**: We define the standard deviation of $x$ and 
+$y$ at tip $t$ as:
 
 $$
 \sigma_{t}(x)=\sqrt{\frac{1}{I-1}\sum_{i=1}^{I}(x_{i,t}-\overline{x_{.,t}})^2} \\
-\sigma_{t}(y)=\sqrt{\frac{1}{J-1}\sum_{j=1}^{J}(y_{i,t}-\overline{y_{.,t}})^2}
+\sigma_{t}(y)=\sqrt{\frac{1}{J-1}\sum_{j=1}^{J}(y_{j,t}-\overline{y_{.,t}})^2}
 $$
 
-
-, where $\overline{x_{.,t}}$ is the mean frequency of state $p$ at tip $t$ in islands and $\overline{y_{.,t}}$ is the mean frequency of state $p$ at tip $t$ in non-islands:
-
-$$
-\overline{x_{.,t}}=\frac{1}{I}\sum_{i=1}^{I}x_{i,t} \\
-\overline{y_{.,t}}=\frac{1}{J}\sum_{j=1}^{J}x_{j,t}
-$$ 
-
-Therefore, the mean standard deviation across tips is:
+where $\overline{x_{.,t}}$ and $\overline{y_{.,t}}$ represent mean frequencies 
+at tip $t$. The mean standard deviation across tips is:
 
 $$
 \hat{\sigma}(x)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(x) \\
-\hat{\sigma}(y)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(y) \\
+\hat{\sigma}(y)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(y)
 $$
 
-
-- **Methylated sites**: Let $w_{i,t}$ and $z_{j,t}$ be the frequency of methylation state $m$ in island $i \in\{1, \cdots, I\}$ and non-island $j \in\{1, \cdots, J\}$, respectively. We define the standard deviation of the frequency of $w$ and $z$ at tip $t$ as:
-
-$$
-\sigma_{t}(w)=\sqrt{\frac{1}{I-1}\sum_{i=1}^{I}(x_{i,t}-\overline{x_{.,t}})^2} \\
-\sigma_{t}(z)=\sqrt{\frac{1}{J-1}\sum_{j=1}^{J}(y_{i,t}-\overline{y_{.,t}})^2}
-$$
-
-
-, where $\overline{x_{.,t}}$ is the mean frequency of state $m$ at tip $t$ in islands and $\overline{z_{.,t}}$ is the mean frequency of state $m$ at tip $t$ in non-islands:
-
-$$
-\overline{w_{.,t}}=\frac{1}{I}\sum_{i=1}^{I}w_{i,t} \\
-\overline{z_{.,t}}=\frac{1}{J}\sum_{j=1}^{J}z_{j,t}
-$$
-
-Therefore, the mean standard deviation across tips is:
+- **Methylated sites**: Similarly, for $w$ and $z$:
 
 $$
 \hat{\sigma}(w)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(w) \\
-\hat{\sigma}(z)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(z) \\
+\hat{\sigma}(z)=\frac{1}{T}\sum_{t=1}^{T}\sigma_t(z)
 $$
-These values can be computed with the functions `get_islandSDFreqP`, `get_nonislandSDFreqP`,`get_islandSDFreqM` and `get_nonislandSDFreqM` as in the following examples:
+
+These values can be computed using:
 
 ```{r}
 # 1 tip / sample / replicate
 sample_n <- 1
 index_islands <- c(1, 3)
 index_nonislands <- c(2, 4)
-data <- list(c(.5, .5, 0, 1, 1, .5), c(.5, 0, 1, .5), c(.5, .5, 0), c(0, 0, .5)) # tip 1
+data <- list(c(.5, .5, 0, 1, 1, .5), c(.5, 0, 1, .5), c(.5, .5, 0), c(0, 0, .5))
 get_islandSDFreqP(index_islands, data, sample_n)
 get_nonislandSDFreqP(index_nonislands, data, sample_n)
 get_islandSDFreqM(index_islands, data, sample_n)
@@ -156,29 +218,28 @@ get_islandSDFreqM(index_islands, data, sample_n)
 get_nonislandSDFreqM(index_nonislands, data, sample_n)
 ```
 
-Note that we average across tips as there can be correlations between the mean standard deviation of tips (e.g. under the case of an event affecting the states at two tips).
+Note that we average across tips as there can be correlations between the mean 
+standard deviation of tips (e.g. under the case of an event affecting the states 
+at two tips).
 
-# Mean correlation of a central segment of methylation states per genomic structure type
+## Mean Correlation of a Central Segment of Methylation States per Genomic Structure Type
 
-Let $s$ be the length of the 2 adjacent segments of central positions to consider.
-Let $l$ represent a number of positions to exclude at the start and end of each island/non-island structure.
-Define the index positions $p=l+1$ and $p' = s-l$.
-Let $x_{i,t,[p,p'-1]}$ and $x_{i,t,[p+1,p']}$ be the methylation states $x \in \{u, p, m\}$ in island $i \in \{1, \cdots ,I\}$ at tip $t$ for the given segments. 
-Let $y_{j,t,[p,p'-1]}$ and $y_{j,t,[p+1,p']}$ be the methylation states $y \in \{u, p, m\}$ in non-island $j \in \{1, \cdots ,J\}$ at tip $t$ for the given segments. 
+Let $s$ be the length of two adjacent segments of central positions to consider. 
+Let $l$ be the number of positions excluded at the start and end of each 
+structure. Define:
 
-We define the mean correlation as:
-
-\[
+$$
 \overline{Cor(x)_{s,l}}=\frac1I\frac1T\sum_{i=1}^{I}\sum_{t=1}^{T}Cor(x_{i,t,[p:p'-1]}, x_{i,t,[p+1:p']}) \\
 \overline{Cor(y)_{s,l}}=\frac1J\frac1T\sum_{j=1}^{J}\sum_{t=1}^{T}Cor(y_{j,t,[p:p'-1]}, y_{j,t,[p+1:p']})
-\]
+$$
 
-where correlations are computed only for segment pairs where the standard deviation of each segment is non-zero:
+Correlations are computed only for segment pairs where standard deviation is 
+non-zero:
 
-\[
+$$
 \sigma(x_{i,t,[p:p'-1]}) \neq 0 \text{ and } \sigma(x_{i,t,[p+1:p']})\neq 0 \\
 \sigma(y_{j,t,[p:p'-1]}) \neq 0 \text{ and } \sigma(y_{j,t,[p+1:p']})\neq 0
-\]
+$$
 
 In this formulation:
 
@@ -193,12 +254,20 @@ These values can be computed with the functions `compute_meanCor_i` for island s
 sample_n <- 1
 index_islands <- c(1, 3)
 index_nonislands <- c(2, 4) 
-data <- list(c(.5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1), # 30 sites
-               c(.5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5), # 25 sites
-               c(.5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1), # 40 sites
-               c(1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, .5, 0, 0, 0, .5)) # 35 sites
-compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 5, data, sample_n = 1)
-compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, sample_n = 1)
+data <- list(c(.5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, 
+               .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1), # 30 sites
+               c(.5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, 
+                 .5, .5, 1, 1, 1, .5), # 25 sites
+               c(.5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, 
+                 .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 
+                 0, 0, .5, 1), # 40 sites
+               c(1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, 
+                 .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 
+                 .5, 0, 0, 0, .5)) # 35 sites
+compute_meanCor_i(index_islands, minN_CpG = 10, 
+                  shore_length = 5, data, sample_n = 1)
+compute_meanCor_ni(index_nonislands, minN_CpG = 10, 
+                   shore_length = 5, data, sample_n = 1)
 ```
 
 ```{r}
@@ -208,30 +277,48 @@ index_islands <- c(1, 3)
 index_nonislands <- c(2, 4)
 data <- list(
   # tip 1
-    list(c(.5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1), # 30 sites
-         c(.5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5), # 25 sites
-         c(.5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1), # 40 sites
-         c(1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, .5, 0, 0, 0, .5)), # 35 sites
+    list(c(.5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 
+           1, .5, 0, 0, 0, .5, .5, .5, .5, .5, 1), # 30 sites
+         c(.5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5, 
+           .5, 1, 1, 1, .5), # 25 sites
+         c(.5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, 
+           .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, 
+           .5, 1), # 40 sites
+         c(1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 
+           1, 1, 1, .5, .5, .5, 0, 0, 0, .5, .5, 0, 0, 0, .5)), # 35 sites
   # tip 2
-    list(c(.5, 0, 0, .5, .5, .5, 0, 0, .5, 1, .5, 0, 0, 0, 0, .5, .5, 1, 1, 1, .5, 0, 0, 0, .5, .5, 1, 1, 1, 1), # 30 sites
-         c(.5, .5, 1, 1, .5, .5, 1, 1, 1, .5, .5, 0, 0, 0, .5, .5, 1, 1, 1, .5, .5, 1, 1, 1, .5), # 25 sites
-         c(.5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, .5, .5, 0, 0, .5, 1, 1, 1, 1, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1), # 40 sites
-         c(1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, 1, .5, .5, 0, 0, 0, .5, 1, 1, 1, .5, .5, .5, .5, .5, 0, .5, .5, .5, .5, 0, .5)) # 35 sites
+    list(c(.5, 0, 0, .5, .5, .5, 0, 0, .5, 1, .5, 0, 0, 0, 0, .5, .5, 1, 1, 1, 
+           .5, 0, 0, 0, .5, .5, 1, 1, 1, 1), # 30 sites
+         c(.5, .5, 1, 1, .5, .5, 1, 1, 1, .5, .5, 0, 0, 0, .5, .5, 1, 1, 1, .5, 
+           .5, 1, 1, 1, .5), # 25 sites
+         c(.5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, .5, .5, 0, 0, .5, 1, 
+           1, 1, 1, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, .5, 1, .5, 0, 0, 
+           .5, 1), # 40 sites
+         c(1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 1, 1, 1, 1, .5, .5, 0, 0, 0, .5, 1, 
+           1, 1, .5, .5, .5, .5, .5, 0, .5, .5, .5, .5, 0, .5)) # 35 sites
   )
-compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 5, data, sample_n = 2)
-compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, sample_n = 2)
+compute_meanCor_i(index_islands, minN_CpG = 10, 
+                  shore_length = 5, data, sample_n = 2)
+compute_meanCor_ni(index_nonislands, minN_CpG = 10, 
+                   shore_length = 5, data, sample_n = 2)
 ```
 
 
-*Correlation measures how much the state of each site says about the next. So, when there is no variation (e.g. in middle segment state u of a site is followed by state u of the next), there is no correlation.*
+Note that correlation measures how much the state of each site says about the 
+next. So, when there is no variation (e.g. in middle segment state u of a site 
+is followed by state u of the next), there is no correlation.
 
 ## Comparison of tree tips
 
 ### Mean Frequency of Methylation State Changes at Single Sites per Structure Type
 
-Let \(S_k\) be the set of sites in the genomic structure indexed by \(k\). For each site \(s \in S_k\), let the methylation state at a given tip \(t\) be denoted as \(m_{k,s,t}\), where \(m_{k,s,t} \in \{0, 0.5, 1\}\) represents the unmethylated, partially-methylated, or methylated state, respectively.
+Let $S_k$ be the set of sites in the genomic structure indexed by $k$. 
+For each site $s \in S_k$, let the methylation state at a given tip $t$ be 
+denoted as $m_{k,s,t}$, where $m_{k,s,t} \in \{0, 0.5, 1\}$ represents the 
+unmethylated, partially-methylated, or methylated state, respectively.
 
-For a given cherry \((t_1, t_2)\), we compute the proportion of sites with differing methylation states between the two tips.
+For a given cherry $(t_1, t_2)$, we compute the proportion of sites with 
+differing methylation states between the two tips.
 
 Define the indicator variable:
 $$
@@ -242,19 +329,27 @@ $$
 \end{cases}
 $$
 
-Then, the proportion of sites with different methylation states in structure \(k\) for the cherry \((t_1, t_2)\) is given by:
+Then, the proportion of sites with different methylation states in structure $k$ 
+for the cherry $(t_1, t_2)$ is given by:
 
 $$
 F_k(t_1, t_2) = \frac{1}{|S_k|} \sum_{s \in S_k} \delta_{k,s,t_1,t_2}
 $$
 
-where \(|S_k|\) is the total number of sites in structure \(k\), and the sum counts the number of sites where the methylation state differs between tips \(t_1\) and \(t_2\).
+where $|S_k|$ is the total number of sites in structure \(k\), and the sum 
+counts the number of sites where the methylation state differs between tips 
+$t_1$ and $t_2$.
 
-This statistic quantifies the proportion of differing methylation states for a given genomic structure in a cherry.
+This statistic quantifies the proportion of differing methylation states for a 
+given genomic structure in a cherry.
 
-To compute the weighted mean frequency of methylation changes across all structures in a cherry, we separate island and non-island structures.
+To compute the weighted mean frequency of methylation changes across all 
+structures in a cherry, we separate island and non-island structures.
 
-For a given cherry \((t_1, t_2)\), let \( \mathcal{I} \) be the set of indices for island structures and \( \mathcal{N} \) be the set of indices for non-island structures. Each structure \( k \) has a total number of sites \( |S_k| \), which we use as weights.
+For a given cherry $(t_1, t_2)$, let $\mathcal{I}$ be the set of indices 
+for island structures and $\mathcal{N}$ be the set of indices for non-island 
+structures. Each structure $k$ has a total number of sites $|S_k|$,
+which we use as weights.
 
 The weighted mean frequency of methylation changes for island structures is:
 
@@ -268,21 +363,40 @@ $$
 \bar{F}_{\text{non-island}}(t_1, t_2) = \frac{\sum_{k \in \mathcal{N}} |S_k| F_k(t_1, t_2)}{\sum_{k \in \mathcal{N}} |S_k|}
 $$
 
-These expressions compute the mean frequency of methylation state differences across all island and non-island structures, weighted by the number of sites in each structure.
+These expressions compute the mean frequency of methylation state differences 
+across all island and non-island structures, weighted by the number of sites in 
+each structure.
 
 
 Functions:
 
-- `get_cherryDist(tree)` to get the distances between the tips of each cherry. It identifies each cherry by the tip names and the tip indices. The tip indices correspond to (a) the index from left to right on the newick string, (b) the order of the tip label in the `phylo_object$tip.label`, and (c) the index in the methylation data list `data[[tip]][[structure]]` as obtained with the function `simulate_evolData()` when the given tree has several tips.
+- `get_cherryDist(tree)` to get the distances between the tips of each cherry. 
+It identifies each cherry by the tip names and the tip indices. 
+The tip indices correspond to (a) the index from left to right on the newick 
+string, (b) the order of the tip label in the `phylo_object$tip.label`, and (c) 
+the index in the methylation data list `data[[tip]][[structure]]` as obtained 
+with the function `simulate_evolData()` when the given tree has several tips.
 
-- `countSites_cherryMethDiff(cherryDist, data)` to get for each cherry the counts of sites with half-methylation and full-methylation changes per genomic structure (island or non-island).
+- `countSites_cherryMethDiff(cherryDist, data)` to get for each cherry the 
+counts of sites with half-methylation and full-methylation changes per genomic 
+structure (island or non-island).
 
-- `freqSites_cherryMethDiff(tree,data)`. The function first validates the tree structure and extracts pairwise distances between cherry tips with `get_cherryDist`. It then validates the input data and counts half and full methylation differences for each cherry at each structure using `countSites_cherryMethDiff`. Finally, it normalizes these (half and full) counts by the number of sites per structure to compute frequencies. .
+- `freqSites_cherryMethDiff(tree,data)`. The function first validates the tree 
+structure and extracts pairwise distances between cherry tips 
+with `get_cherryDist`. It then validates the input data and counts half and full 
+methylation differences for each cherry at each structure using 
+`countSites_cherryMethDiff`. Finally, it normalizes these (half and full) counts 
+by the number of sites per structure to compute frequencies. .
 
-- `get_siteFChange_cherry(tree,data)`. Uses `freqSites_cherryMethDiff(tree,data)` and then computes the frequency of sites with any change of methylation state (full or half) for each cherry at each genomic structure.
+- `get_siteFChange_cherry(tree,data)`. Uses `freqSites_cherryMethDiff(tree,data)` 
+and then computes the frequency of sites with any change of methylation state 
+(full or half) for each cherry at each genomic structure.
 
-- `MeanSiteFChange_cherry(tree, data, index_islands, index_nonislands)`. The function computes the per-cherry frequency of sites with different methylation states at each structure (islands and non-islands) using \code{get_siteFChange_cherry}. 
-Then it calculates the weighted mean site frequency of methylation changes for each cherry separately for islands and non-islands.
+- `MeanSiteFChange_cherry(tree, data, index_islands, index_nonislands)`. The 
+function computes the per-cherry frequency of sites with different methylation 
+states at each structure (islands and non-islands) using `get_siteFChange_cherry`. 
+Then it calculates the weighted mean site frequency of methylation changes for 
+each cherry separately for islands and non-islands.
 
 ```{r}
 # Set example tree and methylation data
@@ -291,7 +405,8 @@ data <- list(
     list(rep(1,10), rep(0,5), rep(1,8)), # tip a
     list(rep(1,10), rep(0.5,5), rep(0,8)), # tip b
     list(rep(1,10), rep(0.5,5), rep(0,8)), # tip c
-    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6)))) # tip d 
+    list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6)))) # d 
+
 # Set the index for islands and non-island structures
 index_islands <- c(2)
 index_nonislands <- c(1, 3)
@@ -303,9 +418,118 @@ MeanSiteFChange_cherry(data = data,
 ```
 
 
-# Fitch
 
-- `get_meanMeth_islands` computes the mean methylation state of all the islands. **Maybe this should allow excluding island borders**
+### Fitch Parsimony Estimate for Minimum Global Methylation State Changes at CpG Islands
+
+Let $I$ be the set of CpG islands in a given genomic region For each island 
+$i \in I$, the mean methylation level across sites is computed with 
+`get_meanMeth_islands(index_islands, data)` and categorized into one of three 
+global methylation states—unmethylated ($u$), partially methylated ($p$), or 
+methylated ($m$)—based on user-defined thresholds $u_{\text{thresh}}$ and 
+$m_{\text{thresh}}$. This categorization is given by the function:
+
+$$
+\operatorname{categorize\_islandGlbSt}(\mu_i, u_{\text{thresh}}, m_{\text{thresh}}) =
+\begin{cases}
+  u, & \text{if } \mu_i \leq u_{\text{thresh}}, \\
+  m, & \text{if } \mu_i \geq m_{\text{thresh}}, \\
+  p, & \text{otherwise}.
+\end{cases}
+$$
+
+Given a phylogenetic tree $T$ with tips corresponding to sampled species or 
+individuals, we aim to estimate the minimum number of state changes required to 
+explain the observed distribution of island methylation states across the tips. 
+This is achieved using Fitch parsimony, a dynamic programming approach 
+implemented in `compute_fitch(meth, tree)` with the following steps:
+
+
+- Each tip $t$ is assigned the observed methylation state for each island $i$.
+- Internal nodes recursively inherit possible state sets by computing the 
+intersection of the state sets from their child nodes.
+- If the intersection is empty (i.e., no common state between child nodes), the 
+union of both state sets is assigned, and the number of changes is incremented.
+
+The function `computeFitch_islandGlbSt(T, M)`, where $M$ is the matrix of 
+categorized methylation states across tips, returns a vector $C$ where each entry 
+$C_i$ represents the minimum number of changes required for island $i$ under the 
+Fitch parsimony criterion.
+
+```{r}
+# Example with data from a single island structure 
+# and three tips
+
+tree <- "((bla:1,bah:1):2,booh:2);"
+
+data <- list(
+  #Tip 1
+  list(c(rep(1,9), rep(0,1))), # m
+  #Tip 2
+  list(c(rep(0.5,10))), # p
+  #Tip 3
+  list(c(rep(0.5,9), rep(0.5,1)))) # p
+  
+index_islands <- c(1)
+  
+computeFitch_islandGlbSt(index_islands, data, tree, 
+                         u_threshold = 0.1, m_threshold = 0.9)
+```
+```{r}
+# Example: data from a genomic region consisting on 3 structures with 10 sites each
+# one island, one non-island, one island
+# and a tree with 8 tips
+tree <- "(((a:1,b:1):1,(c:1,d:1):1):1,((e:1,f:1):1,(g:1,h:1):1):1);"
+data <- list(
+  #Tip 1
+  list(c(rep(1,5), rep(0,5)), # p
+       c(rep(0,9), 1), 
+        c(rep(1,8), rep(0.5,2))), # m
+  #Tip 2
+  list(c(rep(0.5,9), rep(0.5,1)), # p
+        c(rep(0.5,9), 1), 
+       c(rep(0,8), rep(0.5,2))), # u
+  #Tip 3
+  list(c(rep(1,9), rep(0.5,1)), # m
+       c(rep(0.5,9), 1), 
+       c(rep(0.5,8), rep(0.5,2))), # p
+  #Tip 4
+  list(c(rep(1,9), rep(0.5,1)), # m
+       c(rep(1,9), 0), 
+       c(rep(0.5,8), rep(0.5,2))), # p
+  #Tip 5
+  list(c(rep(0,5), rep(0,5)), # u
+       c(rep(0,9), 1), 
+       c(rep(0.5,8), rep(0.5,2))), # p
+  #Tip 6
+  list(c(rep(0,9), rep(0.5,1)), # u
+       c(rep(0.5,9), 1), 
+       c(rep(1,8), rep(0.5,2))), # m
+  #Tip 7
+  list(c(rep(0,9), rep(0.5,1)), # u
+       c(rep(0.5,9), 1), 
+       c(rep(0,8), rep(0.5,2))), # u
+  #Tip 8
+  list(c(rep(0,9), rep(0.5,1)), # u
+       c(rep(1,9), 0), 
+       c(rep(0,9), rep(0.5,1)))) # u
+  
+index_islands <- c(1,3)
+  
+computeFitch_islandGlbSt(index_islands, data, tree, 
+                         u_threshold = 0.1, m_threshold = 0.9)
+```
+
+For genomic regions containing multiple CpG islands, we can summarize the 
+per-island estimates using the mean to obtain an overall measure of the minimum 
+state changes.
+
+```{r}
+mean(computeFitch_islandGlbSt(index_islands, data, tree, 
+                              u_threshold = 0.1, m_threshold = 0.9))
+```
+
+
+
 
 
 
