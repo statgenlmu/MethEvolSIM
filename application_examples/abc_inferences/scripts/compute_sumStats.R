@@ -87,7 +87,7 @@ compute_sumStats <- function(input_file, dir) {
                          MeanSiteFChange_i = MeanSiteFChange$island_meanFChange[cherry],
                          MeanSiteFChange_ni = MeanSiteFChange$nonisland_meanFChange[cherry],
                          cherryDist = MeanSiteFChange$dist[cherry],
-                         Fitch_islandGlbSt = sum(computeFitch_islandGlbSt(index_islands, data, tree = scaled_trees[[index]], u_threshold, m_threshold)))
+                         Fitch_islandGlbSt = mean(computeFitch_islandGlbSt(index_islands, data, tree = scaled_trees[[index]], u_threshold, m_threshold)))
   
   # Define output filename
   
