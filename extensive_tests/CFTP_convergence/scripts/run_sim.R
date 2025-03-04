@@ -45,7 +45,7 @@ load(opt[["design-file"]])
 
 n_sim <- nrow(sampled_params)
 
-# Generate pad_n based on the number of digits in the number or simulations and the number of replicates
+# Generate pad_n based on the number of digits in the number of simulations and the number of replicates
 # To save the files with padded numbers so that are later listed in order with list.files()
 params_pad_n <- nchar(as.character(n_sim))
 
@@ -85,23 +85,26 @@ simul_CFTP_branch <- function(custom_params, params_pad_n, index_params, b_lengt
     }
     
     padded_step_n <- formatC(0, width = step_pad_n, format = "d", flag = "0")
-    RData_file <- file.path(opt[["dir"]], paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_", padded_step_n, ".RData"))
-    save(data, combi, file = RData_file)
+    initialStateCombi_RData_file <- file.path(opt[["dir"]], paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_", padded_step_n, ".RData"))
+    save(data, combi, file = initialStateCombi_RData_file)
     
     ## Call cftp method from copy of initial instance, save instance state and methylation data ##
     print("Calling $cftp() method")
-    cftp_combi <- combi$cftp()
+    combi$cftp()
     
     data <- list()
-    for (str in 1:cftp_combi$get_singleStr_number()){
-      data[[str]]<- transform_methStateEncoding(cftp_combi$get_singleStr(str)$get_seq())
+    for (str in 1:combi$get_singleStr_number()){
+      data[[str]]<- transform_methStateEncoding(combi$get_singleStr(str)$get_seq())
     }
     
     RData_file <- file.path(opt[["dir"]], paste0("CFTP_testConvergence_paramsID_", padded_index_params, "_rep_", padded_replicate_n, "_cftp.RData"))
+    cftp_combi <- combi
     save(data, cftp_combi, file = RData_file)
   }
   
   ## Simulate evolution along branch n times ##
+  print("Loading combi object as initialized without cftp method.")
+  load(initialStateCombi_RData_file)
   print(paste("Simulating evolution along branch of length", b_length, end - start + 1, "times."))
   
   for (i in start:end){
