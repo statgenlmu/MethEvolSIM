@@ -1,0 +1,65 @@
+seed: 19434346464834537327
+n_sim: 100
+
+wdir: /Users/nikolas/Library/CloudStorage/OneDrive-Persönlich/Desktop/Bachelor/MES_GitClone30_10/extensive_tests/Nikolas_simulation
+output_dir: out
+
+
+#parameters for msprime simulation.py
+simulation_params:
+  samples: 30
+  ploidy: 1
+  populationsize: 1
+  sequencelength: 1000
+  
+simulation_r_params:
+  alpha_pI: 0.1
+  beta_pI: 1
+  alpha_mI: 0.1
+  beta_mI: 0.5
+  alpha_pNI: 0.1
+  beta_pNI: 1
+  alpha_mNI: 0.5
+  beta_mNI: 0.1
+  alpha_Ri: 0.1
+  iota: 0.3
+  mu: 0.9835
+
+#recombination rates to sample
+recombination_rates:
+  recrate_lowerbound: 0
+#0.0001
+  recrate_upperbound: 0.001
+#0.01
+
+#path to scripts
+scripts:
+  simulation_py: ./scripts/simulation.py
+  run_sim.R: ./scripts/nikolas_runsim.R
+  compute_summary_states_R: ./scripts/compute_summary_stats.R
+  recrate_sampling.py: ./scripts/recrate_sampling.py
+  nikolas_sumstats.R: ./scripts/nikolas_sumstats.R
+  nikolas_plot.R: ./scripts/nikolas_plot.R
+n_cores: 7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

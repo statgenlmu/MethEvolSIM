@@ -1010,7 +1010,6 @@ singleStructureGenerator <-
 
                     } else{
                         eqFreqsChange = T
-                        
                         # Set the IWE transition matrix
                         if (testing){
                           test <- self$get_transMat(old_eqFreqs, new_eqFreqs, info = "test within IWE_evol", testing = testing)
