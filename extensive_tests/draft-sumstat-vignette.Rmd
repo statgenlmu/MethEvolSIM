@@ -3,6 +3,7 @@ title: "Summary Statistics"
 output: 
   rmarkdown::html_vignette:
     toc: true
+bibliography: ../vignettes/references.bib
 vignette: >
   %\VignetteIndexEntry{Summary Statistics with MethEvolSIM}
   %\VignetteEngine{knitr::rmarkdown}
@@ -23,18 +24,22 @@ load_all()
 ```
 # Introduction
 
-This document presents summary statistics related to the evolution of methylation 
-states across different genomic structures. The statistics include mean 
+Here we present summary statistics that can be used,
+e.g. in an Approximate Bayesian Computation method [@csillery2012abc],
+to estimate parameters of the methylation dynamics model of MethEvolSIM.
+The statistics include mean 
 frequencies, standard deviations, neighbor correlations of methylation states in 
-island and non-island regions. Additionally, for analysis comparing different 
-samples (comparison of tree tips), the included summary statistics compute
-the mean per-site frequency of methylation changes and the Fitch estimate for
+island and non-island regions.
+Additionally, for analyses comparing different 
+samples (comparison of tree tips), some of the summary statistics are based
+on the mean per-site frequency of methylation changes and
 the minimum number of changes per islands leading to different global methylation
-states.
+states, calculated with the Fitch algorithm [@fitch1971toward].
 
 The provided set of functions allows the computation of summary statistics for 
-methylation data in a genomic region with structural categorization. In this 
-vignette, we will refer to these structures as **islands** and 
+methylation data in a genomic region with structural categorization
+into two types of structures.
+In this  vignette, we will refer to these structures as **islands** and 
 **non-island structures**.  
 
 The `data` argument must be in one of the following formats, depending on the 
@@ -163,6 +168,9 @@ get_nonislandMeanFreqP(index_nonislands, data, sample_n)
 get_islandMeanFreqM(index_islands, data, sample_n)
 get_nonislandMeanFreqM(index_nonislands, data, sample_n)
 ```
+Note that in the calculation of the means the relative frequencies $x_{i, t}$, 
+$y_{j, t}$, $w_{i, t}$ and $z_{j, t}$ are **not** weighted by the lengths of 
+island $i$ or non-island $j$.
 
 ### Mean SD of Observed Frequencies per Structure Type at Tree Tips
 
@@ -317,7 +325,8 @@ For each site $s \in S_k$, let the methylation state at a given tip $t$ be
 denoted as $m_{k,s,t}$, where $m_{k,s,t} \in \{0, 0.5, 1\}$ represents the 
 unmethylated, partially-methylated, or methylated state, respectively.
 
-For a given cherry $(t_1, t_2)$, we compute the proportion of sites with 
+For a given cherry $(t_1, t_2)$, that is two tips $t_1$ and $t_2$ that are direct
+offspring of the same internal node, we compute the proportion of sites with 
 differing methylation states between the two tips.
 
 Define the indicator variable:
@@ -386,9 +395,9 @@ structure and extracts pairwise distances between cherry tips
 with `get_cherryDist`. It then validates the input data and counts half and full 
 methylation differences for each cherry at each structure using 
 `countSites_cherryMethDiff`. Finally, it normalizes these (half and full) counts 
-by the number of sites per structure to compute frequencies. .
+by the number of sites per structure to compute frequencies.
 
-- `get_siteFChange_cherry(tree,data)`. Uses `freqSites_cherryMethDiff(tree,data)` 
+- `get_siteFChange_cherry(tree,data)` uses `freqSites_cherryMethDiff(tree,data)` 
 and then computes the frequency of sites with any change of methylation state 
 (full or half) for each cherry at each genomic structure.
 
@@ -440,15 +449,8 @@ $$
 Given a phylogenetic tree $T$ with tips corresponding to sampled species or 
 individuals, we aim to estimate the minimum number of state changes required to 
 explain the observed distribution of island methylation states across the tips. 
-This is achieved using Fitch parsimony, a dynamic programming approach 
-implemented in `compute_fitch(meth, tree)` with the following steps:
-
-
-- Each tip $t$ is assigned the observed methylation state for each island $i$.
-- Internal nodes recursively inherit possible state sets by computing the 
-intersection of the state sets from their child nodes.
-- If the intersection is empty (i.e., no common state between child nodes), the 
-union of both state sets is assigned, and the number of changes is incremented.
+This is achieved using the Fitch algorithm [@fitch1971toward] as
+implemented in `compute_fitch(meth, tree)`.
 
 The function `computeFitch_islandGlbSt(T, M)`, where $M$ is the matrix of 
 categorized methylation states across tips, returns a vector $C$ where each entry 
@@ -528,7 +530,7 @@ mean(computeFitch_islandGlbSt(index_islands, data, tree,
                               u_threshold = 0.1, m_threshold = 0.9))
 ```
 
-
+# References
 
 
 
