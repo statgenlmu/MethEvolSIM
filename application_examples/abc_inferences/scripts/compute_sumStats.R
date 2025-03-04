@@ -1,4 +1,5 @@
 library(optparse)
+library(parallel)
 # TODO: ADD when source is eliminated
 library(devtools); load_all()
 
@@ -6,8 +7,6 @@ library(devtools); load_all()
 option_list <- list(
   make_option("--data-dir", type = "character", default = NULL,
               help = "Full path to the directory containing the .RData files", metavar = "character"),
-  make_option("--input-file", type = "character", default = NULL,
-              help = "Name of the input .RData file", metavar = "character"),
   make_option("--design-file", type = "character", default = NULL,
               help = "Name of the simulation design file", metavar = "character"),
   make_option("--spatialStr-file", type = "character", default = NULL,
@@ -25,7 +24,9 @@ option_list <- list(
   make_option("--minN-CpG", type = "integer", default = NULL,
               help = "Minimum number of CpGs to compute mean correlations", metavar = "integer"),
   make_option("--shore-length", type = "integer", default = NULL,
-              help = "Number of CpGs at each side of an island to exclude when computing mean correlations", metavar = "integer")
+              help = "Number of CpGs at each side of an island to exclude when computing mean correlations", metavar = "integer"),
+  make_option("--n-cores", type = "integer", default = NULL,
+              help = "Number of cores", metavar = "integer")
   )
 
 
@@ -35,7 +36,7 @@ opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
 # Get the names of required options (you can update this based on what's mandatory)
-required_options <- c("data-dir", "input-file", "design-file", "spatialStr-file", "sample-n", "n-sim", "u-threshold", "m-threshold", "cherry-index", "minN-CpG", "shore-length")
+required_options <- c("data-dir", "design-file", "spatialStr-file", "sample-n", "n-sim", "u-threshold", "m-threshold", "cherry-index", "minN-CpG", "shore-length")
 
 # Check that all required options are not NULL
 missing_options <- required_options[sapply(required_options, function(x) is.null(opt[[x]]))]
@@ -47,7 +48,6 @@ if (length(missing_options) > 0) {
 
 # Arguments as variables
 dir <- opt[["data-dir"]]
-input_file <- opt[["input-file"]]
 sample_n <- opt[["sample-n"]]
 u_threshold <- opt[["u-threshold"]]
 m_threshold <- opt[["m-threshold"]]
@@ -55,6 +55,7 @@ cherry <- opt[["cherry-index"]]
 minN_CpG <- opt[["minN-CpG"]]
 shore_length <- opt[["shore-length"]]
 pad_n <- nchar(as.character(opt[["n-sim"]])) + 1
+
 load(file.path(dir, opt[["design-file"]]))
 load(file.path(dir, opt[["spatialStr-file"]]))
 
@@ -62,13 +63,13 @@ load(file.path(dir, opt[["spatialStr-file"]]))
 index_islands <- which(spatial_str$globalState=="U")
 index_nonislands <- which(spatial_str$globalState=="M")
 
+files <- list.files(dir, pattern = "^abc_dataSIM_.*\\.RData$")
 
 ######################## Per sim function ######################################
 
-
 #Function to compute summary statistics
 compute_sumStats <- function(input_file, dir) {
-  load(file.path(dir, input_file))  # Load the RData file (assumes `data` is stored in it)
+  load(file.path(dir, input_file))  # Load the RData file 
   index <- as.integer(sub("abc_dataSIM_(\\d+)\\.RData", "\\1", input_file))
   
   # Compute example summary statistics
@@ -102,5 +103,11 @@ compute_sumStats <- function(input_file, dir) {
   cat(sprintf("Processed: %s -> %s\n", input_file, output_file))
 }
 
-compute_sumStats(input_file, dir)
+
+# Run the simulations
+mclapply(files, function(i) {
+  compute_sumStats(i, dir)
+}, mc.cores = opt[["n-cores"]])
+
+
 
