@@ -1,0 +1,178 @@
+---
+title: "ABC_cichlids"
+author: "Sara"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true  # Add a table of contents
+    toc_float: false
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Before debug
+
+```{r load params and sumstats}
+load("design.RData")
+names(sampled_params)[12] <- "TMRCA_smallestCherry"
+load("merged_sumStats.RData")
+```
+
+```{r set functions to compute expected value and sd of P and M/M+U}
+# Set functions to compute expected value and sd of P and M/M+U
+    get_expectedValueP <- function(alpha, beta){
+      alpha/(alpha+beta)
+    }
+  
+    get_expectedValueMoverMU <- function(alpha, beta){
+      alpha/(alpha+beta)
+    }
+  
+    get_sdP <- function(alpha, beta){
+      var <- (alpha*beta)/((alpha+beta)^2*(alpha+beta+1))
+      sqrt(var)
+    }
+  
+    get_sdMoverMU <- function(alpha, beta){
+      var <- (alpha*beta)/((alpha+beta)^2*(alpha+beta+1))
+      sqrt(var)
+    }
+```
+
+
+```{r filter params corresponding to output files}
+# Filter sampled params corresponding to output files
+params <- sampled_params[as.integer(rownames(merged_sumStats)),]
+print(paste("Number of parameter combinations:", dim(params)[1]))
+```
+
+```{r}
+# Substitute params alpha and beta for expected value and sd
+params_expSD <- params[,c("mu", "iota", "alpha_Ri", "TMRCA_smallestCherry")]
+params_expSD$expP_I <- get_expectedValueP(params[,"alpha_pI"], 
+                                          params[,"beta_pI"])
+params_expSD$expP_NI <- get_expectedValueP(params[,"alpha_pNI"],
+                                           params[,"beta_pNI"])   
+params_expSD$expMoverMU_I <- get_expectedValueMoverMU(params[,"alpha_mI"],
+                                                      params[,"beta_mI"])
+params_expSD$expMoverMU_NI <- get_expectedValueMoverMU(params[,"alpha_mNI"],
+                                                       params[,"beta_mNI"])
+params_expSD$sdP_I <- get_sdP(params[,"alpha_pI"],
+                              params[,"beta_pI"])
+params_expSD$sdP_NI <- get_sdP(params[,"alpha_pNI"],
+                               params[,"beta_pNI"])
+params_expSD$sdMoverMU_I <- get_sdMoverMU(params[,"alpha_mI"],
+                                          params[,"beta_mI"])
+params_expSD$sdMoverMU_NI <- get_sdMoverMU(params[,"alpha_mNI"],
+                                           params[,"beta_mNI"])
+```
+
+## Params as alpha and beta
+
+```{r, message=FALSE, warning=FALSE}
+library(abc)
+set.seed(1)
+loclinear_cv <- cv4abc(params, merged_sumStats,
+                       nval = 100,
+                       method = "loclinear",
+                       transf = "none",
+                       tols = 0.01)
+set.seed(1)
+ridge_cv <- cv4abc(params, merged_sumStats,
+                   nval = 100, 
+                   method = "ridge",
+                   transf = "none",
+                   tols = 0.01)
+```
+
+```{r}
+loclinear_error <- summary(loclinear_cv)[1,]
+ridge_error <- summary(ridge_cv)[1,]
+```
+
+```{r}
+# Combine into a matrix for grouped bars
+error_matrix <- rbind(loclinear_error, ridge_error)
+
+par(mar = c(5, 10, 4, 2))  # Increase left margin for labels
+# Create the horizontal bar plot
+barplot(error_matrix, 
+        horiz = TRUE, 
+        beside = TRUE,     # Plot bars side by side
+        col = c("red", "steelblue"),  # Red for loclinear, Blue for ridge (cv)
+        border = "black",  # Bar border color
+        main = "Comparison of Errors",
+        xlab = "Error Value",
+        names.arg = names(loclinear_error),
+        las = 1, 
+        cex.names = 0.8,   # Adjust text size
+        legend.text = c("Loclinear", "Ridge"),  # Legend
+        args.legend = list(x = "topright", bty = "n"))  # Position legend
+```
+
+
+## Params as Expected Value and SD
+
+```{r, message=FALSE, warning=FALSE}
+set.seed(1)
+loclinear_cv <- cv4abc(params_expSD, merged_sumStats,
+                       nval = 100,
+                       method = "loclinear",
+                       transf = "none",
+                       tols = 0.01)
+set.seed(1)
+ridge_cv <- cv4abc(params_expSD, merged_sumStats,
+                   nval = 100, 
+                   method = "ridge",
+                   transf = "none",
+                   tols = 0.01)
+```
+
+```{r}
+loclinear_error <- summary(loclinear_cv)[1,]
+ridge_error <- summary(ridge_cv)[1,]
+```
+
+```{r}
+# Combine into a matrix for grouped bars
+error_matrix <- rbind(loclinear_error, ridge_error)
+
+par(mar = c(5, 10, 4, 2))  # Increase left margin for labels
+# Create the horizontal bar plot
+barplot(error_matrix, 
+        horiz = TRUE, 
+        beside = TRUE,     # Plot bars side by side
+        col = c("red", "steelblue"),  # Red for loclinear, Blue for ridge (cv)
+        border = "black",  # Bar border color
+        main = "Comparison of Errors",
+        xlab = "Error Value",
+        names.arg = names(loclinear_error),
+        las = 1, 
+        cex.names = 0.8,   # Adjust text size
+        legend.text = c("Loclinear", "Ridge"),  # Legend
+        args.legend = list(x = "topright", bty = "n"))  # Position legend
+```
+
+
+### Parameter exploration
+
+```{r}
+hist(params$mu,
+     main = "Frequency of mu in params")
+```
+
+```{r}
+total_branchLength_unscaled <- 1+1+9+10
+total_branchLength_scaled <- params$TMRCA_smallestCherry * total_branchLength_unscaled
+expIWE_perIsland <- total_branchLength_scaled * params$mu
+hist(expIWE_perIsland,
+     main = "Expected Number IWE per Island")
+```
+
+```{r}
+plot(expIWE_perIsland, merged_sumStats$Fitch_islandGlbSt)
+```
+
