@@ -60,8 +60,19 @@ validate_structureIndices <- function(data, index_islands, index_nonislands) {
 #'
 #' @param index_islands A vector containing the structural indices for islands.
 #' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
+#' 
 #' @param sample_n The number of samples (tips) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean frequency of partially methylated sites in the islands.
 #' @examples
@@ -75,7 +86,10 @@ validate_structureIndices <- function(data, index_islands, index_nonislands) {
 #' get_islandMeanFreqP(index_islands, data, sample_n)
 #' 
 #' @export
-get_islandMeanFreqP <- function(index_islands, data, sample_n){
+get_islandMeanFreqP <- function(index_islands, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -83,10 +97,16 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n){
     data <- data_list
   }
   
-  # Validate index islands
+  
   tryCatch({
+    
+    # Validate index islands
     if(length(index_islands) == 0) stop("'index_islands' has no indices")
     validate_structureIndices(data, index_islands, index_nonislands = c())
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -114,9 +134,19 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n){
 #' for a set of genomic structures identified as non-islands.
 #'
 #' @param index_nonislands A vector containing the structural indices for non-islands.
-#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island).
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
+#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
 #' @param sample_n The number of samples (tips) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean frequency of partially methylated sites in the non-islands.
 #' @examples
@@ -130,7 +160,10 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n){
 #' get_nonislandMeanFreqP(index_nonislands, data, sample_n)
 #' 
 #' @export
-get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n){
+get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -138,10 +171,16 @@ get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n){
     data <- data_list
   }
   
-  # Validate index non-islands
+  
   tryCatch({
+    
+    # Validate index non-islands
     if(length(index_nonislands) == 0) stop("'index_nonislands' has no indices")
     validate_structureIndices(data, index_islands = c(), index_nonislands)
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -170,9 +209,19 @@ get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n){
 #' for a set of structures identified as islands.
 #'
 #' @param index_islands A vector containing the structural indices for islands.
-#' @param data A list containing methylation states at tree tips for each structure (island / non-island). 
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
+#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
 #' @param sample_n The number of samples (tips) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean frequency of methylated sites in the islands.
 #' @examples
@@ -186,7 +235,10 @@ get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n){
 #' get_islandMeanFreqM(index_islands, data, sample_n)
 #' 
 #' @export
-get_islandMeanFreqM <- function(index_islands, data, sample_n){
+get_islandMeanFreqM <- function(index_islands, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -194,10 +246,14 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n){
     data <- data_list
   }
   
-  # Validate index islands
   tryCatch({
+    # Validate index islands
     if(length(index_islands) == 0) stop("'index_islands' has no indices")
     validate_structureIndices(data, index_islands, index_nonislands = c())
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -223,9 +279,19 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n){
 #' for a set of structures identified as non-islands.
 #'
 #' @param index_nonislands A vector containing the structural indices for non-islands.
-#' @param data A list containing methylation states at tree tips for each structure (island / non-island). 
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
+#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
 #' @param sample_n The number of samples (tips) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean frequency of methylated sites in the non-islands.
 #' @examples
@@ -239,7 +305,10 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n){
 #' get_nonislandMeanFreqM(index_nonislands, data, sample_n)
 #' 
 #' @export
-get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n){
+get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -247,10 +316,15 @@ get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n){
     data <- data_list
   }
   
-  # Validate index non-islands
   tryCatch({
+    
+    # Validate index non-islands
     if(length(index_nonislands) == 0) stop("'index_nonislands' has no indices")
     validate_structureIndices(data, index_islands = c(), index_nonislands)
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -278,9 +352,19 @@ get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n){
 #' (with methylation state 0.5) for a set of genomic structures identified as islands.
 #'
 #' @param index_islands A vector containing the structural indices for islands.
-#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island).
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
+#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
 #' @param sample_n The number of samples (tips) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean standard deviation of partially methylated sites in the islands.
 #' @examples
@@ -294,17 +378,25 @@ get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n){
 #' get_islandSDFreqP(index_islands, data, sample_n)
 #' 
 #' @export
-get_islandSDFreqP <- function(index_islands, data, sample_n){
+get_islandSDFreqP <- function(index_islands, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
     data_list[[1]] <- data
     data <- data_list
   }
-  
-  # Validate index islands
+
   tryCatch({
+    
+    # Validate index islands
     validate_structureIndices(data, index_islands, index_nonislands = c())
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -331,9 +423,19 @@ get_islandSDFreqP <- function(index_islands, data, sample_n){
 #' (with methylation state 0.5) for a set of genomic structures identified as non-islands.
 #'
 #' @param index_nonislands A vector containing the structural indices for non-islands.
-#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island).
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
+#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
 #' @param sample_n The number of samples (tips) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean standard deviation of partially methylated sites in the non-islands.
 #' @examples
@@ -347,17 +449,25 @@ get_islandSDFreqP <- function(index_islands, data, sample_n){
 #' get_nonislandSDFreqP(index_nonislands, data, sample_n)
 #' 
 #' @export
-get_nonislandSDFreqP <- function(index_nonislands, data, sample_n){
+get_nonislandSDFreqP <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
     data_list[[1]] <- data
     data <- data_list
   }
-  
-  # Validate index non-islands
+
   tryCatch({
+    
+    # Validate index islands
     validate_structureIndices(data, index_islands = c(), index_nonislands)
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -384,10 +494,19 @@ get_nonislandSDFreqP <- function(index_nonislands, data, sample_n){
 #' (with methylation state 1) for a set of genomic structures identified as islands.
 #'
 #' @param index_islands A vector containing the structural indices for islands.
-#' @param data A list containing methylation states at tree tips for each structure (island / non-island).
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
-#' Methylation states are represented as vectors.
+#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
 #' @param sample_n The number of tips (samples) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean standard deviation of methylated sites in the islands.
 #' @examples
@@ -401,7 +520,10 @@ get_nonislandSDFreqP <- function(index_nonislands, data, sample_n){
 #' get_islandSDFreqM(index_islands, data, sample_n)
 #' 
 #' @export
-get_islandSDFreqM <- function(index_islands, data, sample_n){
+get_islandSDFreqM <- function(index_islands, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -409,9 +531,14 @@ get_islandSDFreqM <- function(index_islands, data, sample_n){
     data <- data_list
   }
   
-  # Validate index islands
   tryCatch({
+    
+    # Validate index islands
     validate_structureIndices(data, index_islands, index_nonislands = c())
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -439,10 +566,19 @@ get_islandSDFreqM <- function(index_islands, data, sample_n){
 #' (with methylation state 1) for a set of genomic structures identified as non-islands.
 #'
 #' @param index_nonislands A vector containing the structural indices for non-islands.
-#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island).
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
-#' Methylation states are represented as vectors.
+#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
 #' @param sample_n The number of tips (samples) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean standard deviation of methylated sites in the non-islands.
 #' @examples
@@ -456,7 +592,10 @@ get_islandSDFreqM <- function(index_islands, data, sample_n){
 #' get_nonislandSDFreqM(index_nonislands, data, sample_n)
 #' 
 #' @export
-get_nonislandSDFreqM <- function(index_nonislands, data, sample_n){
+get_nonislandSDFreqM <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -464,9 +603,14 @@ get_nonislandSDFreqM <- function(index_nonislands, data, sample_n){
     data <- data_list
   }
   
-  # Validate index non-islands
   tryCatch({
+    
+    # Validate index non-islands
     validate_structureIndices(data, index_islands = c(), index_nonislands)
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -500,10 +644,19 @@ get_nonislandSDFreqM <- function(index_nonislands, data, sample_n){
 #' @param index_islands A vector containing the structural indices for islands.
 #' @param minN_CpG The minimum number of central CpGs required for computation.
 #' @param shore_length The number of CpGs at each side of an island to exclude (shores).
-#' @param data A list containing methylation states at tree tips for each structure.
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
-#' Methylation states are represented as vectors.
+#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
 #' @param sample_n The number of tips (samples) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean correlation of methylation states in the central CpGs of islands.
 #' @details The function processes only islands with a minimum length equal to \code{2 * shore_length + minN_CpG}. 
@@ -521,17 +674,25 @@ get_nonislandSDFreqM <- function(index_nonislands, data, sample_n){
 #' compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n)
 #' 
 #' @export
-compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sample_n){
+compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
     data_list[[1]] <- data
     data <- data_list
   }
-  
-  # Validate index islands
+
   tryCatch({
+    
+    # Validate index non-islands
     validate_structureIndices(data, index_islands, index_nonislands = c())
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -573,10 +734,19 @@ compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sampl
 #' @param index_nonislands A vector containing the structural indices for non-islands.
 #' @param minN_CpG The minimum number of central CpGs required for computation.
 #' @param shore_length The number of CpGs at each side of an non-island to exclude (shores).
-#' @param data A list containing methylation states at tree tips for each structure.
-#' For a single tip: \code{data[[structure]]}. For multiple tips: \code{data[[tip]][[structure]]}.
-#' Methylation states are represented as vectors.
+#' @param data A list containing methylation states at tree tips for each genomic structure (island / non-island) 
+#'   For a single tip: \code{data[[structure]]}. 
+#'   For multiple tips: \code{data[[tip]][[structure]]}.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
 #' @param sample_n The number of tips (samples) to process.
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A numeric value representing the mean correlation of methylation states in the central CpGs of non-islands.
 #' @details The function processes only non-islands with a minimum length equal to \code{2 * shore_length + minN_CpG}. 
@@ -594,7 +764,10 @@ compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sampl
 #' compute_meanCor_i(index_nonislands, minN_CpG, shore_length, data, sample_n)
 #' 
 #' @export
-compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, sample_n){
+compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, sample_n, categorized_data = FALSE){
+  
+  if(!is.list(data)) stop("Input 'data' is not list.")
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -602,9 +775,13 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
     data <- data_list
   }
   
-  # Validate index non-islands
   tryCatch({
+    # Validate index non-islands
     validate_structureIndices(data, index_islands = c(), index_nonislands)
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -811,7 +988,7 @@ get_cherryDist <- function(tree, input_control = TRUE){
 #' - Verifies that within each structure, all tips have the same number of sites and no zero-length structures.
 #'
 #' If any of these conditions fail, the function throws an error with a descriptive message.
-validate_data <- function(cherryDist, data){
+validate_data_cherryDist <- function(cherryDist, data){
   
   # Get the number of tips in data
   num_tips<- length(data)
@@ -884,8 +1061,8 @@ validate_data <- function(cherryDist, data){
 #' # Example data setup
 #' 
 #' data <- list(
-#'   list(c(0, 1, 2, 0), c(1, 1, 0, 2)),
-#'   list(c(1, 0, 2, 1), c(0, 1, 2, 2))
+#'   list(c(0, 1, 0.5, 0), c(1, 1, 0, 0.5)),
+#'   list(c(1, 0, 0.5, 1), c(0, 1, 0.5, 0.5))
 #' )
 #' 
 #' tree <- "(tip1:0.25, tip2:0.25);"
@@ -906,7 +1083,7 @@ countSites_cherryMethDiff <- function(cherryDist, data, input_control = TRUE) {
   if(!nrow(cherryDist)>0) stop("Argument cherryDist has 0 rows.")
   
   # Check input data format and minium number of tips
-  if (input_control) validate_data(cherryDist, data)
+  if (input_control) validate_data_cherryDist(cherryDist, data)
   
   # Set the number of structures after checking consistency across tips
   str_n <- length(data[[1]]) 
@@ -1004,7 +1181,7 @@ freqSites_cherryMethDiff <- function(tree, data, input_control = TRUE){
   cherryDist <- get_cherryDist(tree, input_control = FALSE)
   
   # Check input tree data format and minium number of tips
-  if (input_control) validate_data(cherryDist, data)
+  if (input_control) validate_data_cherryDist(cherryDist, data)
     
   # Get the count numbers per type (full or half) of methylation change per cherry
   # avoiding duplicate input control
@@ -1469,6 +1646,337 @@ computeFitch_islandGlbSt <- function(index_islands, data, tree, u_threshold, m_t
     result
   }
 }
+
+categorizeSt <- function(methValues, u_threshold, m_threshold){
+  ## categorize region global states 
+  categorized_state <- character()
+  for(i in 1:length(methValues)) {
+    if(methValues[[i]] <= u_threshold) {
+      categorized_state[i] <- "u"
+    } else {
+      if(methValues[[i]] >= m_threshold) {
+        categorized_state[i] <- "m"
+      } else {
+        categorized_state[i] <- "p"
+      }
+    }
+  }
+  return(categorized_state)
+}
+
+tree <- "(tip1:1,tip2:1);"
+
+data <- list(
+  list(c(0,0,1), c(1,1,1), c(1,0,0.5)), # tip 1
+  list(c(1,0,0.5), c(1,1,1), c(0,0,1)) # tip 2
+)
+
+
+
+
+# data: vector with methylation values as 0 for unmethylated
+# 0.5 for partially-methylated and 1 for methylated
+count_upm <- function(data){
+  counts <- table(factor(data, levels = c(0, 0.5, 1)))
+  as.integer(counts)
+}
+
+
+
+# tip1: vector of methylation states (0, 0.5, 1)
+# for unmethylated, partially-methylated and methylated
+# at tip 1
+# tip2: vector of methylation states (0, 0.5, 1)
+# for unmethylated, partially-methylated and methylated
+# at tip 2
+# returns the p-value of a chi-squared test for the counts of
+# the three states at the two tips
+compare_CherryFreqs <- function(tip1, tip2){
+  
+  # Count the number of sites at each tip with methylation states
+  # 0, 0.5, 1 (unmethylated, partially-methylated, methylated)
+  tip1_upmCounts <- count_upm(tip1)
+  tip2_upmCounts <- count_upm(tip2)
+  
+  # Create a matrix with both tip counts
+  contingency_table <- rbind(tip1_upmCounts, tip2_upmCounts)
+  
+  # Perform the chi-squared test
+  chi_sq_result <- chisq.test(contingency_table, simulate.p.value = TRUE)
+  
+  # Return the p-value
+  chi_sq_result$p.value
+}
+
+
+# returns a dataframe with the cherry info
+#first_tip_name,  second_tip_name, first_tip_index, second_tip_index, dist
+# and one column for each island named as island_[island index]
+# containing the pValue of a chi_square test ....... CONTINUE
+pValue_CherryFreqsChange_i <- function(data, index_islands, tree){
+  
+  cherryDist <- get_cherryDist(tree)
+  
+  # Add to the dataframe columns to store the counts of significant changes
+  island_indices <- paste0("island_", index_islands)
+  cherryDist[island_indices] <- NA
+  
+  for(cherry in 1:nrow(cherryDist)){
+    
+    tip1_idx <- cherryDist[cherry, "first_tip_index"]
+    tip2_idx <- cherryDist[cherry, "second_tip_index"]
+    
+    for(i in 1:length(index_islands)){
+      data_tip1 <- data[[tip1_idx]][[index_islands[i]]]
+      data_tip2 <- data[[tip2_idx]][[index_islands[i]]]
+      cherryDist[cherry, island_indices[i]] <- compare_CherryFreqs(data_tip1, data_tip2)
+    }
+  }
+  
+  cherryDist
+}
+
+## FreqsChange is the mean number of changes observed per island
+count_CherryFreqsChange_i <- function(data, index_islands, tree, pValue_threshold){
+  
+  pValue_freqsChange <- pValue_CherryFreqsChange_i(data, index_islands, tree)
+  
+  # Transform columns with pValues under a threshold to TRUE, else FALSE
+  pValue_freqsChange[, grep("^island_", colnames(pValue_freqsChange))] <- 
+    pValue_freqsChange[, grep("^island_", colnames(pValue_freqsChange))] < pValue_threshold
+  
+  pValue_freqsChange$FreqsChange <- rowMeans(pValue_freqsChange[, grep("^island_", colnames(pValue_freqsChange))])
+  
+  pValue_freqsChange
+  
+}
+
+
+
+
+#' Validate Data Structure Across Tips
+#'
+#' This function ensures that `data` follows the required nested structure 
+#' `data[[tip]][[structure]]`, where:
+#' - `data` is a list of at least two `tip` elements.
+#' - Each `tip` is a list of `structure` elements.
+#' - Each `structure` contains a numeric vector of equal length across all tips.
+#'
+#' @param data A list structured as `data[[tip]][[structure]]`.
+#' 
+#' @throws Errors if:
+#'   - `data` is not a list.
+#'   - It has fewer than two tips.
+#'   - Any tip is not a list.
+#'   - The number of structures is inconsistent across tips.
+#'   - Any structure has zero-length data at any tip.
+#'   - Structures have different site lengths across tips.
+validate_dataAcrossTips <- function(data) {
+  if (!is.list(data)) {
+    stop(
+      "Error: 'data' must be a list structured as data[[tip]][[structure]]."
+    )
+  }
+  
+  num_tips <- length(data)
+  if (num_tips < 2) {
+    stop(
+      "Error: 'data' must contain at least two tips.",
+      " Found ", num_tips, 
+      ". Required structure: data[[tip]][[structure]]."
+    )
+  }
+  
+  if (!all(vapply(data, is.list, logical(1)))) {
+    stop(
+      "Error: Each element of 'data' (data[[tip]]) must be a list of structures.",
+      " Required structure: data[[tip]][[structure]]."
+    )
+  }
+  
+  str_n <- length(data[[1]])
+  if (str_n < 1) {
+    stop(
+      "Error: Each tip in 'data' must contain at least one structure.",
+      " Required structure: data[[tip]][[structure]]."
+    )
+  }
+  
+  # Ensure all tips have the same number of structures
+  if (any(vapply(data, length, integer(1)) != str_n)) {
+    stop(
+      "Error: All tips in 'data' must have the same number of structures.",
+      " Found inconsistencies in the number of structures."
+    )
+  }
+  
+  # Check structure consistency across tips
+  lengths_per_structure <- matrix(nrow = num_tips, ncol = str_n)
+  
+  for (tip in seq_len(num_tips)) {
+    lengths_per_structure[tip, ] <- vapply(data[[tip]], length, integer(1))
+  }
+  
+  if (any(lengths_per_structure == 0)) {
+    stop(
+      "Error: Each structure in 'data' must contain non-empty numeric vectors.",
+      " Some structures have zero-length data at one or more tips.",
+      " Required: data[[tip]][[structure]] with consistent structure lengths across tips."
+    )
+  }
+  
+  if (any(apply(lengths_per_structure, 2, function(x) length(unique(x)) > 1))) {
+    stop(
+      "Error: All structures in 'data' must have the same number of sites across tips.",
+      " Found inconsistencies in site lengths.",
+      " Required: data[[tip]][[structure]] with consistent structure lengths across tips."
+    )
+  }
+}
+
+
+#' Categorize Methylation Frequencies Based on Thresholds
+#'
+#' This function categorizes the values in `data[[tip]][[structure]]` into three categories:
+#' - `0` for unmethylated sites, where values are smaller or equal to `u_threshold`.
+#' - `0.5` for partially methylated sites, where values are between `u_threshold` and `m_threshold`.
+#' - `1` for methylated sites, where values are larger or equal to `m_threshold`.
+#'
+#' If any value in `data[[tip]][[structure]]` is outside these categories, it is transformed based on the given thresholds.
+#'
+#' @param data A list structured as `data[[tip]][[structure]]`, where `tip` corresponds to tree tips, and `structure`
+#'   corresponds to methylation states at each site.
+#' @param u_threshold A numeric value representing the upper bound for values to be classified as unmethylated (`0`). Default 0.2.
+#' @param m_threshold A numeric value representing the lower bound for values to be classified as methylated (`1`). Default 0.8.
+#'
+#' @return A transformed version of `data` where each value is categorized as `0` (unmethylated), `0.5` (partially methylated),
+#'   or `1` (methylated).
+#'
+#' @examples
+#' transformed_data <- categorize_siteMethSt(data, u_threshold = 0.2, m_threshold = 0.8)
+#' @export
+categorize_siteMethSt <- function(data, u_threshold = 0.2, m_threshold = 0.8) {
+  
+  # Iterate through all tips
+  for (tip in seq_along(data)) {
+    # Iterate through all structures in each tip
+    for (structure in seq_along(data[[tip]])) {
+      # Get the current structure
+      current_structure <- data[[tip]][[structure]]
+      
+      # Check if any value is outside the valid range [0, 1]
+      if (any(current_structure < 0 | current_structure > 1)) {
+        stop("All values in data must be between 0 and 1 as they represent methylation frequencies.")
+      }
+      
+      # Check if all values are already categorized as 0, 0.5, or 1
+      if (!all(current_structure %in% c(0, 0.5, 1))) {
+        # Transform values based on the thresholds into 0 (unmethylated), 0.5 (partially methylated), or 1 (methylated)
+        data[[tip]][[structure]] <- ifelse(current_structure <= u_threshold, 0, 
+                                           ifelse(current_structure >= m_threshold, 1, 0.5))
+      }
+    }
+  }
+  
+  return(data)
+}
+
+
+
+
+
+
+#' Count Significant Frequency Changes Across Islands in Tree Tips
+#'
+#' This function analyzes the frequency changes of methylation states (unmethylated, partially methylated, methylated)
+#' across tree tips for a given set of islands. It performs a chi-squared test for each island to check for significant 
+#' changes in frequencies across tips and returns the proportion of islands showing significant changes.
+#'
+#' @param tree A phylogenetic tree object, typically of class `phylo`, containing tip labels.
+#' @param data A list structured as `data[[tip]][[structure]]`, 
+#'   where `tip` corresponds to tree tips, 
+#'   and `structure` corresponds to genomic structures (islands or non-islands). 
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
+#'   
+#' @param index_islands A vector of indices of genomic structures corresponding to islands in data.
+#' @param pValue_threshold A numeric value between 0 and 1 that serves as the threshold for statistical significance in 
+#'   the chi-squared test.
+#' 
+#' @return A numeric value representing the mean proportion of islands with significant frequency changes across tips.
+#' 
+#' @throws 
+#' - An error if the `tree` is not valid.
+#' - An error if `data` is not structured correctly across tips.
+#' - An error if `index_islands` is empty.
+#' - An error if `pValue_threshold` is not between 0 and 1.
+#' 
+#' @examples
+#' # Example of usage:
+#' result <- count_TreeFreqsChange_i(tree, data, index_islands = c(1, 2, 3), pValue_threshold = 0.05)
+#' print(result)
+count_TreeFreqsChange_i <- function(tree, data, index_islands, pValue_threshold) {
+  
+  tryCatch({
+    # Validate tree
+    tree <- validate_tree(tree)
+    
+    # Validate data across tips
+    validate_dataAcrossTips(data)
+    
+    # Categorize methylation states
+    data <- categorize_siteMethSt(data)
+    
+    # Validate index islands
+    if (length(index_islands) == 0) stop("'index_islands' has no indices.")
+    validate_structureIndices(data, index_islands, index_nonislands = c())
+    
+    # Validate given threshold for pValue
+    if (!(pValue_threshold > 0 & pValue_threshold < 1)) stop("'pValue_threshold' needs to be between 0 and 1.")
+    
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
+  # Get the number of tree tips
+  n_tips <- length(tree$tip.label)
+  
+  # Set a vector to store the pValues
+  pValues <- c()
+  
+  # For each island
+  for (i in 1:length(index_islands)) {
+    # Set a list to store the counts of the number of sites at each tip
+    # with methylation states 0, 0.5, 1 (unmethylated, partially-methylated, methylated)
+    island_upmCounts <- list()
+    
+    for (tip in 1:n_tips) {
+      island_upmCounts[[tip]] <- count_upm(data[[tip]][[index_islands[i]]])
+    }
+    
+    # Save the island upm counts as a matrix
+    island_upmCounts <- do.call(rbind, island_upmCounts)
+    
+    # Perform the chi-squared test and save the island's pValue
+    pValues[i] <- chisq.test(island_upmCounts, simulate.p.value = TRUE)$p.value
+  }
+  
+  # Get a logical vector for island significant changes in freqs across tips
+  signifFreqChange <- pValues < pValue_threshold
+  
+  # Return the mean number of changes observed across tips per island
+  mean(signifFreqChange)
+}
+
+
+
 
 
 

@@ -682,33 +682,43 @@ library(ape)
 
 ##### Get a dataframe with distances between each combination of pairs of tips
 ## tree: phylogenetic tree object (as generated with package scrm)
-get_pairwiseDistance <- function(tree){
+get_tipPairwiseDist <- function(tree, input_control = TRUE){
+  
+  # Check input tree format and minium two tips, get tree in phylo format (ape package)
+  if (input_control) tree <- validate_tree(tree)
   
   # Get the number of tree tips
   n_tips <- length(tree$tip.label)
   
   # Generate the vectors for the tip pairwise comparisons
-  tipA <- numeric()
-  tipB <- numeric()
+  first_tip_index <- numeric()
+  second_tip_index <- numeric()
+  first_tip_name <- character()
+  second_tip_name <- character()
   
   for (tA in 1:(n_tips - 1)){
     for (tB in (tA+1):n_tips){
-      tipA <- c(tipA, tA)
-      tipB <- c(tipB, tB)
+      first_tip_index <- c(first_tip_index, tA)
+      second_tip_index <- c(second_tip_index, tB)
+      first_tip_name <- c(first_tip_name, tree$tip.label[tA])
+      second_tip_name <- c(second_tip_name, tree$tip.label[tB])
     }
   }
   
   # Get the matrix with the distances between the tree tips
-  distance <- signif(ape::cophenetic.phylo(tree), 4)
+  #distance <- signif(ape::cophenetic.phylo(tree), 4)
+  dist <- ape::cophenetic.phylo(tree)
   
   # Set a dataframe for the pairwise distances
-  pairwiseD <- data.frame(tipA = tipA,
-                          tipB = tipB,
-                          distance = rep(NA, length(tipA)))
+  pairwiseD <- data.frame(first_tip_name = first_tip_name,
+                          second_tip_name = second_tip_name,
+                          first_tip_index = first_tip_index,
+                          second_tip_index = second_tip_index,
+                          dist = rep(NA, length(tipA)))
   
   # Save the distances
-  for (tip in 1:length(tipA)){
-    pairwiseD$distance[tip] <- distance[tipA[tip],tipB[tip]]
+  for (tip in 1:length(first_tip_index)){
+    pairwiseD$dist[tip] <- dist[first_tip_index[tip],second_tip_index[tip]]
   }
   pairwiseD
 }

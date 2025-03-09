@@ -25,6 +25,27 @@ test_that("get_MeanFreqP non-valid structureIndices", {
   
 })
 
+test_that("get_MeanFreqP non-categorized input of methylation states", {
+  
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
+    list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
+  )
+  
+  index_islands <- c(1,2)
+  index_nonislands <- c(1,2)
+  
+  mean_freqP <- mean(c(0, 0, 0, 0, 0.5, 0, 0, 0.5, 1, 0.5, 0, 1)==0.5)
+  
+  expect_equal(get_islandMeanFreqP(data = data, index_islands = index_islands, sample_n =2),
+               mean_freqP,
+               info = "incorrect value with uncategorized input data")
+  expect_equal(get_nonislandMeanFreqP(data = data, index_nonislands = index_nonislands, sample_n =2),
+               mean_freqP,
+               info = "incorrect value with uncategorized input data")
+  
+})
+
 test_that("get_MeanFreqP structures with equal length islands and non-islands", {
   # Two tips and two islands
   index_islands <- c(1, 2)
@@ -157,6 +178,27 @@ test_that("get_MeanFreqM non-valid structureIndices", {
                "'index_nonislands' has no indices")
 })
 
+test_that("get_MeanFreqM non-categorized input of methylation states", {
+  
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
+    list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
+  )
+  
+  index_islands <- c(1,2)
+  index_nonislands <- c(1,2)
+  
+  mean_freqM <- mean(c(0, 0, 0, 0, 0.5, 0, 0, 0.5, 1, 0.5, 0, 1)==1)
+  
+  expect_equal(get_islandMeanFreqM(data = data, index_islands = index_islands, sample_n =2),
+               mean_freqM,
+               info = "incorrect value with uncategorized input data")
+  expect_equal(get_nonislandMeanFreqM(data = data, index_nonislands = index_nonislands, sample_n =2),
+               mean_freqM,
+               info = "incorrect value with uncategorized input data")
+  
+})
+
 
 test_that("get_MeanFreqM structures with equal length islands and non-islands", {
   # Two tips and two islands
@@ -273,6 +315,28 @@ test_that("get_islandSDFreqP non-valid structureIndices", {
   expect_error(get_nonislandSDFreqP(data = data, index_nonislands = index_nonislands, sample_n =2),
                "Invalid non-island indices detected: 3. Number of structures in given data: 2",
                info = "fails to throw error with incorrect nonisland index")
+})
+
+test_that("get_SDFreqP non-categorized input of methylation states", {
+  
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
+    list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
+  )
+  
+  index_islands <- c(1,2)
+  index_nonislands <- c(1,2)
+  
+  sdTip1 <- sd(c(mean(c(0, 0, 0) == 0.5), mean(c(0, 0.5, 0) == 0.5)))
+  sdTip2 <- sd(c(mean(c(0, 0.5, 1) == 0.5), mean(c(0.5, 0, 1) == 0.5)))
+  
+  expect_equal(get_islandSDFreqP(data = data, index_islands = index_islands, sample_n =2),
+               mean(c(sdTip1, sdTip2)),
+               info = "incorrect value with uncategorized input data")
+  expect_equal(get_nonislandSDFreqP(data = data, index_nonislands = index_nonislands, sample_n =2),
+               mean(c(sdTip1, sdTip2)),
+               info = "incorrect value with uncategorized input data")
+  
 })
 
 test_that("get_SDFreqP structures with equal length islands and non-islands", {
@@ -520,6 +584,28 @@ test_that("get_islandSDFreqM non-valid structureIndices", {
                info = "fails to throw error with incorrect nonisland index")
 })
 
+test_that("get_SDFreqM non-categorized input of methylation states", {
+  
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
+    list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
+  )
+  
+  index_islands <- c(1,2)
+  index_nonislands <- c(1,2)
+  
+  sdTip1 <- sd(c(mean(c(0, 0, 0) == 1), mean(c(0, 0.5, 0) == 1)))
+  sdTip2 <- sd(c(mean(c(0, 0.5, 1) == 1), mean(c(0.5, 0, 1) == 1)))
+  
+  expect_equal(get_islandSDFreqM(data = data, index_islands = index_islands, sample_n =2),
+               mean(c(sdTip1, sdTip2)),
+               info = "incorrect value with uncategorized input data")
+  expect_equal(get_nonislandSDFreqM(data = data, index_nonislands = index_nonislands, sample_n =2),
+               mean(c(sdTip1, sdTip2)),
+               info = "incorrect value with uncategorized input data")
+  
+})
+
 
 test_that("get_SDFreqM structures with equal length islands and non-islands", {
   # One tip and four islands / non-islands
@@ -764,6 +850,30 @@ test_that("menCor non-valid structureIndices", {
   expect_error(compute_meanCor_ni(data = data, index_nonislands = index_nonislands, minN_CpG = 1, shore_length = 0, sample_n =2),
                "Invalid non-island indices detected: 3. Number of structures in given data: 2",
                info = "fails to throw error with incorrect nonisland index")
+})
+
+test_that("meanCor non-categorized input of methylation states", {
+  
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
+    list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
+  )
+  
+  index_islands <- c(1,2)
+  index_nonislands <- c(1,2)
+  
+  cor2 <- cor(c(0,0.5), c(0.5,0))
+  cor3 <- cor(c(0,0.5), c(0.5,1))
+  cor4 <- cor(c(0.5,0), c(0,1))
+  meanCor <- mean(c(cor2, cor3, cor4))
+  
+  expect_equal(compute_meanCor_i(data = data, index_islands = index_islands, minN_CpG = 1, shore_length = 0, sample_n =2),
+               meanCor,
+               info = "incorrect value with uncategorized input data")
+  expect_equal(compute_meanCor_ni(data = data, index_nonislands = index_nonislands, minN_CpG = 1, shore_length = 0, sample_n =2),
+               meanCor,
+               info = "incorrect value with uncategorized input data")
+  
 })
 
 test_that("meanCor", {
@@ -1155,7 +1265,7 @@ test_that("get_cherryDist processing of different input types", {
 })
 
 
-test_that("validate_data", {
+test_that("validate_data_cherryDist", {
   
   # Different number of structures across tips
   type <- "Different number of structures across tips"
@@ -1165,7 +1275,7 @@ test_that("validate_data", {
     list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
     list(rep(1,10), rep(0.5,10))) 
   cherryDist <- get_cherryDist(tree)
-  expect_error(validate_data(cherryDist, data),
+  expect_error(validate_data_cherryDist(cherryDist, data),
                info = paste(type, "fails to throw error"))
   
   # Tip without structures
@@ -1176,7 +1286,7 @@ test_that("validate_data", {
     list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
     list()) 
   cherryDist <- get_cherryDist(tree)
-  expect_error(validate_data(cherryDist, data),
+  expect_error(validate_data_cherryDist(cherryDist, data),
                info = paste(type, "fails to throw error"))
   
   # Data with a structure of length 0
@@ -1187,7 +1297,7 @@ test_that("validate_data", {
     list(rep(1,10), rep(0.5,10), c()), # tip 2 cherry
     list(rep(1,10), rep(0.5,10), c())) 
   cherryDist <- get_cherryDist(tree)
-  expect_error(validate_data(cherryDist, data),
+  expect_error(validate_data_cherryDist(cherryDist, data),
                info = paste(type, "fails to throw error"))
   
   # Different number of sites in data
@@ -1198,7 +1308,7 @@ test_that("validate_data", {
     list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
     list(rep(1,10), rep(0.5,10), rep(0,10))) 
   cherryDist <- get_cherryDist(tree)
-  expect_error(validate_data(cherryDist, data),
+  expect_error(validate_data_cherryDist(cherryDist, data),
                info = paste(type, "fails to throw error"))
   
   # Number of tips in data smaller than given cherry tip indices
@@ -1209,7 +1319,7 @@ test_that("validate_data", {
     list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
     list(rep(1,10), rep(0.5,10), rep(0,10))) 
   cherryDist <- get_cherryDist(tree)
-  expect_error(validate_data(cherryDist, data),
+  expect_error(validate_data_cherryDist(cherryDist, data),
                info = paste(type, "fails to throw error"))
 })
 
@@ -2552,11 +2662,179 @@ test_that("computeFitch_islandGlbSt 4 tips asymmetric tree non-numeric labels 1 
   expect_equal(o, 2)
 })
 
+test_that("count_upm", {
+  data <- c(0,0,0,1,1,0.5,0.5,0.5,0.5,0.5)
+  o <- count_upm(data)
+  expect_equal(o, c(3,5,2))
+})
 
 
 
 
+test_that("pValue_CherryFreqsChange_i", {
+  # Set tree and data
+  tree <- "((d:1,e:1):2,a:2);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), 
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), 
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))), 
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0.5,1)))) 
+
+  
+  index_islands <- c(1,3)
+  
+  o <- pValue_CherryFreqsChange_i(data, index_islands, tree)
+  expect_true(o[1, "island_1"] >= 0 && o[1, "island_1"] <= 1,
+              info = "p value not between 1 and 0 for island_1")
+  expect_true(o[1, "island_3"] >= 0 && o[1, "island_1"] <= 1,
+              info = "p value not between 1 and 0 for island_3")
+  ##TODO: Test for 2 cherries
+})
+
+test_that("count_CherryFreqsChange_i", {
+  # Set tree and data
+  tree <- "((d:1,e:1):2,a:2);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), 
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), 
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))), 
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0.5,1)))) 
+  
+  
+  index_islands <- c(1,3)
+  
+  o <- count_CherryFreqsChange_i(data, index_islands, tree, pValue_threshold = 0.05)
+  expect_true(o[1, "FreqsChange"] == 1,
+              info = "does not return the correct mean of observed changes per island")
+
+  ##TODO: Test for 2 cherries
+})
+
+##TODO: count_TreeFreqsChange_i handling of trees with 2 tips or trees with 
+# > 3 tips
 
 
+test_that("validate_dataAcrossTips detects incorrect input structures", {
+  
+  # Not a list
+  expect_error(validate_dataAcrossTips(42), 
+               "Error: 'data' must be a list structured as data\\[\\[tip\\]\\]\\[\\[structure\\]\\].")
+  
+  # Less than 2 tips
+  expect_error(validate_dataAcrossTips(list(list(c(0, 1, 0)))), 
+               "Error: 'data' must contain at least two tips.*Found 1.*")
+  
+  # A tip is not a list
+  expect_error(validate_dataAcrossTips(list(list(c(0, 1, 0)), c(0, 1, 0))),
+               "Error: Each element of 'data' \\(data\\[\\[tip\\]\\]\\) must be a list of structures.*")
+  
+  # Different number of structures across tips
+  expect_error(validate_dataAcrossTips(list(list(c(0, 1, 0)), list(c(0, 1, 0), c(1, 1, 1)))),
+               "Error: All tips in 'data' must have the same number of structures.*")
+  
+  expect_error(validate_dataAcrossTips(list(list(numeric(0)), list(c(0, 1, 0)))),
+               "Error: Each structure in 'data' must contain non-empty numeric vectors.*zero-length data.*")
+  
+  # Different structure lengths
+  expect_error(validate_dataAcrossTips(list(list(c(0, 1, 0)), list(c(0, 1)))),
+               "Error: All structures in 'data' must have the same number of sites across tips.*")
+  
+  # Valid case
+  expect_silent(validate_dataAcrossTips(list(
+    list(c(0, 1, 0), c(1, 1, 0)),
+    list(c(0, 0, 1), c(1, 0, 1)),
+    list(c(1, 0, 0), c(0, 1, 1))
+  )))
+})
+
+
+
+test_that("categorize_siteMethSt works with already categorized data", {
+  data <- list(
+    list(c(0, 0.5, 1), c(0.5, 1, 0)),
+    list(c(0, 0, 1), c(1, 0.5, 0))
+  )
+  
+  # No changes expected as all values are already in the categories
+  transformed_data <- categorize_siteMethSt(data)
+  
+  expect_equal(transformed_data, data)
+})
+
+
+test_that("categorize_siteMethSt transforms data based on default thresholds", {
+  data <- list(
+    list(c(0.1, 0.7, 0.9), c(0.3, 0.5, 0.9)),
+    list(c(0.2, 0.8, 0.6), c(0.9, 0.4, 0.7))
+  )
+  
+  # Transform the data with default thresholds
+  transformed_data <- categorize_siteMethSt(data)
+  
+  expected_data <- list(
+    list(c(0, 0.5, 1), c(0.5, 0.5, 1)),
+    list(c(0, 1, 0.5), c(1, 0.5, 0.5))
+  )
+  
+  expect_equal(transformed_data, expected_data)
+})
+
+test_that("categorize_siteMethSt transforms data based on custom thresholds", {
+  data <- list(
+    list(c(0.1, 0.7, 0.9), c(0.3, 0.5, 0.9)),
+    list(c(0.2, 0.8, 0.6), c(0.9, 0.4, 0.7))
+  )
+  
+  # Transform the data with default thresholds
+  transformed_data <- categorize_siteMethSt(data, u_threshold = 0.15, m_threshold = 0.85)
+  
+  expected_data <- list(
+    list(c(0, 0.5, 1), c(0.5, 0.5, 1)),
+    list(c(0.5, 0.5, 0.5), c(1, 0.5, 0.5))
+  )
+  
+  expect_equal(transformed_data, expected_data)
+})
+
+
+
+test_that("categorize_siteMethSt stops with invalid values", {
+  # Test with data that contains a value smaller than 0
+  data_invalid_low <- list(
+    list(c(0.1, -0.1, 0.5), c(0.4, 0.3, 0.6)),
+    list(c(0.7, 0.8, 0.2), c(0.9, 0.6, 0.7))
+  )
+  
+  expect_error(categorize_siteMethSt(data_invalid_low),
+               "All values in data must be between 0 and 1 as they represent methylation frequencies.")
+  
+  # Test with data that contains a value larger than 1
+  data_invalid_high <- list(
+    list(c(0.1, 1.1, 0.5), c(0.4, 0.3, 0.6)),
+    list(c(0.7, 0.8, 0.2), c(0.9, 0.6, 0.7))
+  )
+  
+  expect_error(categorize_siteMethSt(data_invalid_high),
+               "All values in data must be between 0 and 1.")
+})
+
+##TODO: Add info categorization methState default thresholds and function to
+# customize them in vignette.
 
 

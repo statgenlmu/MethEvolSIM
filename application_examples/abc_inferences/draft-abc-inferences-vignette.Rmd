@@ -311,6 +311,392 @@ This workflow uses [Snakemake](https://snakemake.readthedocs.io) to manage the s
 11. Infer parameters from empirical DNA methylation data.
 
 
+# Choice of parameters according to region of interest
+
+## Shore length and min number of CpGs
+
+```{r}
+# load the spatial distribution of sites in islands and non-islands for the
+# region of interest
+load("NC_036801.1_29002362_30002362_dpp4.RData")
+```
+
+```{r}
+# Add a column to keep the original structure index after subsetting
+spatial_str$str_index <- 1:dim(spatial_str)[1]
+# Subset islands and non islands
+islands <- spatial_str[spatial_str$globalState == "U",]
+nonislands <- spatial_str[spatial_str$globalState == "M",]
+```
+
+Number of islands and non-islands in the region of interest:
+
+```{r}
+island_n <- dim(islands)[1]
+nonisland_n <- dim(nonislands)[1]
+island_n
+nonisland_n
+```
+
+Summary of the number of sites at each island and non-island structure
+
+```{r}
+summary(islands$n)
+summary(nonislands$n)
+```
+
+```{r}
+# Combine data into a list
+boxplot_data <- list(Islands = islands$n, NonIslands = nonislands$n)
+
+# Create the boxplot
+boxplot(boxplot_data, 
+        main = "Distribution of n in Islands and Non-Islands",
+        ylab = "n",
+        col = c("lightblue", "lightcoral"))
+
+```
+
+```{r}
+load("design.RData")
+```
+
+```{r}
+iota <- sampled_params[1, "iota"]
+iota
+```
+
+```{r}
+load("abc_dataSIM_000001.RData")
+```
+
+
+```{r}
+index_islands <- which(spatial_str$globalState == "U")
+index_nonislands <- which(spatial_str$globalState == "M")
+shore_length <- 10
+minN_CpG <- 5
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+```
+
+```{r}
+shore_length <- 5
+minN_CpG <- 5
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+```
+```{r}
+shore_length <- 5
+minN_CpG <- 10
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("iota:", iota))
+```
+
+```{r}
+shore_length <- 5
+minN_CpG <- 15
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("iota:", iota))
+```
+
+```{r}
+shore_length <- 10
+minN_CpG <- 10
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("iota:", iota))
+```
+
+```{r}
+shore_length <- 10
+minN_CpG <- 20
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("iota:", iota))
+```
+
+```{r}
+iota <- sampled_params[6, "iota"]
+iota
+```
+
+```{r}
+load("abc_dataSIM_000006.RData")
+```
+
+
+```{r}
+index_islands <- which(spatial_str$globalState == "U")
+index_nonislands <- which(spatial_str$globalState == "M")
+shore_length <- 10
+minN_CpG <- 5
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+```
+
+```{r}
+shore_length <- 5
+minN_CpG <- 5
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+```
+```{r}
+shore_length <- 5
+minN_CpG <- 10
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("iota:", iota))
+```
+
+```{r}
+shore_length <- 5
+minN_CpG <- 15
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("iota:", iota))
+```
+
+```{r}
+shore_length <- 10
+minN_CpG <- 10
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("iota:", iota))
+```
+
+```{r}
+shore_length <- 10
+minN_CpG <- 15
+print(paste("Number of islands considered out of:", island_n))
+dim(islands[islands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor islands")
+compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("Number of non-islands considered out of:", nonisland_n))
+dim(nonislands[nonislands$n >= shore_length + minN_CpG,])[1]
+print("MeanCor non-islands")
+compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n = 3)
+print(paste("iota:", iota))
+```
+
+Seems that the combination leading to higher MeanCor values while still including some islands could be shore_length 5, minN_CpG 15 (keeps 9 islands). Lets see the borders in the data
+
+```{r}
+shore_length <- 5
+minN_CpG <- 15
+kept_islands <- islands[which(islands$n >= shore_length + minN_CpG), "str_index"]
+for(tip in 1:3){
+  for(i in 1:length(kept_islands)){
+    print(data[[tip]][[kept_islands[i]]])
+  }
+}
+
+```
+
+
+
+## u and m thresholds
+
+```{r}
+load("mean_Meth_islands.RData")
+```
+
+```{r}
+# Extract all methylation values into a single vector
+all_values <- unlist(mean_Meth_islands)
+
+# Plot density
+plot(density(all_values, na.rm = TRUE), 
+     main = "Density of Mean Methylation Values at Islands", 
+     xlab = "Mean Methylation", 
+     col = "blue", lwd = 2)
+
+```
+
+```{r}
+summary(all_values)
+```
+
+
+
+```{r}
+# Initialize an empty list to store results
+changes_list <- list()
+
+# Loop through each simulation
+for (i in seq_along(mean_Meth_islands)) {
+  
+  # Extract values for the three tips
+  tip1 <- mean_Meth_islands[[i]][[1]]
+  tip2 <- mean_Meth_islands[[i]][[2]]
+  tip3 <- mean_Meth_islands[[i]][[3]]
+  
+  # Ensure all vectors are the same length
+  n <- length(tip1)  # Assuming tip1, tip2, tip3 are of equal length
+  
+  # Create a data frame for changes between tips
+  changes_list[[i]] <- data.frame(
+    index = rep(index[i], 3 * n), # Repeat index for all comparisons
+    tip_from = rep(c(1, 1, 2), each = n), # Tip of origin
+    tip_to = rep(c(2, 3, 3), each = n), # Tip of destination
+    meanMeth_from = c(tip1, tip1, tip2),
+    meanMeth_to = c(tip2, tip3, tip3),
+    meanMeth_diff = c(tip2 - tip1, tip3 - tip1, tip3 - tip2)
+  )
+}
+
+# Combine all changes into a single data frame
+changes_df <- do.call(rbind, changes_list)
+
+# Print the first few rows
+head(changes_df[changes_df$meanMeth_diff != 0,])
+```
+
+```{r}
+# Filter cases where meanMeth_diff is not zero
+changes_nonzero <- changes_df[changes_df$meanMeth_diff != 0, ]
+
+# Plot histogram
+plot(density(abs(changes_nonzero$meanMeth_diff)), 
+     breaks = 30, 
+     col = "lightblue", 
+     main = "Distribution of meanMeth_diff (Non-Zero Changes)", 
+     xlab = "Methylation Difference",
+     border = "black")
+
+```
+
+```{r}
+changes_nonzero$meanMeth_diff <- abs(changes_nonzero$meanMeth_diff)
+summary(changes_nonzero$meanMeth_diff)
+```
+
+```{r}
+head(changes_nonzero[order(changes_nonzero$meanMeth_diff), "meanMeth_diff"])
+```
+
+```{r}
+changes_overFirstQuantile <- changes_nonzero[changes_nonzero$meanMeth_diff > 0.08333,]
+head(changes_overFirstQuantile[order(changes_overFirstQuantile$meanMeth_diff),])
+```
+
+Lets see how the current summary statistics behave, taking into account that it will not capture most of the global methylation changes as they the state at the different tips will fall under the same category. E.g. for index 12 tip 1 shows 0.58 and tip 2 and 3 have the same value 0.66. Both tips will be categorized as partially methylated but this looks like an IWE. 
+
+# Sumstats before debug exploration
+
+```{r}
+load("merged_sumStats.RData")
+load("design.RData")
+```
+
+```{r}
+# Subset parameter combinations in output files
+subset_params <- sampled_params[as.integer(rownames(merged_sumStats)),]
+```
+
+```{r}
+par(mfrow = c(1,2))
+plot(subset_params$iota, merged_sumStats$meanCor_i,
+     xlab = "iota", ylab = "meanCor",
+     main = "Island")
+plot(subset_params$iota, merged_sumStats$meanCor_ni,
+     xlab = "iota", ylab = "meanCor",
+     main = "Non-island")
+```
+
+For this I used as thresholds a minimum number of CpGs of 15 and shore length 5. It was then only considering 9 islands. Still in non islands it shows a decreasing trend. However in the test for CFTP convergence CFTP with higher iota was leading to larger mean correlation values (there all islands and non-islands were considered, as the number of sites per structure was fixed to 100 (and 20 islands and 20 non-islands) and 10 sites was the shore lengthä)
+
+
+```{r}
+merged_sumStats$meanCor_i[which(subset_params$iota == min(subset_params$iota))]
+```
+
+```{r}
+plot(subset_params$mu, merged_sumStats$Fitch_islandGlbSt,
+     xlab = "mu", ylab = "Fitch",
+     main = "Island")
+```
+
+
+```{r}
+names(subset_params)[12] <- "TMRCA_smallestCherry"
+par(mfrow = c(1,2))
+plot(subset_params$TMRCA_smallestCherry, merged_sumStats$MeanSiteFChange_i,
+     xlab = "TMRCA_smallestCherry", ylab = "MeanSiteFChange",
+     main = "Island")
+plot(subset_params$TMRCA_smallestCherry, merged_sumStats$MeanSiteFChange_ni,
+     xlab = "TMRCA_smallestCherry", ylab = "MeanSiteFChange",
+     main = "Non-island")
+```
+
 
 
 # References
