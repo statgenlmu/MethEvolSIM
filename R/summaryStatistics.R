@@ -1691,7 +1691,7 @@ count_upm <- function(data){
 # at tip 2
 # returns the p-value of a chi-squared test for the counts of
 # the three states at the two tips
-compare_CherryFreqs <- function(tip1, tip2){
+compare_CherryFreqs <- function(tip1, tip2, testing = FALSE){
   
   # Count the number of sites at each tip with methylation states
   # 0, 0.5, 1 (unmethylated, partially-methylated, methylated)
@@ -1706,11 +1706,21 @@ compare_CherryFreqs <- function(tip1, tip2){
   # Create a matrix with both tip counts
   contingency_table <- rbind(tip1_upmCounts, tip2_upmCounts)
   
+  # Check for zero marginals before running chi-squared test
+  if(any(colSums(contingency_table) == 0)){
+    contingency_table <- contingency_table[,-which(colSums(contingency_table)==0)]
+  }
+  
   # Perform the chi-squared test
   chi_sq_result <- chisq.test(contingency_table, simulate.p.value = TRUE)
   
-  # Return the p-value
-  chi_sq_result$p.value
+  if(testing){
+    list(contingency_table = contingency_table,
+         chi_sq_result = chi_sq_result)
+  } else {
+    # Return the p-value
+    chi_sq_result$p.value
+  }
 }
 
 

@@ -2674,6 +2674,14 @@ test_that("compare_CherryFreqs returns value of 1 when upm counts are equal", {
   expect_equal(compare_CherryFreqs(tip1, tip2), 1)
 })
 
+test_that("compare_CherryFreqs handling of 0 marginals", {
+  tip1 <- c(rep(0,6), rep(0.5,2))
+  tip2 <- rep(0,8)
+  o <- compare_CherryFreqs(tip1, tip2, testing = TRUE)
+  expect_equal(nrow(o$contingency_table), 2)
+  expect_false(is.na(o$chi_sq_result$p.value))
+})
+
 
 test_that("pValue_CherryFreqsChange_i", {
   # Set tree and data
