@@ -1935,7 +1935,7 @@ categorize_siteMethSt <- function(data, u_threshold = 0.2, m_threshold = 0.8) {
 #' # Example of usage:
 #' result <- count_TreeFreqsChange_i(tree, data, index_islands = c(1, 2, 3), pValue_threshold = 0.05)
 #' print(result)
-count_TreeFreqsChange_i <- function(tree, data, index_islands, pValue_threshold) {
+count_TreeFreqsChange_i <- function(tree, data, index_islands, pValue_threshold, testing=FALSE) {
   
   tryCatch({
     # Validate tree
@@ -1966,6 +1966,11 @@ count_TreeFreqsChange_i <- function(tree, data, index_islands, pValue_threshold)
   # Set a vector to store the pValues
   pValues <- c()
   
+  # Set a list to store the contingency tables when testing
+  if(testing){
+    island_upmCounts_list <- list()
+  }
+  
   # For each island
   for (i in 1:length(index_islands)) {
     # Set a list to store the counts of the number of sites at each tip
@@ -1979,16 +1984,50 @@ count_TreeFreqsChange_i <- function(tree, data, index_islands, pValue_threshold)
     # Save the island upm counts as a matrix
     island_upmCounts <- do.call(rbind, island_upmCounts)
     
-    # Perform the chi-squared test and save the island's pValue
-    pValues[i] <- chisq.test(island_upmCounts, simulate.p.value = TRUE)$p.value
+    # If they are all equal save as p-value 1
+    if(length(unique(island_upmCounts))==1){
+      
+      pValues[i] <- 1
+      
+      #Save as NA the contingency table when testing
+      if(testing){
+        island_upmCounts_list[[i]] <- NA
+      }
+      
+    } else {
+      
+      # Check for zero marginals before running chi-squared test
+      if(any(colSums(island_upmCounts) == 0)){
+        
+        island_upmCounts <- island_upmCounts[,-which(colSums(island_upmCounts)==0)]
+        
+        #Save the contingency table when testing
+        if(testing){
+          island_upmCounts_list[[i]] <- island_upmCounts
+        }
+      }
+      
+      # Perform the chi-squared test and save the island's pValue
+      pValues[i] <- chisq.test(island_upmCounts, simulate.p.value = TRUE)$p.value
+    }
+    
   }
   
   # Get a logical vector for island significant changes in freqs across tips
   signifFreqChange <- pValues < pValue_threshold
   
-  # Return the mean number of changes observed across tips per island
-  mean(signifFreqChange)
+  if(testing){
+    list(pValues = pValues,
+         island_upmCounts_list = island_upmCounts_list)
+  } else {
+    
+    # Return the mean number of changes observed across tips per island
+    mean(signifFreqChange)
+    
+  }
 }
+
+## TODO: Maybe fischer in cherry case for 2x2 contingency tables 
 
 
 

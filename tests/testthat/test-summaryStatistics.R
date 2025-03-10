@@ -2678,7 +2678,7 @@ test_that("compare_CherryFreqs handling of 0 marginals", {
   tip1 <- c(rep(0,6), rep(0.5,2))
   tip2 <- rep(0,8)
   o <- compare_CherryFreqs(tip1, tip2, testing = TRUE)
-  expect_equal(nrow(o$contingency_table), 2)
+  expect_equal(ncol(o$contingency_table), 2)
   expect_false(is.na(o$chi_sq_result$p.value))
 })
 
@@ -2849,6 +2849,37 @@ test_that("categorize_siteMethSt stops with invalid values", {
 ##TODO: Add info categorization methState default thresholds and function to
 # customize them in vignette.
 
+## TODO: Update following tests for count_TreeFreqsChange_i
+test_that("count_TreeFreqsChange_i testing output returns pvalue of 1 when upm counts are equal", {
+  tree <-"((a:1,b:1):1,c:2);"
+  data <- list(
+    list(rep(0,11)),
+    list(rep(0,11)),
+    list(rep(0,11))
+  )
+  index_islands <- c(1)
+  pValue_threshold <- 0.05
+  o <- count_TreeFreqsChange_i(tree, data, index_islands, 
+                          pValue_threshold, testing = TRUE)
+  expect_equal(o$pValues[1], 1)
+  expect_true(is.na(o$island_upmCounts_list[[1]]))
+})
+
+test_that("count_TreeFreqsChange_i handling of 0 marginals", {
+  tree <-"((a:1,b:1):1,c:2);"
+  data <- list(
+    list(rep(0,11)),
+    list(rep(0,11)),
+    list(c(rep(0,2), rep(0.5, 9)))
+  )
+  index_islands <- c(1)
+  pValue_threshold <- 0.05
+  
+  o <- count_TreeFreqsChange_i(tree, data, index_islands, 
+                               pValue_threshold, testing = TRUE)
+  expect_equal(ncol(o$island_upmCounts_list[[1]]), 2)
+  expect_false(is.na(o$pValues[1]))
+})
 
 
 
