@@ -2668,7 +2668,11 @@ test_that("count_upm", {
   expect_equal(o, c(3,5,2))
 })
 
-
+test_that("compare_CherryFreqs returns value of 1 when upm counts are equal", {
+  tip1 <- rep(0,15)
+  tip2 <- rep(0,15)
+  expect_equal(compare_CherryFreqs(tip1, tip2), 1)
+})
 
 
 test_that("pValue_CherryFreqsChange_i", {
@@ -2836,5 +2840,7 @@ test_that("categorize_siteMethSt stops with invalid values", {
 
 ##TODO: Add info categorization methState default thresholds and function to
 # customize them in vignette.
+
+
 
 

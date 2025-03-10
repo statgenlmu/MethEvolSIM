@@ -1698,6 +1698,11 @@ compare_CherryFreqs <- function(tip1, tip2){
   tip1_upmCounts <- count_upm(tip1)
   tip2_upmCounts <- count_upm(tip2)
   
+  # If they are all equal return 1
+  if(all(tip1_upmCounts == tip2_upmCounts)){
+    return(1)
+  }
+  
   # Create a matrix with both tip counts
   contingency_table <- rbind(tip1_upmCounts, tip2_upmCounts)
   
