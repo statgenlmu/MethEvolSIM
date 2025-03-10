@@ -1328,6 +1328,16 @@ singleStructureGenerator <-
                     list(seq = private$seq,
                          neighbSt = private$neighbSt)
                   }
+                },
+                
+                #' @description
+                #' Public Method. Resets the sequence states by resampling according to the instance's equilibrium frequencies.
+                #' 
+                #' @return NULL. The sequence is updated in place.
+                reset_seq = function(){
+                  n_sites <- length(private$seq)
+                  # Resample seq states according to the instance's equilibrium frequencies
+                  private$seq <- sample(1L:3L, size = n_sites, prob = private$eqFreqs, replace = TRUE)
                 }
               )
               )
@@ -2046,6 +2056,19 @@ combiStructureGenerator <-
                     
                     # Double the number of steps
                     steps <- 2*steps
+                    
+                    ####TODO: draft
+                    if (steps > limit){
+                      # initialize each singleStr with a method for that
+                      # AFTER initializing ALL
+                      ## Initialice the neighbSt encoding for each singleStr
+                      for (str in 1:length(private$singleStr)){
+                        private$singleStr[[str]]$init_neighbSt()
+                      }
+                      # self$cftp_apply_events() 
+                      equal <- TRUE
+                      message("Steps limit reached. CFTP applying approximation.")
+                    }
                     
                     # Increase counter value
                     counter <- counter + 1

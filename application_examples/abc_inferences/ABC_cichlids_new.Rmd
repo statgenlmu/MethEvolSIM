@@ -156,6 +156,48 @@ barplot(error_matrix,
         args.legend = list(x = "topright", bty = "n"))  # Position legend
 ```
 
+## Params as Exp Value and SD. Log scale
+
+```{r}
+transf <- c("log", "none", "log", rep("none", 9))
+names(transf) <- names(params_expSD)
+transf
+```
+
+```{r}
+set.seed(1)
+loclinear_cv <- cv4abc(params_expSD, merged_sumStats,
+                       nval = 100,
+                       method = "loclinear",
+                       transf = transf,
+                       tols = 0.01)
+set.seed(1)
+ridge_cv <- cv4abc(params_expSD, merged_sumStats,
+                   nval = 100, 
+                   method = "ridge",
+                   transf = transf,
+                   tols = 0.01)
+```
+
+```{r}
+# Combine into a matrix for grouped bars
+error_matrix <- rbind(loclinear_error, ridge_error)
+
+par(mar = c(5, 10, 4, 2))  # Increase left margin for labels
+# Create the horizontal bar plot
+barplot(error_matrix, 
+        horiz = TRUE, 
+        beside = TRUE,     # Plot bars side by side
+        col = c("red", "steelblue"),  # Red for loclinear, Blue for ridge (cv)
+        border = "black",  # Bar border color
+        main = "Comparison of Errors",
+        xlab = "Error Value",
+        names.arg = names(loclinear_error),
+        las = 1, 
+        cex.names = 0.8,   # Adjust text size
+        legend.text = c("Loclinear", "Ridge"),  # Legend
+        args.legend = list(x = "topright", bty = "n"))  # Position legend
+```
 
 ### Parameter exploration
 
@@ -175,7 +217,13 @@ hist(expIWE_perIsland,
 ```
 
 ```{r}
-plot(expIWE_perIsland, merged_sumStats$Fitch_islandGlbSt)
+plot(expIWE_perIsland, merged_sumStats$cherryFreqsChange_i,
+     main = "cherryFreqsChange")
+```
+
+```{r}
+plot(expIWE_perIsland, merged_sumStats$treeFreqsChange_i,
+     main = "cherryFreqsChange")
 ```
 
 #### TMRCA
@@ -211,4 +259,16 @@ param <- loclinear_cv$true[,"mu"]
 ```
 
 
+## New prior to try for alpha_Ri
+```{r}
+load("design.RData")
+hist(sampled_params$alpha_Ri) # old
 
+```
+```{r}
+hist(rexp(10000, 0.1), 50) #new
+```
+
+```{r}
+
+```

@@ -4938,6 +4938,12 @@ test_that("treeMultiRegionSimulator errors in input", {
 
 })
 
+test_that("singleStructureGenerator reset_seq",{
+  # Test my_combiStructure initialization
+  single_obj <- singleStructureGenerator$new("U",100)
+  
+})
+
 
 
 

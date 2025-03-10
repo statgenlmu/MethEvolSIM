@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r load params and sumstats}
 load("design.RData")
 names(sampled_params)[12] <- "TMRCA_smallestCherry"
-load("merged_sumStats.RData")
+load("merged_sumStats_old.RData")
 ```
 
 ```{r set functions to compute expected value and sd of P and M/M+U}
