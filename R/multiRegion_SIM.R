@@ -2003,13 +2003,22 @@ combiStructureGenerator <-
                 },
                 
                 #' @description
-                #' Public Method. Applies the CFTP algorithm.
+                #' Public Method. Applies the CFTP algorithm to evolve a structure and checks for convergence by comparing methylation states.
                 #' 
-                #' @param steps minimum number of steps to apply (default 10000)
-                #' @param testing default FALSE. TRUE for testing output
+                #' This method generates CFTP steps until the methylation sequences of the current structure and a cloned structure become identical across all singleStr instances or a step limit is reached. If the step limit is exceeded, an approximation method is applied to finalize the sequence.
                 #' 
-                #' @return NULL when testing FALSE. Testing output when testing TRUE.
-                cftp = function(steps = 10000, testing = FALSE) {
+                #' @param steps minimum number of steps to apply (default 10000).
+                #' @param step_limit maximum number of steps before applying an approximation method (default 327680000). 
+                #'        If this limit is reached, the algorithm stops and an approximation is applied.
+                #' @param testing logical. If TRUE, returns additional testing output including the current structure, the cloned structure, the counter value, total steps, and the chosen site for the CFTP events. Default is FALSE.
+                #' 
+                #' @return NULL when testing is FALSE. If testing is TRUE, returns a list with:
+                #'   - `self`: the current object after applying the CFTP algorithm.
+                #'   - `combi_m`: a deep cloned object with applied CFTP events.
+                #'   - `counter`: the number of iterations performed.
+                #'   - `total_steps`: the number of steps applied by the CFTP algorithm.
+                #'   - `CFTP_chosen_site`: the site selected during the CFTP event application.
+                cftp = function(steps = 10000, step_limit = 327680000, testing = FALSE) {
                   private$CFTP_info <- cftpStepGenerator$new(singleStr_number = self$get_singleStr_number(), 
                                                              singleStr_siteNumber = self$get_singleStr_siteNumber(), 
                                                              CFTP_highest_rate = self$get_highest_rate())
@@ -2057,17 +2066,26 @@ combiStructureGenerator <-
                     # Double the number of steps
                     steps <- 2*steps
                     
-                    ####TODO: draft
-                    if (steps > limit){
-                      # initialize each singleStr with a method for that
-                      # AFTER initializing ALL
-                      ## Initialice the neighbSt encoding for each singleStr
+                    if (steps > step_limit){
+                      message("Steps limit reached. Applying approximation for CFTP.")
+                      
+                      # Initialize each singleStr sequence of states 
+                      # according to its corresponding equilibrium frequencies
+                      for (str in 1:length(private$singleStr)){
+                        private$singleStr[[str]]$reset_seq()
+                      }
+                      
+                      # Initialice the neighbSt encoding for each singleStr
                       for (str in 1:length(private$singleStr)){
                         private$singleStr[[str]]$init_neighbSt()
                       }
-                      # self$cftp_apply_events() 
+                      
+                      # Apply the already generated cftp_events
+                      self$cftp_apply_events() 
+                      
+                      # Set equal to stop iterations
                       equal <- TRUE
-                      message("Steps limit reached. CFTP applying approximation.")
+                      
                     }
                     
                     # Increase counter value
