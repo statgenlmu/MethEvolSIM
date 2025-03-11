@@ -1035,8 +1035,18 @@ validate_data_cherryDist <- function(cherryDist, data){
 #'   }
 #'
 #' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
-#'   The data should be structured as \code{data[[tip]][[structure]]}, where each structure has the same number of sites across tips.
+#'   The data should be structured as `data[[tip]][[structure]]`, where each structure has the same number of sites across tips.
 #'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
+#'
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'   
 #' @param input_control A logical value indicating whether to validate the input data. 
 #' If \code{TRUE} (default), the function checks that the data has the required structure.
@@ -1072,7 +1082,7 @@ validate_data_cherryDist <- function(cherryDist, data){
 #' countSites_cherryMethDiff(cherryDist, data)
 #'
 #' @export
-countSites_cherryMethDiff <- function(cherryDist, data, input_control = TRUE) {
+countSites_cherryMethDiff <- function(cherryDist, data, categorized_data = FALSE, input_control = TRUE) {
   
   # Check argument cherryDist has all columns
   if(!all(c("first_tip_name", "second_tip_name", "first_tip_index", "second_tip_index", "dist") %in% names(cherryDist))){
@@ -1084,6 +1094,9 @@ countSites_cherryMethDiff <- function(cherryDist, data, input_control = TRUE) {
   
   # Check input data format and minium number of tips
   if (input_control) validate_data_cherryDist(cherryDist, data)
+  
+  # Categorize methylation states
+  if(!categorized_data) data <- categorize_siteMethSt(data)
   
   # Set the number of structures after checking consistency across tips
   str_n <- length(data[[1]]) 
@@ -1134,10 +1147,20 @@ countSites_cherryMethDiff <- function(cherryDist, data, input_control = TRUE) {
 #' of sites per structure to obtain frequencies.
 #'
 #' @param tree A phylogenetic tree object. The function assumes it follows an appropriate format for downstream processing.
-#'
+#'   
 #' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
 #'   The data should be structured as `data[[tip]][[structure]]`, where each structure has the same number of sites across tips.
 #'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
+#'
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @param input_control A logical value indicating whether to validate the input data.
 #'   If `TRUE` (default), the function checks that the data has the required structure.
@@ -1172,20 +1195,28 @@ countSites_cherryMethDiff <- function(cherryDist, data, input_control = TRUE) {
 #' freqSites_cherryMethDiff(tree, data)
 #'
 #' @export
-freqSites_cherryMethDiff <- function(tree, data, input_control = TRUE){
+freqSites_cherryMethDiff <- function(tree, data, categorized_data = FALSE, input_control = TRUE){
   
-  # Check input tree format and minium two tips, get tree in phylo format (ape package)
-  if (input_control) tree <- validate_tree(tree)
-  
-  # Get cherry distances aoviding duplicate input control
-  cherryDist <- get_cherryDist(tree, input_control = FALSE)
-  
-  # Check input tree data format and minium number of tips
-  if (input_control) validate_data_cherryDist(cherryDist, data)
+  tryCatch({
     
+    # Check input tree format and minium two tips, get tree in phylo format (ape package)
+    if (input_control) tree <- validate_tree(tree)
+    
+    # Get cherry distances aoviding duplicate input control
+    cherryDist <- get_cherryDist(tree, input_control = FALSE)
+    
+    # Check input tree data format and minium number of tips
+    if (input_control) validate_data_cherryDist(cherryDist, data)
+    
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+  
   # Get the count numbers per type (full or half) of methylation change per cherry
   # avoiding duplicate input control
-  df <- countSites_cherryMethDiff(cherryDist, data, input_control = FALSE)
+  df <- countSites_cherryMethDiff(cherryDist, data, categorized_data = categorized_data, input_control = FALSE)
   
   # Get the number of structures
   str_n <- length(data[[1]])
@@ -1223,9 +1254,19 @@ freqSites_cherryMethDiff <- function(tree, data, input_control = TRUE){
 #' @param tree A phylogenetic tree in Newick format or a phylo object from the ape package. The function ensures
 #'   the tree has a valid structure and at least two tips.
 #'
-#' @param data A list containing methylation states at tree tips for each genomic structure
-#'   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, where
-#'   each structure has the same number of sites across tips.
+#' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
+#'   The data should be structured as `data[[tip]][[structure]]`, where each structure has the same number of sites across tips.
+#'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
+#'
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #'
 #' @return A data frame with one row per cherry, containing the following columns:
 #'   \describe{
@@ -1253,13 +1294,13 @@ freqSites_cherryMethDiff <- function(tree, data, input_control = TRUE){
 #' get_siteFChange_cherry(tree, data)
 #'
 #' @export
-get_siteFChange_cherry <- function(tree, data){
+get_siteFChange_cherry <- function(tree, data, categorized_data = FALSE){
   
   # Check input tree format and minium two tips, get tree in phylo format (ape package),
   # check input tree data format and minium number of tips, and 
   # get per-cherry frequency of (half and full) methylation differences across different genomic structures
   tryCatch({
-    freqSites_perMethDiffType <- freqSites_cherryMethDiff(tree, data)
+    freqSites_perMethDiffType <- freqSites_cherryMethDiff(tree, data, categorized_data = categorized_data)
   }, warning = function(w) {
     stop(conditionMessage(w))
   }, error = function(e) {
@@ -1295,9 +1336,18 @@ get_siteFChange_cherry <- function(tree, data){
 #' for each cherry in a phylogenetic tree. A cherry is a pair of leaf nodes (also called tips or terminal nodes) 
 #' in a phylogenetic tree that share a direct common ancestor.
 #'
-#' @param data A list containing methylation states at tree tips for each genomic structure 
-#'   (e.g., island/non-island). The data should be structured as \code{data[[tip]][[structure]]}, 
-#'   where each tip has the same number of structures, and each structure has the same number of sites across tips.
+#' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
+#'   The data should be structured as `data[[tip]][[structure]]`, where each structure has the same number of sites across tips.
+#'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #' @param tree A phylogenetic tree in Newick format or a \code{phylo} object from the \code{ape} package. 
 #'   The function ensures the tree has a valid structure and at least two tips.
 #' @param index_islands A numeric vector specifying the indices of genomic structures corresponding to islands.
@@ -1335,14 +1385,14 @@ get_siteFChange_cherry <- function(tree, data){
 #' MeanSiteFChange_cherry(data, tree, index_islands, index_nonislands)
 #'
 #' @export
-MeanSiteFChange_cherry <- function(data, tree, index_islands, index_nonislands){
+MeanSiteFChange_cherry <- function(data, categorized_data = FALSE, tree, index_islands, index_nonislands){
 
   # Check input tree format and minium two tips, get tree in phylo format (ape package),
   # check input tree data format and minium number of tips, and 
   # get per-cherry frequency of sites with different methylation states for each genomic structures
   # Validate input structure indices
   tryCatch({
-    siteFChange_cherry <- get_siteFChange_cherry(tree, data)
+    siteFChange_cherry <- get_siteFChange_cherry(tree, data, categorized_data = categorized_data)
     validate_structureIndices(data, index_islands, index_nonislands)
   }, warning = function(w) {
     stop(conditionMessage(w))
@@ -1647,29 +1697,9 @@ computeFitch_islandGlbSt <- function(index_islands, data, tree, u_threshold, m_t
   }
 }
 
-categorizeSt <- function(methValues, u_threshold, m_threshold){
-  ## categorize region global states 
-  categorized_state <- character()
-  for(i in 1:length(methValues)) {
-    if(methValues[[i]] <= u_threshold) {
-      categorized_state[i] <- "u"
-    } else {
-      if(methValues[[i]] >= m_threshold) {
-        categorized_state[i] <- "m"
-      } else {
-        categorized_state[i] <- "p"
-      }
-    }
-  }
-  return(categorized_state)
-}
 
-tree <- "(tip1:1,tip2:1);"
+##TODO: CLEAN FROM HERE
 
-data <- list(
-  list(c(0,0,1), c(1,1,1), c(1,0,0.5)), # tip 1
-  list(c(1,0,0.5), c(1,1,1), c(0,0,1)) # tip 2
-)
 
 
 

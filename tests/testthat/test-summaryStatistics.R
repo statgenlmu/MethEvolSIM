@@ -55,9 +55,9 @@ test_that("get_MeanFreqP structures with equal length islands and non-islands", 
     list(c(0, 0, 0), c(1, 1, 1)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqP(index_islands, data, sample_n), 0,
+  expect_equal(get_islandMeanFreqP(index_islands, data, categorized_data = TRUE, sample_n), 0,
                info = "incorrect mean in two tips and two islands, freq 0")
-  expect_equal(get_nonislandMeanFreqP(index_nonislands, data, sample_n), 0,
+  expect_equal(get_nonislandMeanFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), 0,
                info = "incorrect mean in two tips and two non-islands, freq 0")
   
   # Two tips and two islands
@@ -68,9 +68,9 @@ test_that("get_MeanFreqP structures with equal length islands and non-islands", 
     list(c(0, .5, .5), c(1, .5, 1)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqP(index_islands, data, sample_n), .5,
+  expect_equal(get_islandMeanFreqP(index_islands, data, categorized_data = TRUE, sample_n), .5,
                info = "incorrect mean in two tips and two islands, freq .5")
-  expect_equal(get_nonislandMeanFreqP(index_nonislands, data, sample_n), .5,
+  expect_equal(get_nonislandMeanFreqP(index_nonislands, categorized_data = TRUE, data, sample_n), .5,
                info = "incorrect mean in two tips and two non-islands, freq .5")
   
   # Two tips and 1 island
@@ -81,13 +81,13 @@ test_that("get_MeanFreqP structures with equal length islands and non-islands", 
     list(c(0, .5, .5), c(1, .5, 1)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqP(index_islands, data, sample_n), 1/3,
+  expect_equal(get_islandMeanFreqP(index_islands, data, categorized_data = TRUE, sample_n), 1/3,
                info = "incorrect mean in two tips and one islands, freq 1/3")
   expect_equal(get_nonislandMeanFreqP(index_nonislands, data, sample_n), 1/3,
                info = "incorrect mean in two tips and one non-island, freq 1/3")
   index_islands <- c(1) # island index 1
   index_nonislands <- c(1) # island index 1
-  expect_equal(get_islandMeanFreqP(index_islands, data, sample_n), 2/3,
+  expect_equal(get_islandMeanFreqP(index_islands, data, categorized_data = TRUE, sample_n), 2/3,
                info = "incorrect mean in two tips and one islands, freq 2/3")
   expect_equal(get_nonislandMeanFreqP(index_nonislands, data, sample_n), 2/3,
                info = "incorrect mean in two tips and one non-island, freq 2/3")
@@ -98,13 +98,13 @@ test_that("get_MeanFreqP structures with equal length islands and non-islands", 
   sample_n <- 1
   
   data <- list(c(0.5, 1, 0.5)) # single tip
-  expect_equal(get_islandMeanFreqP(index_islands, data, sample_n), 2/3,
+  expect_equal(get_islandMeanFreqP(index_islands, data, categorized_data = TRUE, sample_n), 2/3,
                info = "incorrect mean in one tip one island")
   expect_equal(get_nonislandMeanFreqP(index_nonislands, data, sample_n), 2/3,
                info = "incorrect mean in one tip one non-island")
 
   data <- list(c(1, 1, 0)) # single tip, no 0.5 state
-  expect_equal(get_islandMeanFreqP(index_islands, data, sample_n), 0,
+  expect_equal(get_islandMeanFreqP(index_islands, data, categorized_data = TRUE, sample_n), 0,
                info = "incorrect mean in one tip one island no .5 state")
   expect_equal(get_nonislandMeanFreqP(index_nonislands, data, sample_n), 0,
                info = "incorrect mean in one tip one non-island no .5 state")
@@ -119,9 +119,9 @@ test_that("get_MeanFreqP structures with different length (islands and non-islan
     list(c(0, 0, 0, 0, 0, 0, 0), c(1, 1, 1)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqP(index_islands, data, sample_n), 0,
+  expect_equal(get_islandMeanFreqP(index_islands, data, categorized_data = TRUE, sample_n), 0,
                info = "incorrect mean in two tips and two islands, freq 0")
-  expect_equal(get_nonislandMeanFreqP(index_nonislands, data, sample_n), 0,
+  expect_equal(get_nonislandMeanFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), 0,
                info = "incorrect mean in two tips and two non-islands, freq 0")
   
   # Two tips and two islands, freq .5 evenly distributed
@@ -132,9 +132,9 @@ test_that("get_MeanFreqP structures with different length (islands and non-islan
     list(c(0, .5, .5, 1, 1, .5), c(1, .5, 1, .5)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqP(index_islands, data, sample_n), .5,
+  expect_equal(get_islandMeanFreqP(index_islands, data, categorized_data = TRUE, sample_n), .5,
                info = "incorrect mean in two tips and two islands, freq .5")
-  expect_equal(get_nonislandMeanFreqP(index_nonislands, data, sample_n), .5,
+  expect_equal(get_nonislandMeanFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), .5,
                info = "incorrect mean in two tips and two non-islands, freq .5")
   
   # Two tips and two islands, freq .5 unevenly distributed (fist island mean 3/4, second island mean 1/4)
@@ -145,9 +145,9 @@ test_that("get_MeanFreqP structures with different length (islands and non-islan
     list(c(0, .5, .5, 1, .5, .5), c(1, 0, 1, .5)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqP(index_islands, data, sample_n), .5,
+  expect_equal(get_islandMeanFreqP(index_islands, data, categorized_data = TRUE, sample_n), .5,
                info = "incorrect mean in two tips and two islands, freq .5")
-  expect_equal(get_nonislandMeanFreqP(index_nonislands, data, sample_n), .5,
+  expect_equal(get_nonislandMeanFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), .5,
                info = "incorrect mean in two tips and two non-islands, freq .5")
  
 })
@@ -209,9 +209,9 @@ test_that("get_MeanFreqM structures with equal length islands and non-islands", 
     list(c(0, 0, 0), c(.5, .5, .5)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqM(index_islands, data, sample_n), 0,
+  expect_equal(get_islandMeanFreqM(index_islands, data, categorized_data = TRUE, sample_n), 0,
                info = "incorrect mean in two tips and two islands, freq 0")
-  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, sample_n), 0,
+  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), 0,
                info = "incorrect mean in two tips and two non-islands, freq 0")
   
   # Two tips and two islands
@@ -222,9 +222,9 @@ test_that("get_MeanFreqM structures with equal length islands and non-islands", 
     list(c(1, 1, .5), c(1, .5, 1)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqM(index_islands, data, sample_n), 0.5,
+  expect_equal(get_islandMeanFreqM(index_islands, data, categorized_data = TRUE, sample_n), 0.5,
                info = "incorrect mean in two tips and two islands, freq 0.5")
-  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, sample_n), 0.5,
+  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), 0.5,
                info = "incorrect mean in two tips and two non-islands, freq 0.5")
   
   # Two tips and 1 island
@@ -235,9 +235,9 @@ test_that("get_MeanFreqM structures with equal length islands and non-islands", 
     list(c(0, .5, 1), c(1, 1, 1)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqM(index_islands, data, sample_n), .5,
+  expect_equal(get_islandMeanFreqM(index_islands, data, categorized_data = TRUE, sample_n), .5,
                info = "incorrect mean in two tips and one island, freq 0.5")
-  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, sample_n), .5,
+  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), .5,
                info = "incorrect mean in two tips and one non-island, freq 0.5")
   
   # One tip, one island
@@ -246,13 +246,13 @@ test_that("get_MeanFreqM structures with equal length islands and non-islands", 
   sample_n <- 1
   
   data <- list(c(1, 1, 0.5)) # single tip
-  expect_equal(get_islandMeanFreqM(index_islands, data, sample_n), 2/3,
+  expect_equal(get_islandMeanFreqM(index_islands, data, categorized_data = TRUE, sample_n), 2/3,
                info = "incorrect mean in one tip one island")
   expect_equal(get_nonislandMeanFreqM(index_nonislands, data, sample_n), 2/3,
                info = "incorrect mean in one tip one non-island")
   
   data <- list(c(0, 0, 0)) # single tip, no methylated state
-  expect_equal(get_islandMeanFreqM(index_islands, data, sample_n), 0,
+  expect_equal(get_islandMeanFreqM(index_islands, data, categorized_data = TRUE, sample_n), 0,
                info = "incorrect mean in one tip one island no methylated state")
   expect_equal(get_nonislandMeanFreqM(index_nonislands, data, sample_n), 0,
                info = "incorrect mean in one tip one non-island no methylated state")
@@ -267,9 +267,9 @@ test_that("get_MeanFreqM structures with different length (islands and non-islan
     list(c(0, 0, 0, 0, 0, 0, 0), c(1, 1, 1)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqM(index_islands, data, sample_n), 1/4,
+  expect_equal(get_islandMeanFreqM(index_islands, data, categorized_data = TRUE, sample_n), 1/4,
                info = "incorrect mean in two tips and two islands, freq 1/4")
-  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, sample_n), 1/4,
+  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), 1/4,
                info = "incorrect mean in two tips and two non-islands, freq 1/4")
   
   # Two tips and two islands, freq .5 evenly distributed
@@ -280,9 +280,9 @@ test_that("get_MeanFreqM structures with different length (islands and non-islan
     list(c(0, 1, .5, 1, 1, .5), c(1, 1, 0, 0)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqM(index_islands, data, sample_n), 0.5,
+  expect_equal(get_islandMeanFreqM(index_islands, data, categorized_data = TRUE, sample_n), 0.5,
                info = "incorrect mean in two tips and two islands, freq .5")
-  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, sample_n), 0.5,
+  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), 0.5,
                info = "incorrect mean in two tips and two non-islands, freq .5")
   
   # Two tips and two islands, freq .5 unevenly distributed (first island mean 3/4, second island mean 1/4)
@@ -293,9 +293,9 @@ test_that("get_MeanFreqM structures with different length (islands and non-islan
     list(c(1, 1, .5, 1, 1, 1), c(1, 0, .5, 0)) # tip 2
   )
   sample_n <- 2
-  expect_equal(get_islandMeanFreqM(index_islands, data, sample_n), .5,
+  expect_equal(get_islandMeanFreqM(index_islands, data, categorized_data = TRUE, sample_n), .5,
                info = "incorrect mean in two tips and two islands, freq .5")
-  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, sample_n), .5,
+  expect_equal(get_nonislandMeanFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), .5,
                info = "incorrect mean in two tips and two non-islands, freq .5")
 })
 
@@ -350,9 +350,9 @@ test_that("get_SDFreqP structures with equal length islands and non-islands", {
                c(.5, .5, .5)) # freq P 1
   exp_SD <- sqrt(4*(0.5)^2/3) 
   sample_n <- 1
-  expect_equal(get_islandSDFreqP(index_islands, data, sample_n), exp_SD,
+  expect_equal(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n), exp_SD,
                info = "incorrect SD in one tip and 4 islands")
-  expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), exp_SD,
+  expect_equal(get_nonislandSDFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), exp_SD,
                info = "incorrect SD in one tip and 4 non-islands")
   
   # Two tips and four islands / non-islands
@@ -373,9 +373,9 @@ test_that("get_SDFreqP structures with equal length islands and non-islands", {
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqP(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tip and 4 islands")
-  expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tip and 4 non-islands")
   
   # Two tips and four islands / non-islands (length 1)
@@ -396,9 +396,9 @@ test_that("get_SDFreqP structures with equal length islands and non-islands", {
   exp_SD2 <- sqrt(4*(0.5)^2/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqP(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 islands (length 1)")
-  expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 non-islands (length 1)")
   
   
@@ -429,9 +429,9 @@ test_that("get_SDFreqP structures with equal length islands and non-islands", {
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqP(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect island SD in two tips 4 islands and 4 non-islands (8 structures)")
-  expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect non-island SD in two tips 4 islands and 4 non-islands (8 structures)")
   
   # Two tips with only 1 island and 7 non-islands 
@@ -457,7 +457,7 @@ test_that("get_SDFreqP structures with equal length islands and non-islands", {
          c(.5, .5, .5)) # Tip 2 non-island: freq P 1
   )
   sample_n <- 2
-  expect_true(is.na(get_islandSDFreqP(index_islands, data, sample_n)),
+  expect_true(is.na(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n)),
               info = "does not return NA when there is only one island structure per tip")
   
 })
@@ -474,9 +474,9 @@ test_that("get_SDFreqP structures with different length islands and non-islands"
                c(.5, .5, .5)) # freq P 1
   exp_SD <- sqrt(4*(0.5)^2/3) 
   sample_n <- 1
-  expect_equal(get_islandSDFreqP(index_islands, data, sample_n), exp_SD,
+  expect_equal(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n), exp_SD,
                info = "incorrect SD in one tip and 4 islands")
-  expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), exp_SD,
+  expect_equal(get_nonislandSDFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), exp_SD,
                info = "incorrect SD in one tip and 4 non-islands")
   
   # Two tips and four islands / non-islands
@@ -497,9 +497,9 @@ test_that("get_SDFreqP structures with different length islands and non-islands"
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqP(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 islands")
-  expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 non-islands")
   
   # Two tips with 4 islands and 4 non-islands (8 structures)
@@ -528,9 +528,9 @@ test_that("get_SDFreqP structures with different length islands and non-islands"
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqP(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect island SD in two tips 4 islands and 4 non-islands (8 structures)")
-  expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect non-island SD in two tips 4 islands and 4 non-islands (8 structures)")
   
   # Two tips with 4 islands and 4 non-islands (8 structures, last one only one site)
@@ -559,9 +559,9 @@ test_that("get_SDFreqP structures with different length islands and non-islands"
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqP(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect island SD in two tips 4 islands and 4 non-islands (8 structures, last one only one site)")
-  expect_equal(get_nonislandSDFreqP(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqP(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect non-island SD in two tips 4 islands and 4 non-islands (8 structures, last one only one site)")
   
 })
@@ -618,9 +618,9 @@ test_that("get_SDFreqM structures with equal length islands and non-islands", {
                c(1, 1, 1)) # freq M 1
   exp_SD <- sqrt(4*(0.5)^2/3) 
   sample_n <- 1
-  expect_equal(get_islandSDFreqM(index_islands, data, sample_n), exp_SD,
+  expect_equal(get_islandSDFreqM(index_islands, data, categorized_data = TRUE, sample_n), exp_SD,
                info = "incorrect SD in one tip and 4 islands")
-  expect_equal(get_nonislandSDFreqM(index_nonislands, data, sample_n), exp_SD,
+  expect_equal(get_nonislandSDFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), exp_SD,
                info = "incorrect SD in one tip and 4 non-islands")
   
   # Two tips and four islands / non-islands
@@ -641,9 +641,9 @@ test_that("get_SDFreqM structures with equal length islands and non-islands", {
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqM(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqM(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 islands")
-  expect_equal(get_nonislandSDFreqM(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 non-islands")
   
   # Two tips and four islands / non-islands (length 1)
@@ -664,9 +664,9 @@ test_that("get_SDFreqM structures with equal length islands and non-islands", {
   exp_SD2 <- sqrt(4*(0.5)^2/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqM(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqM(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 islands (length 1)")
-  expect_equal(get_nonislandSDFreqM(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 non-islands (length 1)")
   
   
@@ -697,9 +697,9 @@ test_that("get_SDFreqM structures with equal length islands and non-islands", {
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqM(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqM(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect island SD in two tips 4 islands and 4 non-islands (8 structures)")
-  expect_equal(get_nonislandSDFreqM(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect non-island SD in two tips 4 islands and 4 non-islands (8 structures)")
   
   # Two tips with only 1 island and 7 non-islands 
@@ -725,7 +725,7 @@ test_that("get_SDFreqM structures with equal length islands and non-islands", {
          c(1, 1, 1)) # Tip 2 non-island: freq M 1
   )
   sample_n <- 2
-  expect_true(is.na(get_islandSDFreqP(index_islands, data, sample_n)),
+  expect_true(is.na(get_islandSDFreqP(index_islands, data, categorized_data = TRUE, sample_n)),
               info = "does not return NA when there is only one island structure per tip")
   
 })
@@ -742,9 +742,9 @@ test_that("get_SDFreqM structures with different length islands and non-islands"
                c(1, 1, 1)) # freq M 1
   exp_SD <- sqrt(4*(0.5)^2/3) 
   sample_n <- 1
-  expect_equal(get_islandSDFreqM(index_islands, data, sample_n), exp_SD,
+  expect_equal(get_islandSDFreqM(index_islands, data, categorized_data = TRUE, sample_n), exp_SD,
                info = "incorrect SD in one tip and 4 islands")
-  expect_equal(get_nonislandSDFreqM(index_nonislands, data, sample_n), exp_SD,
+  expect_equal(get_nonislandSDFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), exp_SD,
                info = "incorrect SD in one tip and 4 non-islands")
   
   # Two tips and four islands / non-islands
@@ -765,9 +765,9 @@ test_that("get_SDFreqM structures with different length islands and non-islands"
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqM(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqM(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 islands")
-  expect_equal(get_nonislandSDFreqM(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect SD in two tips and 4 non-islands")
   
   # Two tips with 4 islands and 4 non-islands (8 structures)
@@ -796,9 +796,9 @@ test_that("get_SDFreqM structures with different length islands and non-islands"
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqM(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqM(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect island SD in two tips 4 islands and 4 non-islands (8 structures)")
-  expect_equal(get_nonislandSDFreqM(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect non-island SD in two tips 4 islands and 4 non-islands (8 structures)")
   
   # Two tips with 4 islands and 4 non-islands (8 structures, last one only one site)
@@ -827,9 +827,9 @@ test_that("get_SDFreqM structures with different length islands and non-islands"
   exp_SD2 <- sqrt((2*(0.5)^2+2*((1/3)-0.5)^2)/3)
   mean_SD <- mean(c(exp_SD1, exp_SD2))
   sample_n <- 2
-  expect_equal(get_islandSDFreqM(index_islands, data, sample_n), mean_SD,
+  expect_equal(get_islandSDFreqM(index_islands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect island SD in two tips 4 islands and 4 non-islands (8 structures, last one only one site)")
-  expect_equal(get_nonislandSDFreqM(index_nonislands, data, sample_n), mean_SD,
+  expect_equal(get_nonislandSDFreqM(index_nonislands, data, categorized_data = TRUE, sample_n), mean_SD,
                info = "incorrect non-island SD in two tips 4 islands and 4 non-islands (8 structures, last one only one site)")
   
 })
@@ -886,9 +886,9 @@ test_that("meanCor", {
                c(.5, 1, 1), 
                c(.5, 0, 0, 0, .5), 
                c(1, 1, 1)) 
-  expect_true(is.na(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 0, data, sample_n = 1)),
+  expect_true(is.na(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 0, data, sample_n = 1, categorized_data = TRUE)),
               info = "meanCor_i returns non-NA value when all structures are smaller than 'min_CpG' (single tip)")
-  expect_true(is.na(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 0, data, sample_n = 1)),
+  expect_true(is.na(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 0, data, sample_n = 1, categorized_data = TRUE)),
               info = "meanCor_ni returns non-NA value when all structures are smaller than 'min_CpG' (single tip)")
   # 2 tips
   data <- list(
@@ -901,9 +901,9 @@ test_that("meanCor", {
          c(.5, .5, 0, 0, 0, .5), 
          c(.5, 1, 1))
   )
-  expect_true(is.na(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 0, data, sample_n = 2)),
+  expect_true(is.na(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 0, data, sample_n = 2, categorized_data = TRUE)),
               info = "meanCor_i returns non-NA value when all structures are smaller than 'min_CpG' (2 tips)")
-  expect_true(is.na(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 0, data, sample_n = 2)),
+  expect_true(is.na(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 0, data, sample_n = 2, categorized_data = TRUE)),
               info = "meanCor_ni returns non-NA value when all structures are smaller than 'min_CpG' (2 tips)")
   
   # Expect NA when there is no variation within structures
@@ -912,9 +912,9 @@ test_that("meanCor", {
                c(1, 1, 1, 1, 1), 
                c(0, 0, 0, 0, 0), 
                c(1, 1, 1)) 
-  expect_true(is.na(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 1)),
+  expect_true(is.na(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 1, categorized_data = TRUE)),
               info = "meanCor_i returns non-NA value when there is no variation within structures (single tip)")
-  expect_true(is.na(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 1)),
+  expect_true(is.na(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 1, categorized_data = TRUE)),
               info = "meanCor_ni returns non-NA value when there is no variation within structures (single tip)")
   
   # 2 tips
@@ -928,9 +928,9 @@ test_that("meanCor", {
          c(0, 0, 0, 0, 0), 
          c(1, 1, 1))
   )
-  expect_true(is.na(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 2)),
+  expect_true(is.na(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 2, categorized_data = TRUE)),
               info = "meanCor_i returns non-NA value when there is no variation within structures (2 tips)")
-  expect_true(is.na(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 2)),
+  expect_true(is.na(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 2, categorized_data = TRUE)),
               info = "meanCor_ni returns non-NA value when there is no variation within structures (2 tips)")
   
   
@@ -946,9 +946,9 @@ test_that("meanCor", {
   cor1 <- get_cor(data[[1]][1:4], data[[1]][2:5]) ## -0.33
   cor2 <- get_cor(data[[3]][1:4], data[[3]][2:5]) ## 0.301
   expMeanCor <- mean(c(cor1, cor2)) ## -0.0159
-  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 1), expMeanCor,
+  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 1, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_i returns non-correct value (shore 0 1 tip)")
-  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 1), expMeanCor,
+  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 1, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_ni returns non-correct value (shore 0 1 tip)")
   
   # 2 tips
@@ -967,9 +967,9 @@ test_that("meanCor", {
   cor1_t2 <- get_cor(data[[2]][[1]][1:4], data[[2]][[1]][2:5]) ## 0.5773503
   cor2_t2 <- get_cor(data[[2]][[3]][1:4], data[[2]][[3]][2:5]) ## 0
   expMeanCor <- mean(c(cor1_t1, cor2_t1, cor1_t2, cor2_t2))
-  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 2), expMeanCor,
+  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 2, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_i returns non-correct value (shore 0 2 tip)")
-  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 2), expMeanCor,
+  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 2, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_ni returns non-correct value (shore 0 2 tip)")
   
   # Test case shore length 0 non-equal sizes
@@ -983,9 +983,9 @@ test_that("meanCor", {
   cor3 <- get_cor(data[[3]][1:5], data[[3]][2:6]) ## 0.5976143
   cor4 <- get_cor(data[[4]][1:11], data[[4]][2:12]) ## 0.7370277
   expMeanCor <- mean(c(cor1, cor2, cor3, cor4)) ## 0.3753272
-  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 1), expMeanCor,
+  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 1, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_i returns non-correct value (shore 0 1 tip non-equal sizes)")
-  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 1), expMeanCor,
+  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 1, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_ni returns non-correct value (shore 0 1 tip non-equal sizes)")
   
   # 2 tips
@@ -1008,9 +1008,9 @@ test_that("meanCor", {
   cor3_t2 <- get_cor(data[[2]][[3]][1:5], data[[2]][[3]][2:6]) ## 0.4225771
   cor4_t2 <- get_cor(data[[2]][[4]][1:11], data[[2]][[4]][2:12]) ## 0.4303315
   expMeanCor <- mean(c(cor1_t1, cor2_t1, cor3_t1, cor4_t1, cor1_t2, cor2_t2, cor3_t2, cor4_t2))
-  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 2), expMeanCor,
+  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 5, shore_length = 0, data, sample_n = 2, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_i returns non-correct value (shore 0 2 tips non-equal sizes)")
-  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 2), expMeanCor,
+  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 5, shore_length = 0, data, sample_n = 2, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_ni returns non-correct value (shore 0 2 tips non-equal sizes)")
   
   
@@ -1025,9 +1025,9 @@ test_that("meanCor", {
   cor3 <- get_cor(data[[3]][11:19], data[[3]][12:20]) ## 0.2828427
   cor4 <- get_cor(data[[4]][11:19], data[[4]][12:20]) ## 0.7385489
   expMeanCor <- mean(c(cor1, cor2, cor3, cor4)) ## 0.3803479
-  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 10, data, sample_n = 1), expMeanCor,
+  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 10, data, sample_n = 1, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_i returns non-correct value (shore 10 1 tip equal sizes)")
-  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 10, data, sample_n = 1), expMeanCor,
+  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 10, data, sample_n = 1, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_ni returns non-correct value (shore 10 1 tip equal sizes)")
   
   # 2 tips
@@ -1050,9 +1050,9 @@ test_that("meanCor", {
   cor3_t2 <- get_cor(data[[2]][[3]][11:19], data[[2]][[3]][12:20]) ## 0.2236068
   cor4_t2 <- get_cor(data[[2]][[4]][11:19], data[[2]][[4]][12:20]) ## 0.7777138
   expMeanCor <- mean(c(cor1_t1, cor2_t1, cor3_t1, cor4_t1, cor1_t2, cor2_t2, cor3_t2, cor4_t2))
-  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 10, data, sample_n = 2), expMeanCor,
+  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 10, data, sample_n = 2, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_i returns non-correct value (shore 10 2 tips equal sizes)")
-  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 10, data, sample_n = 2), expMeanCor,
+  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 10, data, sample_n = 2, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_ni returns non-correct value (shore 10 2 tips equal sizes)")
   
   
@@ -1066,9 +1066,9 @@ test_that("meanCor", {
   cor3 <- get_cor(data[[3]][11:29], data[[3]][12:30]) ## 0.2835379
   cor4 <- get_cor(data[[4]][11:24], data[[4]][12:25]) ## 0.6938887
   expMeanCor <- mean(c(cor1, cor3, cor4)) ## 0.4924755
-  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 10, data, sample_n = 1), expMeanCor,
+  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 10, data, sample_n = 1, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_i returns non-correct value (shore 10 1 tip non-equal sizes)")
-  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 10, data, sample_n = 1), expMeanCor,
+  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 10, data, sample_n = 1, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_ni returns non-correct value (shore 10 1 tip non-equal sizes)")
   
   # 2 tips
@@ -1089,9 +1089,9 @@ test_that("meanCor", {
   cor3_t2 <- get_cor(data[[2]][[3]][11:29], data[[2]][[3]][12:30]) ## 0.5234868
   cor4_t2 <- get_cor(data[[2]][[4]][11:24], data[[2]][[4]][12:25]) ## 0.7139942
   expMeanCor <- mean(c(cor1_t1, cor3_t1, cor4_t1, cor1_t2, cor3_t2, cor4_t2))
-  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 10, data, sample_n = 2), expMeanCor,
+  expect_equal(compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 10, data, sample_n = 2, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_i returns non-correct value (shore 10 2 tips non-equal sizes)")
-  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 10, data, sample_n = 2), expMeanCor,
+  expect_equal(compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 10, data, sample_n = 2, categorized_data = TRUE), expMeanCor,
                info = "MeanCor_ni returns non-correct value (shore 10 2 tips non-equal sizes)")
 })
 
@@ -1405,7 +1405,19 @@ test_that("countSites_cherryMethDiff input control errors", {
                info = paste(type, "fails to throw error"))
 })
 
-
+test_that("countSites_cherryMethDiff non-categorized input of methylation states", {
+  
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
+    list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
+  )
+  
+  o <- countSites_cherryMethDiff(cherryDist, data)
+  
+  expect_true(all(as.numeric(o[1,-c(1,2,3)]) == c(1,1,1,2)),
+              info = "incorrect value with uncategorized input data")
+  
+})
 
 test_that("countSites_cherryMethDiff correct output with different input types", {
   
@@ -1417,7 +1429,7 @@ test_that("countSites_cherryMethDiff correct output with different input types",
     list(rep(1,10), rep(0.5,10), rep(0,10)), # tip 2 cherry
     list(rep(1,10), rep(0.5,10), rep(0,10))) 
   cherryDist <- get_cherryDist(tree)
-  o <- countSites_cherryMethDiff(cherryDist, data)
+  o <- countSites_cherryMethDiff(cherryDist, data, categorized_data = TRUE)
   expect_equal(nrow(o), 1, 
                info = paste("Number of output rows does not correspond with input type:", type))
   expect_equal(o$tip_names, "1-2", 
@@ -1437,7 +1449,7 @@ test_that("countSites_cherryMethDiff correct output with different input types",
     list(rep(1,10), rep(0.5,15), rep(0,15)), # tip 1 cherry
     list(c(rep(0.5,8), 0, 1), c(rep(0.5,10), 1, 1, 0, 0, 0), rep(0,15))) # tip 2 cherry
   cherryDist <- get_cherryDist(tree)
-  o <- countSites_cherryMethDiff(cherryDist, data)
+  o <- countSites_cherryMethDiff(cherryDist, data, categorized_data = TRUE)
   expect_equal(nrow(o), 1, 
                info = paste("Number of output rows does not correspond with input type:", type))
   expect_equal(o$tip_names, "b-a", 
@@ -1457,7 +1469,7 @@ test_that("countSites_cherryMethDiff correct output with different input types",
     list(rep(1,10), rep(0.5,10), rep(0,10)),
     list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1, rep(0.5, 5)), c(0.5, 1, rep(0, 8))))
   cherryDist <- get_cherryDist(tree)
-  o <- countSites_cherryMethDiff(cherryDist, data)
+  o <- countSites_cherryMethDiff(cherryDist, data, categorized_data = TRUE)
   expect_equal(nrow(o), 2, 
                info = paste("Number of output rows does not correspond with input type:", type))
   expect_equal(o$tip_names, c("25-24", "38-45"), 
@@ -1553,6 +1565,21 @@ test_that("freqSites_cherryMethDiff input control error", {
                info = paste(type, "fails to throw error"))
 })
 
+test_that("freqSites_cherryMethDiff non-categorized input of methylation states", {
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
+    list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
+  )
+  
+  o <- freqSites_cherryMethDiff(tree = tree, data = data)
+  
+  expect_equal(as.numeric(o[1,4:ncol(o)]), c(1/3, 1/3, 1/3, 2/3),
+               info = "incorrect value with uncategorized input data")
+
+})
+
 
 test_that("freqSites_cherryMethDiff output", {
   
@@ -1563,7 +1590,7 @@ test_that("freqSites_cherryMethDiff output", {
     list(rep(1,10), rep(0.5,5), rep(0,8)),
     list(rep(1,10), rep(0.5,5), rep(0,8)),
     list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
-  o <- freqSites_cherryMethDiff(tree = tree, data = data)
+  o <- freqSites_cherryMethDiff(tree = tree, data = data, categorized_data = TRUE)
   expect_equal(o$tip_names[1], "a-b",
                info = "incorrect tip names in cherry 1")
   expect_equal(o$tip_names[2], "c-d",
@@ -1666,6 +1693,21 @@ test_that("get_siteFChange_cherry wrong input", {
                info = paste(type, "fails to throw error"))
 })
 
+test_that("get_MeanFreqP non-categorized input of methylation states", {
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
+    list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
+  )
+  
+  o <- get_siteFChange_cherry(tree = tree, data = data)
+  
+  expect_equal(as.numeric(o[1,4:ncol(o)]), c(2/3, 1),
+               info = "incorrect value with uncategorized input data")
+
+})
+
 test_that("get_siteFChange_cherry output", {
   
   # Test frequency of sites changing per structure and cherry is computed correctly
@@ -1676,7 +1718,7 @@ test_that("get_siteFChange_cherry output", {
     list(rep(1,10), rep(0.5,5), rep(0,8)),
     list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6))))
   
-  o <- get_siteFChange_cherry(tree = tree, data = data)
+  o <- get_siteFChange_cherry(tree = tree, data = data, categorized_data = TRUE)
   expect_equal(o$tip_names[1], "a-b",
                info = "incorrect tip names in cherry 1")
   expect_equal(o$tip_names[2], "c-d",
@@ -1760,6 +1802,20 @@ test_that("MeanSiteFChange_cherry input control", {
                info = "fails to throw an error when number of sites is non-equal for a given structure at different tips")
 })
 
+test_that("MeanSiteFChange_cherry non-categorized input of methylation states", {
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1 (u,u,u)(u,p,u)
+    list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2 (u,p,m)(p,u,m)
+  )
+  
+  expect_equal(MeanSiteFChange_cherry(data = data, tree = tree, index_islands = c(1,2), index_nonislands = c())$island_meanFChange, 5/6,
+               info = "incorrect value with uncategorized input data")
+  expect_equal(MeanSiteFChange_cherry(data = data, tree = tree, index_islands = c(), index_nonislands = c(1))$nonisland_meanFChange, 2/3,
+               info = "incorrect value with uncategorized input data")
+})
+
 test_that("MeanSiteFChange_cherry output", {
   
   tree <- "((1:1.5,2:1.5):2,(3:2,4:2):1.5);"
@@ -1777,7 +1833,8 @@ test_that("MeanSiteFChange_cherry output", {
   test <- "All structures are islands"
   index_islands <- c(1,2,3)
   index_nonislands <- c()
-  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  o <- MeanSiteFChange_cherry(data = data, categorized_data = TRUE, tree = tree, 
+                              index_islands = index_islands, index_nonislands = index_nonislands)
   exp_mean_ch1 <- (0+5+8)/total_sites_n
   exp_mean_ch2 <- (10+5+2)/total_sites_n
   expect_equal(o$island_meanFChange, c(exp_mean_ch1, exp_mean_ch2),
@@ -1789,7 +1846,8 @@ test_that("MeanSiteFChange_cherry output", {
   test <- "All structures are non-islands"
   index_nonislands <- c(1,2,3)
   index_islands <- c()
-  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  o <- MeanSiteFChange_cherry(data = data, categorized_data = TRUE, tree = tree, 
+                              index_islands = index_islands, index_nonislands = index_nonislands)
   exp_mean_ch1 <- (0+5+8)/total_sites_n
   exp_mean_ch2 <- (10+5+2)/total_sites_n
   expect_equal(o$nonisland_meanFChange, c(exp_mean_ch1, exp_mean_ch2),
@@ -1801,7 +1859,8 @@ test_that("MeanSiteFChange_cherry output", {
   test <- "2 non-islands, 1 island"
   index_nonislands <- c(1,3)
   index_islands <- c(2)
-  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  o <- MeanSiteFChange_cherry(data = data, categorized_data = TRUE, tree = tree, 
+                              index_islands = index_islands, index_nonislands = index_nonislands)
   exp_meanI_ch1 <- (5)/str2_sites_n
   exp_meanNI_ch1 <- (0+8)/(str1_sites_n+str3_sites_n)
   exp_meanI_ch2 <- (5)/str2_sites_n
@@ -1815,7 +1874,8 @@ test_that("MeanSiteFChange_cherry output", {
   test <- "2 islands, 1 non-island"
   index_islands <- c(1,3)
   index_nonislands <- c(2)
-  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  o <- MeanSiteFChange_cherry(data = data, categorized_data = TRUE, tree = tree, 
+                              index_islands = index_islands, index_nonislands = index_nonislands)
   exp_meanNI_ch1 <- (5)/str2_sites_n
   exp_meanI_ch1 <- (0+8)/(str1_sites_n+str3_sites_n)
   exp_meanNI_ch2 <- (5)/str2_sites_n
@@ -1835,7 +1895,8 @@ test_that("MeanSiteFChange_cherry output", {
   str1_sites_n <- 10
   index_islands <- c(1)
   index_nonislands <- c()
-  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  o <- MeanSiteFChange_cherry(data = data, categorized_data = TRUE, tree = tree, 
+                              index_islands = index_islands, index_nonislands = index_nonislands)
   expect_equal(o$island_meanFChange, c(0, 1),
                info = paste("returns incorrect island_meanFChange in test case", test))
   expect_true(all(is.na(o$nonisland_meanFChange)),
@@ -1851,7 +1912,8 @@ test_that("MeanSiteFChange_cherry output", {
   str1_sites_n <- 10
   index_nonislands <- c(1)
   index_islands <- c()
-  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  o <- MeanSiteFChange_cherry(data = data, categorized_data = TRUE, tree = tree, 
+                              index_islands = index_islands, index_nonislands = index_nonislands)
   expect_equal(o$nonisland_meanFChange, c(0, 1),
                info = paste("returns incorrect nonisland_meanFChange in test case", test))
   expect_true(all(is.na(o$island_meanFChange)),
@@ -1867,7 +1929,8 @@ test_that("MeanSiteFChange_cherry output", {
   str1_sites_n <- 10
   index_islands <- c(1)
   index_nonislands <- c()
-  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  o <- MeanSiteFChange_cherry(data = data, categorized_data = TRUE, tree = tree, 
+                              index_islands = index_islands, index_nonislands = index_nonislands)
   expect_equal(o$island_meanFChange, c(0, 1),
                info = paste("returns incorrect island_meanFChange in test case", test))
   expect_true(all(is.na(o$nonisland_meanFChange)),
@@ -1883,7 +1946,8 @@ test_that("MeanSiteFChange_cherry output", {
   str1_sites_n <- 10
   index_islands <- c()
   index_nonislands <- c(1)
-  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  o <- MeanSiteFChange_cherry(data = data, categorized_data = TRUE, tree = tree, 
+                              index_islands = index_islands, index_nonislands = index_nonislands)
   expect_equal(o$nonisland_meanFChange, c(0, 1),
                info = paste("returns incorrect nonisland_meanFChange in test case", test))
   expect_true(all(is.na(o$island_meanFChange)),
@@ -1900,7 +1964,8 @@ test_that("MeanSiteFChange_cherry output", {
   str1_sites_n <- 10
   index_islands <- c()
   index_nonislands <- c(1)
-  o <- MeanSiteFChange_cherry(data = data, tree = tree, index_islands = index_islands, index_nonislands = index_nonislands)
+  o <- MeanSiteFChange_cherry(data = data, categorized_data = TRUE, tree = tree, 
+                              index_islands = index_islands, index_nonislands = index_nonislands)
   expect_equal(o$nonisland_meanFChange, 0,
                info = paste("returns incorrect nonisland_meanFChange in test case", test))
   expect_true(is.na(o$island_meanFChange),

@@ -4943,7 +4943,3 @@ test_that("singleStructureGenerator reset_seq",{
   single_obj <- singleStructureGenerator$new("U",100)
   
 })
-
-
-
-
