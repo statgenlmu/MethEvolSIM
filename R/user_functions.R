@@ -62,6 +62,8 @@ get_parameterValues <- function(rootData = NULL){
 #' @param params Optional data frame with specific parameter values.
 #' @param CFTP Default FALSE. TRUE for calling cftp algorithm to set root state according to model equilibrium (Note that current implementation neglects IWE process).
 #' Structure as in get_parameterValues() output. If not provided, default values will be used.
+#' @param CFTP_step_limit when CFTP = TRUE, maximum number of steps before applying an approximation method 
+#'        (default 327680000 corresponding to size of CFTP info of approx 6.1 GB).
 #'
 #' @return A list containing the simulated data ($data) and parameters ($params).
 #'
@@ -81,7 +83,7 @@ get_parameterValues <- function(rootData = NULL){
 #' simulate_initialData(infoStr = infoStr, params = custom_params)
 #'
 #' @export
-simulate_initialData <- function(infoStr, params = NULL, CFTP = FALSE){
+simulate_initialData <- function(infoStr, params = NULL, CFTP = FALSE, CFTP_step_limit = 327680000){
   
   # Control input
   if (!is.data.frame(infoStr) ||
@@ -115,7 +117,7 @@ simulate_initialData <- function(infoStr, params = NULL, CFTP = FALSE){
   data <- combiStructureGenerator$new(infoStr = infoStr, params = params)
   if (CFTP){
     message("Calling CFTP algorithm.")
-    data$cftp()
+    data$cftp(step_limit = CFTP_step_limit)
   }
   if(is.null(params)){
     params <- get_parameterValues()
@@ -230,6 +232,8 @@ extract_tipD <- function(R6obj){
 #' @param params Optional data frame with specific parameter values.
 #' Structure as in get_parameterValues() output. If not provided, default values will be used.
 #' @param CFTP Default FALSE. TRUE for calling cftp algorithm to set root state according to model equilibrium (Note that current implementation neglects IWE process).
+#' @param CFTP_step_limit when CFTP = TRUE, maximum number of steps before applying an approximation method 
+#'        (default 327680000 corresponding to size of CFTP info of approx 6.1 GB).
 #' @param dt Length of time step for Gillespie's Tau-Leap Approximation (default is 0.01).
 #' @param n_rep Number of replicates to simulate (default is 1).
 #' @param only_tip Logical indicating whether to extract data only for tips (default is TRUE, FALSE to extract the information for all the tree branches).
@@ -287,7 +291,7 @@ extract_tipD <- function(R6obj){
 #' @export
 #'
 #'
-simulate_evolData <- function(infoStr = NULL, rootData = NULL, tree = NULL, params = NULL, dt = 0.01, CFTP = FALSE, n_rep = 1, only_tip = TRUE){
+simulate_evolData <- function(infoStr = NULL, rootData = NULL, tree = NULL, params = NULL, dt = 0.01, CFTP = FALSE, CFTP_step_limit = 327680000, n_rep = 1, only_tip = TRUE){
   
   # Control input
   if (is.null(infoStr) && is.null(rootData)) stop("At least one argument of 'infoStr' or 'rootData' must be provided.")
@@ -316,7 +320,13 @@ simulate_evolData <- function(infoStr = NULL, rootData = NULL, tree = NULL, para
   # Simulate data
   sim_data = vector("list", n_rep)
   for (r in 1:n_rep){
-    R6_obj <- treeMultiRegionSimulator$new(infoStr = infoStr, rootData = rootData, tree = tree, params = params, CFTP = CFTP, dt = dt)
+    R6_obj <- treeMultiRegionSimulator$new(infoStr = infoStr, 
+                                           rootData = rootData, 
+                                           tree = tree, 
+                                           params = params, 
+                                           CFTP = CFTP, 
+                                           CFTP_step_limit = CFTP_step_limit, 
+                                           dt = dt)
     if(only_tip){
       sim_data[[r]] <- extract_tipD(R6obj = R6_obj)
     } else {

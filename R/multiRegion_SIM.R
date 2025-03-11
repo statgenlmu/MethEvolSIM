@@ -1288,6 +1288,7 @@ singleStructureGenerator <-
                 #' @param testing default FALSE. TRUE for testing output
                 #' 
                 #' @return right neighbSt
+                #'
                 cftp_all_equal = function(state, testing = FALSE) {
                   n <- length(private$seq)
                   if (state == "U"){
@@ -2008,7 +2009,8 @@ combiStructureGenerator <-
                 #' This method generates CFTP steps until the methylation sequences of the current structure and a cloned structure become identical across all singleStr instances or a step limit is reached. If the step limit is exceeded, an approximation method is applied to finalize the sequence.
                 #' 
                 #' @param steps minimum number of steps to apply (default 10000).
-                #' @param step_limit maximum number of steps before applying an approximation method (default 327680000). 
+                #' @param step_limit maximum number of steps before applying an approximation method 
+                #'        (default 327680000 corresponding to size of CFTP info of approx 6.1 GB). 
                 #'        If this limit is reached, the algorithm stops and an approximation is applied.
                 #' @param testing logical. If TRUE, returns additional testing output including the current structure, the cloned structure, the counter value, total steps, and the chosen site for the CFTP events. Default is FALSE.
                 #' 
@@ -2406,10 +2408,12 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                #' @param params Default NULL. When given: data frame containing model parameters. Note that if rootData is not null, its parameter values are used.
                                #' @param dt length of the dt time steps for the SSE evolutionary process
                                #' @param CFTP Default FALSE. TRUE for calling cftp algorithm to set root state according to model equilibrium (Note that current implementation neglects IWE process).
+                               #' @param CFTP_step_limit when CFTP = TRUE, maximum number of steps before applying an approximation method 
+                               #'        (default 327680000 corresponding to size of CFTP info of approx 6.1 GB).
                                #' @param testing Default FALSE. TRUE for testing output.
                                #'
                                #' @return A new `treeMultiRegionSimulator` object.
-                               initialize = function(infoStr = NULL, rootData = NULL, tree = NULL, params = NULL, dt = 0.01, CFTP = FALSE, testing = FALSE) {
+                               initialize = function(infoStr = NULL, rootData = NULL, tree = NULL, params = NULL, dt = 0.01, CFTP = FALSE, CFTP_step_limit = 327680000, testing = FALSE) {
                                  if(is.null(rootData) && is.null(infoStr)) stop("One of the following arguments: 'rootData' or 'infoStr' needs to be given")
                                  if(is.null(tree)) stop("Argument 'tree' is missing with no default.")
                             
@@ -2445,9 +2449,9 @@ treeMultiRegionSimulator <- R6Class("treeMultiRegionSimulator",
                                        self$testing_output$seq_before_cftp <- c(self$testing_output$seq_before_cftp, self$Branch[[1]]$get_singleStr(str)$get_seq())
                                      }
                                      # Call CFTP while saving testing output
-                                     self$testing_output$cftp_output <- self$Branch[[1]]$cftp(testing = testing)
+                                     self$testing_output$cftp_output <- self$Branch[[1]]$cftp(step_limit = CFTP_step_limit, testing = testing)
                                    } else {
-                                     self$Branch[[1]]$cftp()
+                                     self$Branch[[1]]$cftp(step_limit = CFTP_step_limit)
                                    }
                                  }
                                  

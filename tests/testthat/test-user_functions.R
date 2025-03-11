@@ -285,6 +285,41 @@ test_that("simulate_evolData output$data",{
   expect_null(output$data$branchInTree[[6]]$offspring_index)
 })
 
+test_that("simulate_evolData CFTP_step_limit", {
+  
+  tree <- "(a:1,b:1);"
+  infoStr <- data.frame(n = c(5000, 5000, 100),
+                        globalState = c("M", "U", "M"))
+  # Given a number of steps smaller than the number of sites, 
+  # there is no possiblity of convergence in a single iteration
+  # Set a step limit that is applied before the second iteration
+  message <- capture.output(
+    evolData <- simulate_evolData(infoStr,
+                                  tree = tree,
+                                  CFTP = TRUE,
+                                  CFTP_step_limit = 9000),
+    type="message")
+  expect_equal(message[4],
+               "Steps limit reached. Applying approximation for CFTP.")
+})
+
+test_that("simulate_initialData CFTP_step_limit", {
+  
+  tree <- "(a:1,b:1);"
+  infoStr <- data.frame(n = c(5000, 5000, 100),
+                        globalState = c("M", "U", "M"))
+  # Given a number of steps smaller than the number of sites, 
+  # there is no possiblity of convergence in a single iteration
+  # Set a step limit that is applied before the second iteration
+  message <- capture.output(
+    initialData <- simulate_initialData(infoStr,
+                                     CFTP = TRUE,
+                                     CFTP_step_limit = 9000),
+    type="message")
+  expect_equal(message[3],
+               "Steps limit reached. Applying approximation for CFTP.")
+})
+
 
 
 

@@ -4939,7 +4939,7 @@ test_that("treeMultiRegionSimulator errors in input", {
 })
 
 
-test_that("combiStructureGenerator $cftp step limit", {
+test_that("combiStructureGenerator $cftp step_limit", {
   
   # Initialize combiStructureGenerator instance
   infoStr <- data.frame(n = c(100, 100, 100),
@@ -4959,6 +4959,25 @@ test_that("combiStructureGenerator $cftp step limit", {
   expect_equal(output$total_steps, steps)
   
   
+})
+
+test_that("treeMultiRegionSimulator CFTP_step_limit", {
+  
+  # Initialize combiStructureGenerator instance
+  tree <- "(a:1,b:1);"
+  infoStr <- data.frame(n = c(5000, 5000, 100),
+                        globalState = c("M", "U", "M"))
+  # Given a number of steps smaller than the number of sites, 
+  # there is no possiblity of convergence in a single iteration
+  # Set a step limit that is applied before the second iteration
+  message <- capture.output(
+    tree_obj <- treeMultiRegionSimulator$new(infoStr, 
+                                             tree = tree, 
+                                             CFTP = TRUE, 
+                                             CFTP_step_limit = 9000),
+    type="message")
+  expect_equal(message[3],
+               "Steps limit reached. Applying approximation for CFTP.")
 })
 
 
