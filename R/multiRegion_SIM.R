@@ -2066,7 +2066,7 @@ combiStructureGenerator <-
                     # Double the number of steps
                     steps <- 2*steps
                     
-                    if (steps > step_limit){
+                    if (steps > step_limit && !equal) {
                       message("Steps limit reached. Applying approximation for CFTP.")
                       
                       # Initialize each singleStr sequence of states 
