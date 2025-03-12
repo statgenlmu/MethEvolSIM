@@ -1698,7 +1698,7 @@ computeFitch_islandGlbSt <- function(index_islands, data, tree, u_threshold, m_t
 }
 
 
-##TODO: CLEAN FROM HERE
+##TODO: CLEAN FROM HERE ###########################################################
 
 
 
@@ -1706,6 +1706,7 @@ computeFitch_islandGlbSt <- function(index_islands, data, tree, u_threshold, m_t
 
 # data: vector with methylation values as 0 for unmethylated
 # 0.5 for partially-methylated and 1 for methylated
+# not to be exported
 count_upm <- function(data){
   counts <- table(factor(data, levels = c(0, 0.5, 1)))
   as.integer(counts)

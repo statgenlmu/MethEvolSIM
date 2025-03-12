@@ -2773,7 +2773,29 @@ test_that("pValue_CherryFreqsChange_i", {
               info = "p value not between 1 and 0 for island_1")
   expect_true(o[1, "island_3"] >= 0 && o[1, "island_1"] <= 1,
               info = "p value not between 1 and 0 for island_3")
-  ##TODO: Test for 2 cherries
+  
+  # Set tree and data
+  tree <- "((d:1,e:1):2,(a:2,b:2):1);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), 
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), 
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))),
+    #Tip 3
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))),
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(0,8), rep(0.5,2)))) 
+  o <- pValue_CherryFreqsChange_i(data, index_islands, tree)
+  expect_equal(nrow(o), 2,
+               info = "fails to return a dataframe with 2 rows when tree has 2 cherries")
 })
 
 test_that("count_CherryFreqsChange_i", {
@@ -2801,6 +2823,29 @@ test_that("count_CherryFreqsChange_i", {
               info = "does not return the correct mean of observed changes per island")
 
   ##TODO: Test for 2 cherries
+  # Set tree and data
+  tree <- "((d:1,e:1):2,(a:2,b:2):1);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), 
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), 
+    #Tip 2
+    list(c(rep(1,9), rep(0,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))), 
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0.5,1))),
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0.5,1))))
+  o <- count_CherryFreqsChange_i(data, index_islands, tree, pValue_threshold = 0.05)
+  expect_true(o[1, "FreqsChange"] == 1,
+              info = "does not return the correct mean of observed changes per island")
+  
 })
 
 ##TODO: count_TreeFreqsChange_i handling of trees with 2 tips or trees with 
