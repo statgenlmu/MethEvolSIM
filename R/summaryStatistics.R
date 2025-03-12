@@ -83,7 +83,7 @@ validate_structureIndices <- function(data, index_islands, index_nonislands) {
 #'   list(c(0.5, 0.5, 0), c(1, 0.5, 0.5), c(0.5, 0.5, 1)) # tip 2
 #' )
 #' sample_n <- 2
-#' get_islandMeanFreqP(index_islands, data, sample_n)
+#' get_islandMeanFreqP(index_islands, data, sample_n, categorized_data = TRUE)
 #' 
 #' @export
 get_islandMeanFreqP <- function(index_islands, data, sample_n, categorized_data = FALSE){
@@ -157,7 +157,7 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n, categorized_data 
 #'   list(c(0.5, 0.5, 0), c(1, 0.5, 0.5), c(0.5, 0.5, 1)) # tip 2
 #' )
 #' sample_n <- 2
-#' get_nonislandMeanFreqP(index_nonislands, data, sample_n)
+#' get_nonislandMeanFreqP(index_nonislands, data, sample_n, categorized_data = TRUE)
 #' 
 #' @export
 get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
@@ -232,7 +232,7 @@ get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n, categorized
 #'   list(c(0.5, 0.5, 0), c(1, 0.5, 0.5), c(0.5, 0.5, 1)) # tip 2
 #' )
 #' sample_n <- 2
-#' get_islandMeanFreqM(index_islands, data, sample_n)
+#' get_islandMeanFreqM(index_islands, data, sample_n, categorized_data = TRUE)
 #' 
 #' @export
 get_islandMeanFreqM <- function(index_islands, data, sample_n, categorized_data = FALSE){
@@ -302,7 +302,7 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n, categorized_data 
 #'   list(c(1, 0.5, 1), c(0.5, 1, 1), c(1, 0.5, 0.5)) # tip 2
 #' )
 #' sample_n <- 2
-#' get_nonislandMeanFreqM(index_nonislands, data, sample_n)
+#' get_nonislandMeanFreqM(index_nonislands, data, sample_n, categorized_data = TRUE)
 #' 
 #' @export
 get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
@@ -375,7 +375,7 @@ get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n, categorized
 #'   list(c(0.5, 0.5, 0), c(1, 0.5, 0.5), c(0.5, 0.5, 1)) # tip 2
 #' )
 #' sample_n <- 2
-#' get_islandSDFreqP(index_islands, data, sample_n)
+#' get_islandSDFreqP(index_islands, data, sample_n, categorized_data = TRUE)
 #' 
 #' @export
 get_islandSDFreqP <- function(index_islands, data, sample_n, categorized_data = FALSE){
@@ -446,7 +446,7 @@ get_islandSDFreqP <- function(index_islands, data, sample_n, categorized_data = 
 #'   list(c(0.5, 0.5, 0), c(1, 0.5, 0.5), c(0.5, 0.5, 1)) # tip 2
 #' )
 #' sample_n <- 2
-#' get_nonislandSDFreqP(index_nonislands, data, sample_n)
+#' get_nonislandSDFreqP(index_nonislands, data, sample_n, categorized_data = TRUE)
 #' 
 #' @export
 get_nonislandSDFreqP <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
@@ -517,7 +517,7 @@ get_nonislandSDFreqP <- function(index_nonislands, data, sample_n, categorized_d
 #'   list(c(0.5, 0.5, 0), c(1, 0.5, 0.5), c(0.5, 0.5, 1)) # tip 2
 #' )
 #' sample_n <- 2
-#' get_islandSDFreqM(index_islands, data, sample_n)
+#' get_islandSDFreqM(index_islands, data, sample_n, categorized_data = TRUE)
 #' 
 #' @export
 get_islandSDFreqM <- function(index_islands, data, sample_n, categorized_data = FALSE){
@@ -589,7 +589,7 @@ get_islandSDFreqM <- function(index_islands, data, sample_n, categorized_data = 
 #'   list(c(1, 0.5, 0), c(1, 1, 0.5), c(1, 1, 1)) # tip 2
 #' )
 #' sample_n <- 2
-#' get_nonislandSDFreqM(index_nonislands, data, sample_n)
+#' get_nonislandSDFreqM(index_nonislands, data, sample_n, categorized_data = TRUE)
 #' 
 #' @export
 get_nonislandSDFreqM <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
@@ -671,7 +671,8 @@ get_nonislandSDFreqM <- function(index_nonislands, data, sample_n, categorized_d
 #' minN_CpG <- 2
 #' shore_length <- 1
 #' sample_n <- 2
-#' compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n)
+#' compute_meanCor_i(index_islands, minN_CpG, shore_length, data, sample_n,
+#'                    categorized_data = TRUE)
 #' 
 #' @export
 compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sample_n, categorized_data = FALSE){
@@ -761,7 +762,8 @@ compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sampl
 #' minN_CpG <- 2
 #' shore_length <- 1
 #' sample_n <- 2
-#' compute_meanCor_i(index_nonislands, minN_CpG, shore_length, data, sample_n)
+#' compute_meanCor_ni(index_nonislands, minN_CpG, shore_length, data, sample_n,
+#'                     categorized_data = TRUE)
 #' 
 #' @export
 compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, sample_n, categorized_data = FALSE){
@@ -1079,7 +1081,7 @@ validate_data_cherryDist <- function(cherryDist, data){
 #' 
 #' cherryDist <- get_cherryDist(tree)
 #' 
-#' countSites_cherryMethDiff(cherryDist, data)
+#' countSites_cherryMethDiff(cherryDist, data, categorized_data = TRUE)
 #'
 #' @export
 countSites_cherryMethDiff <- function(cherryDist, data, categorized_data = FALSE, input_control = TRUE) {
@@ -1192,7 +1194,7 @@ countSites_cherryMethDiff <- function(cherryDist, data, categorized_data = FALSE
 #' 
 #' tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
 #' 
-#' freqSites_cherryMethDiff(tree, data)
+#' freqSites_cherryMethDiff(tree, data, categorized_data = TRUE)
 #'
 #' @export
 freqSites_cherryMethDiff <- function(tree, data, categorized_data = FALSE, input_control = TRUE){
@@ -1202,11 +1204,15 @@ freqSites_cherryMethDiff <- function(tree, data, categorized_data = FALSE, input
     # Check input tree format and minium two tips, get tree in phylo format (ape package)
     if (input_control) tree <- validate_tree(tree)
     
-    # Get cherry distances aoviding duplicate input control
+    # Get cherry distances avoiding duplicate input control
     cherryDist <- get_cherryDist(tree, input_control = FALSE)
     
     # Check input tree data format and minium number of tips
     if (input_control) validate_data_cherryDist(cherryDist, data)
+    
+    # Get the count numbers per type (full or half) of methylation change per cherry
+    # avoiding duplicate input control
+    df <- countSites_cherryMethDiff(cherryDist, data, categorized_data = categorized_data, input_control = FALSE)
     
   }, warning = function(w) {
     stop(conditionMessage(w))
@@ -1214,9 +1220,6 @@ freqSites_cherryMethDiff <- function(tree, data, categorized_data = FALSE, input
     stop(conditionMessage(e))
   })
   
-  # Get the count numbers per type (full or half) of methylation change per cherry
-  # avoiding duplicate input control
-  df <- countSites_cherryMethDiff(cherryDist, data, categorized_data = categorized_data, input_control = FALSE)
   
   # Get the number of structures
   str_n <- length(data[[1]])
@@ -1291,7 +1294,7 @@ freqSites_cherryMethDiff <- function(tree, data, categorized_data = FALSE, input
 #' 
 #' tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
 #' 
-#' get_siteFChange_cherry(tree, data)
+#' get_siteFChange_cherry(tree, data, categorized_data = TRUE)
 #'
 #' @export
 get_siteFChange_cherry <- function(tree, data, categorized_data = FALSE){
@@ -1371,18 +1374,21 @@ get_siteFChange_cherry <- function(tree, data, categorized_data = FALSE){
 #' @examples
 #' # Example data setup
 #' data <- list(
-#'   list(rep(1,10), rep(0,5), rep(1,8)),
-#'   list(rep(1,10), rep(0.5,5), rep(0,8)),
-#'   list(rep(1,10), rep(0.5,5), rep(0,8)),
-#'   list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6)))
-#' )
+#' list(rep(1,10), rep(0,5), rep(1,8)), # Tip a
+#' list(rep(1,10), rep(0.5,5), rep(0,8)), # Tip b
+#' list(rep(1,10), rep(0.5,5), rep(0,8)), # Tip c
+#' list(c(rep(0,5), rep(0.5, 5)), c(0, 0, 1, 1, 1), c(0.5, 1, rep(0, 6)))) # Tip d
 #'
 #' tree <- "((a:1.5,b:1.5):2,(c:2,d:2):1.5);"
 #' 
 #' index_islands <- c(1,3)
 #' index_nonislands <- c(2)
 #'
-#' MeanSiteFChange_cherry(data, tree, index_islands, index_nonislands)
+#' MeanSiteFChange_cherry(data = data, 
+#'                        categorized_data = TRUE, 
+#'                        tree = tree, 
+#'                        index_islands = index_islands,
+#'                        index_nonislands = index_nonislands)
 #'
 #' @export
 MeanSiteFChange_cherry <- function(data, categorized_data = FALSE, tree, index_islands, index_nonislands){
@@ -1697,31 +1703,46 @@ computeFitch_islandGlbSt <- function(index_islands, data, tree, u_threshold, m_t
   }
 }
 
-
-##TODO: CLEAN FROM HERE ###########################################################
-
-
-
-
-
-# data: vector with methylation values as 0 for unmethylated
-# 0.5 for partially-methylated and 1 for methylated
-# not to be exported
+#' Count Methylation States
+#'
+#' This internal function counts the number of sites with unmethylated, partially-methylated,
+#' and methylated states in a given vector.
+#'
+#' @param data A numeric vector with methylation values: \code{0} (unmethylated), \code{0.5} (partially-methylated),
+#'   and \code{1} (methylated).
+#'
+#' @return An integer vector of length 3 containing counts of unmethylated, partially-methylated,
+#'   and methylated sites, respectively.
 count_upm <- function(data){
   counts <- table(factor(data, levels = c(0, 0.5, 1)))
   as.integer(counts)
 }
 
-
-
-# tip1: vector of methylation states (0, 0.5, 1)
-# for unmethylated, partially-methylated and methylated
-# at tip 1
-# tip2: vector of methylation states (0, 0.5, 1)
-# for unmethylated, partially-methylated and methylated
-# at tip 2
-# returns the p-value of a chi-squared test for the counts of
-# the three states at the two tips
+#' Compare Methylation Frequencies Between Two Tips
+#'
+#' Performs a chi-squared test to compare the distribution of methylation states 
+#' (unmethylated \code{0}, partially-methylated \code{0.5}, and methylated \code{1}) 
+#' between two cherry tips. A cherry is a pair of leaf nodes (also called tips or terminal nodes) 
+#' in a phylogenetic tree that share a direct common ancestor.
+#'
+#' @details The function uses \code{simulate.p.value = TRUE} in \code{\link[stats]{chisq.test}} 
+#' to compute the p-value via Monte Carlo simulation to improve reliability 
+#' regardless of whether the expected frequencies meet the assumptions of the chi-squared test 
+#' (i.e., expected counts of at least 5 in each category). 
+#'
+#' @param tip1 A numeric vector representing methylation states (\code{0}, \code{0.5}, \code{1}) at tip 1.
+#' @param tip2 A numeric vector representing methylation states (\code{0}, \code{0.5}, \code{1}) at tip 2.
+#' @param testing Logical; if \code{TRUE}, returns additional intermediate data including the contingency table and test result.
+#'
+#' @return If \code{testing = TRUE}, returns a list with the contingency table and chi-squared test results.
+#'   Otherwise, returns the p-value of the test.
+#'
+#' @examples
+#' tip1 <- c(0, 0, 1, 0.5, 1, 0.5)
+#' tip2 <- c(0, 1, 1, 0, 0.5, 0.5)
+#' compare_CherryFreqs(tip1, tip2)
+#'
+#' @export
 compare_CherryFreqs <- function(tip1, tip2, testing = FALSE){
   
   # Count the number of sites at each tip with methylation states
@@ -1743,7 +1764,7 @@ compare_CherryFreqs <- function(tip1, tip2, testing = FALSE){
   }
   
   # Perform the chi-squared test
-  chi_sq_result <- chisq.test(contingency_table, simulate.p.value = TRUE)
+  chi_sq_result <- stats::chisq.test(contingency_table, simulate.p.value = TRUE)
   
   if(testing){
     list(contingency_table = contingency_table,
@@ -1755,13 +1776,85 @@ compare_CherryFreqs <- function(tip1, tip2, testing = FALSE){
 }
 
 
-# returns a dataframe with the cherry info
-#first_tip_name,  second_tip_name, first_tip_index, second_tip_index, dist
-# and one column for each island named as island_[island index]
-# containing the pValue of a chi_square test ....... CONTINUE
-pValue_CherryFreqsChange_i <- function(data, index_islands, tree){
+#' Compute p-Values for Methylation Frequency Changes in Cherries
+#'
+#' Calculates p-values for changes in methylation frequency between pairs of cherry tips in a phylogenetic tree.
+#' A cherry is a pair of leaf nodes (also called tips or terminal nodes) 
+#' in a phylogenetic tree that share a direct common ancestor.
+#' 
+#' @details The function uses \code{simulate.p.value = TRUE} in \code{\link[stats]{chisq.test}} 
+#' to compute the p-value via Monte Carlo simulation to improve reliability 
+#' regardless of whether the expected frequencies meet the assumptions of the chi-squared test 
+#' (i.e., expected counts of at least 5 in each category). 
+#'
+#' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
+#'   The data should be structured as `data[[tip]][[structure]]`, where each structure has the same number of sites across tips.
+#'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
+#'
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
+#' @param index_islands A numeric vector specifying the indices of islands to analyze.
+#' @param tree A rooted binary tree in Newick format (character string) or as an \code{ape} phylo object with minimum 2 tips.
+#' @param input_control Logical; if \code{TRUE}, validates input.
+#'
+#' @return A data frame containing tip pair information (first tip name, second tip name, first tip index, second tip index, distance)
+#'   and one column per island with the p-values from the chi-squared tests.
+#'
+#' @examples
+#' # Example with hypothetical tree and data structure
+#' 
+#' tree <- "((d:1,e:1):2,a:2);"
+#' data <- list(
+#'   #Tip 1
+#'   list(c(rep(1,9), rep(0,1)), 
+#'        c(rep(0,9), 1), 
+#'        c(rep(0,9), rep(0.5,1))), 
+#'   #Tip 2
+#'   list(c(rep(0,9), rep(0.5,1)), 
+#'        c(rep(0.5,9), 1), 
+#'        c(rep(1,9), rep(0,1))), 
+#'   #Tip 3
+#'   list(c(rep(1,9), rep(0.5,1)), 
+#'        c(rep(0.5,9), 1), 
+#'        c(rep(0,9), rep(0.5,1)))) 
+#' 
+#' index_islands <- c(1,3)
+#' 
+#' pValue_CherryFreqsChange_i(data, categorized_data = TRUE, index_islands, tree)
+#'
+#' @export
+pValue_CherryFreqsChange_i <- function(data, categorized_data = FALSE, index_islands, tree, input_control = TRUE){
   
-  cherryDist <- get_cherryDist(tree)
+  tryCatch({
+    
+    # Check input tree format and minium two tips, get tree in phylo format (ape package)
+    if (input_control) tree <- validate_tree(tree)
+    
+    # Get cherry distances avoiding duplicate input control
+    cherryDist <- get_cherryDist(tree, input_control = FALSE)
+    
+    # Check input tree data format and minium number of tips
+    if (input_control) validate_data_cherryDist(cherryDist, data)
+    
+    # Categorize methylation states
+    if(!categorized_data) data <- categorize_siteMethSt(data)
+    
+    # Validate index islands
+    if (length(index_islands) == 0) stop("'index_islands' has no indices.")
+    if (input_control) validate_structureIndices(data, index_islands, index_nonislands = c())
+    
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
   
   # Add to the dataframe columns to store the counts of significant changes
   island_indices <- paste0("island_", index_islands)
@@ -1782,19 +1875,86 @@ pValue_CherryFreqsChange_i <- function(data, index_islands, tree){
   cherryDist
 }
 
-## FreqsChange is the mean number of changes observed per island
-count_CherryFreqsChange_i <- function(data, index_islands, tree, pValue_threshold){
+#' Count Significant Methylation Frequency Changes in Cherries
+#'
+#' Computes the mean number of significant changes per island in phylogenetic tree cherries,
+#' based on a specified p-value threshold.
+#'
+#' @details The function uses \code{simulate.p.value = TRUE} in \code{\link[stats]{chisq.test}} 
+#' to compute the p-value via Monte Carlo simulation to improve reliability 
+#' regardless of whether the expected frequencies meet the assumptions of the chi-squared test 
+#' (i.e., expected counts of at least 5 in each category). 
+#'
+#' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
+#'   The data should be structured as `data[[tip]][[structure]]`, where each structure has the same number of sites across tips.
+#'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
+#'   Each element contains the methylation states at the sites in a given tip and structure
+#'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
+#'   If methylation states are not represented as 0, 0.5, 1 they are categorized
+#'   as 0 when value equal or under 0.2
+#'   0.5 when value between 0.2 and 0.8
+#'   and 1 when value over 0.8.
+#'   For customized categorization thresholds use \code{categorize_siteMethSt}
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
+#' @param index_islands A numeric vector specifying the indices of islands to analyze.
+#' @param tree A rooted binary tree in Newick format (character string) or as an \code{ape} phylo object.
+#' @param pValue_threshold A numeric value between 0 and 1 that serves as the threshold for statistical significance in 
+#'   the chi-squared test.
+#'
+#' @return A data frame containing the same information as \code{pValue_CherryFreqsChange_i},
+#'   but with additional columns indicating whether p-values are below the threshold (significant changes)
+#'   and the mean frequency of significant changes per island.
+#'
+#' @examples
+#' tree <- "((d:1,e:1):2,a:2);"
+#' data <- list(
+#'   #Tip 1
+#'   list(c(rep(1,9), rep(0,1)), 
+#'        c(rep(0,9), 1), 
+#'        c(rep(0,9), rep(0.5,1))), 
+#'   #Tip 2
+#'   list(c(rep(0,9), rep(0.5,1)), 
+#'        c(rep(0.5,9), 1), 
+#'        c(rep(1,9), rep(0,1))), 
+#'   #Tip 3
+#'   list(c(rep(1,9), rep(0.5,1)), 
+#'        c(rep(0.5,9), 1), 
+#'        c(rep(0,9), rep(0.5,1)))) 
+#' 
+#' index_islands <- c(1,3)
+#' count_CherryFreqsChange_i(data, categorized_data = TRUE,
+#'                           index_islands, tree, pValue_threshold = 0.05)
+#'
+#' @export
+count_CherryFreqsChange_i <- function(data, categorized_data = FALSE, index_islands, tree, pValue_threshold){
   
-  pValue_freqsChange <- pValue_CherryFreqsChange_i(data, index_islands, tree)
+  # Validate given threshold for pValue
+  if (!(pValue_threshold > 0 & pValue_threshold < 1)) stop("pValue_threshold needs to be between 0 and 1.")
   
+  tryCatch({
+    # Get the pValue for the change in frequencies of u,p,m at each island at each cherry
+    # Check input tree format and minium two tips, get tree in phylo format (ape package)
+    # Check input tree data format and minium number of tips
+    # If methylation states uncategorized, categorize methylation states
+    # Validate index islands
+    pValue_freqsChange <- pValue_CherryFreqsChange_i(data, 
+                                                     categorized_data = categorized_data, 
+                                                     index_islands, 
+                                                     tree)
+  }, warning = function(w) {
+    stop(conditionMessage(w))
+  }, error = function(e) {
+    stop(conditionMessage(e))
+  })
+
   # Transform columns with pValues under a threshold to TRUE, else FALSE
   pValue_freqsChange[, grep("^island_", colnames(pValue_freqsChange))] <- 
     pValue_freqsChange[, grep("^island_", colnames(pValue_freqsChange))] < pValue_threshold
   
+  # Compute the mean number of changes (TRUE) per island
   pValue_freqsChange$FreqsChange <- rowMeans(pValue_freqsChange[, grep("^island_", colnames(pValue_freqsChange))])
-  
   pValue_freqsChange
-  
 }
 
 
@@ -1810,7 +1970,7 @@ count_CherryFreqsChange_i <- function(data, index_islands, tree, pValue_threshol
 #'
 #' @param data A list structured as `data[[tip]][[structure]]`.
 #' 
-#' @throws Errors if:
+#' @details Throws errors if:
 #'   - `data` is not a list.
 #'   - It has fewer than two tips.
 #'   - Any tip is not a list.
@@ -1891,7 +2051,7 @@ validate_dataAcrossTips <- function(data) {
 #' If any value in `data[[tip]][[structure]]` is outside these categories, it is transformed based on the given thresholds.
 #'
 #' @param data A list structured as `data[[tip]][[structure]]`, where `tip` corresponds to tree tips, and `structure`
-#'   corresponds to methylation states at each site.
+#'   corresponds to each genomic structure (e.g., island/non-island).
 #' @param u_threshold A numeric value representing the upper bound for values to be classified as unmethylated (`0`). Default 0.2.
 #' @param m_threshold A numeric value representing the lower bound for values to be classified as methylated (`1`). Default 0.8.
 #'
@@ -1899,6 +2059,11 @@ validate_dataAcrossTips <- function(data) {
 #'   or `1` (methylated).
 #'
 #' @examples
+#' data <- list(
+#' list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
+#' list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
+#' )
+#' 
 #' transformed_data <- categorize_siteMethSt(data, u_threshold = 0.2, m_threshold = 0.8)
 #' @export
 categorize_siteMethSt <- function(data, u_threshold = 0.2, m_threshold = 0.8) {
@@ -1938,10 +2103,15 @@ categorize_siteMethSt <- function(data, u_threshold = 0.2, m_threshold = 0.8) {
 #' across tree tips for a given set of islands. It performs a chi-squared test for each island to check for significant 
 #' changes in frequencies across tips and returns the proportion of islands showing significant changes.
 #'
+#' @details The function uses \code{simulate.p.value = TRUE} in \code{\link[stats]{chisq.test}} 
+#' to compute the p-value via Monte Carlo simulation to improve reliability 
+#' regardless of whether the expected frequencies meet the assumptions of the chi-squared test 
+#' (i.e., expected counts of at least 5 in each category). 
+#'
 #' @param tree A phylogenetic tree object, typically of class `phylo`, containing tip labels.
-#' @param data A list structured as `data[[tip]][[structure]]`, 
-#'   where `tip` corresponds to tree tips, 
-#'   and `structure` corresponds to genomic structures (islands or non-islands). 
+#' @param data A list containing methylation states at tree tips for each genomic structure (e.g., island/non-island).
+#'   The data should be structured as `data[[tip]][[structure]]`, where each structure has the same number of sites across tips.
+#'   The input data must be prefiltered to ensure CpG sites are represented consistently across different tips.
 #'   Each element contains the methylation states at the sites in a given tip and structure
 #'   represented as 0, 0.5 or 1 (for unmethylated, partially-methylated and methylated). 
 #'   If methylation states are not represented as 0, 0.5, 1 they are categorized
@@ -1949,24 +2119,27 @@ categorize_siteMethSt <- function(data, u_threshold = 0.2, m_threshold = 0.8) {
 #'   0.5 when value between 0.2 and 0.8
 #'   and 1 when value over 0.8.
 #'   For customized categorization thresholds use \code{categorize_siteMethSt}
-#'   
+#' @param categorized_data Logical defaulted to FALSE. 
+#'   TRUE to skip redundant categorization when methylation states are represented as 0, 0.5, and 1.
 #' @param index_islands A vector of indices of genomic structures corresponding to islands in data.
 #' @param pValue_threshold A numeric value between 0 and 1 that serves as the threshold for statistical significance in 
 #'   the chi-squared test.
 #' 
 #' @return A numeric value representing the mean proportion of islands with significant frequency changes across tips.
 #' 
-#' @throws 
-#' - An error if the `tree` is not valid.
-#' - An error if `data` is not structured correctly across tips.
-#' - An error if `index_islands` is empty.
-#' - An error if `pValue_threshold` is not between 0 and 1.
+#' @details Throws errors if:
+#' - The `tree` is not valid.
+#' - `data` is not structured correctly across tips.
+#' - `index_islands` is empty.
+#' - `pValue_threshold` is not between 0 and 1.
 #' 
 #' @examples
 #' # Example of usage:
-#' result <- count_TreeFreqsChange_i(tree, data, index_islands = c(1, 2, 3), pValue_threshold = 0.05)
-#' print(result)
-count_TreeFreqsChange_i <- function(tree, data, index_islands, pValue_threshold, testing=FALSE) {
+#' count_TreeFreqsChange_i(tree, data, categorized_data = TRUE,
+#'                                   index_islands = c(1, 2, 3), 
+#'                                   pValue_threshold = 0.05)
+#' 
+count_TreeFreqsChange_i <- function(tree, data, categorized_data = FALSE, index_islands, pValue_threshold, testing=FALSE) {
   
   tryCatch({
     # Validate tree
@@ -1976,14 +2149,14 @@ count_TreeFreqsChange_i <- function(tree, data, index_islands, pValue_threshold,
     validate_dataAcrossTips(data)
     
     # Categorize methylation states
-    data <- categorize_siteMethSt(data)
+    if(!categorized_data) data <- categorize_siteMethSt(data)
     
     # Validate index islands
     if (length(index_islands) == 0) stop("'index_islands' has no indices.")
     validate_structureIndices(data, index_islands, index_nonislands = c())
     
     # Validate given threshold for pValue
-    if (!(pValue_threshold > 0 & pValue_threshold < 1)) stop("'pValue_threshold' needs to be between 0 and 1.")
+    if (!(pValue_threshold > 0 & pValue_threshold < 1)) stop("pValue_threshold needs to be between 0 and 1.")
     
   }, warning = function(w) {
     stop(conditionMessage(w))
@@ -2016,7 +2189,7 @@ count_TreeFreqsChange_i <- function(tree, data, index_islands, pValue_threshold,
     island_upmCounts <- do.call(rbind, island_upmCounts)
     
     # If they are all equal save as p-value 1
-    if(length(unique(island_upmCounts))==1){
+    if(nrow(unique(island_upmCounts))==1){
       
       pValues[i] <- 1
       
@@ -2039,7 +2212,7 @@ count_TreeFreqsChange_i <- function(tree, data, index_islands, pValue_threshold,
       }
       
       # Perform the chi-squared test and save the island's pValue
-      pValues[i] <- chisq.test(island_upmCounts, simulate.p.value = TRUE)$p.value
+      pValues[i] <- stats::chisq.test(island_upmCounts, simulate.p.value = TRUE)$p.value
     }
     
   }
