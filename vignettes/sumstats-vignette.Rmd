@@ -3,7 +3,7 @@ title: "Summary Statistics"
 output: 
   rmarkdown::html_vignette:
     toc: true
-bibliography: ../vignettes/references.bib
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Summary Statistics with MethEvolSIM}
   %\VignetteEngine{knitr::rmarkdown}
