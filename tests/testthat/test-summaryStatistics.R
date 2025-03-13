@@ -2999,7 +2999,7 @@ test_that("categorize_siteMethSt transforms data based on custom thresholds", {
     list(c(0.2, 0.8, 0.6), c(0.9, 0.4, 0.7))
   )
   
-  # Transform the data with default thresholds
+  # Transform the data with custom thresholds
   transformed_data <- categorize_siteMethSt(data, u_threshold = 0.15, m_threshold = 0.85)
   
   expected_data <- list(
