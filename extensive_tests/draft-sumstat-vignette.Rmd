@@ -530,8 +530,86 @@ mean(computeFitch_islandGlbSt(index_islands, data, tree,
                               u_threshold = 0.1, m_threshold = 0.9))
 ```
 
-# References
 
+
+
+### Mean Number of Significant Methylation Frequency Changes per Island and Cherry
+
+
+A cherry $c$ is defined as a pair of direct offspring (tips \( t_1 \) and \( t_2 \)) 
+of the same internal node in the phylogenetic tree. 
+For a given cherry $c$, let $\mathcal{I}$ be the set of indices for island structures. 
+For each island structure $i \in \mathcal{I}$ at each cherry tip $t_c \in {t_{c,1}, t_{c,2}$ in each phylogenetic tree cherries, 
+the number of sites in each 
+methylation state (unmethylated \( 0 \), partially-methylated \( 0.5 \), 
+methylated \( 1 \)) is counted. This count is represented as:
+
+$$
+\text{count}_{\text{UPM}}(c,t_c, i) = \left( n_0, n_{0.5}, n_1 \right)
+$$
+
+where \( n_0\), \( n_{0.5}\), and \( n_1\) are the counts of unmethylated, 
+partially-methylated, and methylated sites at tip \( t_c\), respectively.
+
+The distribution of methylation states at each island between the two tips \( t_1 \) 
+and \( t_2 \) of a given cherry is compared using a chi-squared test. 
+The null hypothesis \( H_0 \) is that the distributions of methylation states at 
+the two tips are the same. The test statistic is calculated using the contingency 
+table \( T \) of the methylation state counts for each tip:
+
+$$
+H_0: \text{distribution}(t_{c,1}) = \text{distribution}(t_{c,2})
+$$
+
+The contingency table \( T_{c,i} \) for tips \( t_{c,1} \) and \( t_{c,2} \) is:
+
+$$
+T_{c,i} = \begin{pmatrix}
+n_0^{t_{c,1}} & n_{0.5}^{t_{c,1}} & n_1^{t_{c,1}} \\
+n_0^{t_{c,2}} & n_{0.5}^{t_{c,2}} & n_1^{t_{c,2}}
+\end{pmatrix}
+$$
+
+The p-value for the chi-squared test is calculated via Monte Carlo simulation to 
+improve reliability, even when the expected frequencies do not meet the assumptions 
+of the chi-squared test (i.e., expected counts of at least 5 in each category).
+
+For each cherry $c$ and each island $i$, the methylation data at each cherry tip 
+for the specified genomic structures (islands) are compared using the chi-squared test.
+
+$$
+p_{\text{value}}(c,i) = \chi^2\text{-test}(T_{c,i})
+$$
+
+These p-values are stored in a dataframe for each cherry and for each island.
+
+The significance of the methylation frequency changes is determined based on a 
+user-defined threshold \( p_{\text{threshold}} \). If the p-value is smaller than 
+the threshold, the change is considered significant. This is done for each cherry 
+and each island \( i \in \mathcal{I} \) by comparing each p-value to the threshold:
+
+$$
+\text{Significant Change}_{c,i} = 
+\begin{cases} 
+1, & \text{if } p_{\text{value}}(c,i) < p_{\text{threshold}} \\
+0, & \text{if } p_{\text{value}}(c,i) \ge p_{\text{threshold}}
+\end{cases}
+$$
+
+
+For each cherry , the mean number of significant changes across all islands 
+\( i \in \mathcal{I} \) is computed as the average of the significant changes for each island:
+
+$$
+\text{Mean Number of Significant Changes per Island}_{c} = \frac{1}{|\mathcal{I}|} \sum_{i \in \mathcal{I}} \text{Significant Change}_{c,i}
+$$
+
+where \( |\mathcal{I}| \) is the total number of islands.
+
+
+
+
+# References
 
 
 

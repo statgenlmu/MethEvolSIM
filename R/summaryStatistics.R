@@ -1875,7 +1875,7 @@ pValue_CherryFreqsChange_i <- function(data, categorized_data = FALSE, index_isl
   cherryDist
 }
 
-#' Count Significant Methylation Frequency Changes in Cherries
+#' Mean Number of Significant Methylation Frequency Changes per Island in Cherries
 #'
 #' Computes the mean number of significant changes per island in phylogenetic tree cherries,
 #' based on a specified p-value threshold.
@@ -1923,11 +1923,11 @@ pValue_CherryFreqsChange_i <- function(data, categorized_data = FALSE, index_isl
 #'        c(rep(0,9), rep(0.5,1)))) 
 #' 
 #' index_islands <- c(1,3)
-#' count_CherryFreqsChange_i(data, categorized_data = TRUE,
+#' mean_CherryFreqsChange_i(data, categorized_data = TRUE,
 #'                           index_islands, tree, pValue_threshold = 0.05)
 #'
 #' @export
-count_CherryFreqsChange_i <- function(data, categorized_data = FALSE, index_islands, tree, pValue_threshold){
+mean_CherryFreqsChange_i <- function(data, categorized_data = FALSE, index_islands, tree, pValue_threshold){
   
   # Validate given threshold for pValue
   if (!(pValue_threshold > 0 & pValue_threshold < 1)) stop("pValue_threshold needs to be between 0 and 1.")
@@ -2097,7 +2097,7 @@ categorize_siteMethSt <- function(data, u_threshold = 0.2, m_threshold = 0.8) {
 
 
 
-#' Count Significant Frequency Changes Across Islands in Tree Tips
+#' Mean Number of Significant Frequency Changes per Island Across all Tree Tips
 #'
 #' This function analyzes the frequency changes of methylation states (unmethylated, partially methylated, methylated)
 #' across tree tips for a given set of islands. It performs a chi-squared test for each island to check for significant 
@@ -2124,6 +2124,7 @@ categorize_siteMethSt <- function(data, u_threshold = 0.2, m_threshold = 0.8) {
 #' @param index_islands A vector of indices of genomic structures corresponding to islands in data.
 #' @param pValue_threshold A numeric value between 0 and 1 that serves as the threshold for statistical significance in 
 #'   the chi-squared test.
+#' @param testing Logical defaulted to FALSE. TRUE for testing output.
 #' 
 #' @return A numeric value representing the mean proportion of islands with significant frequency changes across tips.
 #' 
@@ -2135,11 +2136,33 @@ categorize_siteMethSt <- function(data, u_threshold = 0.2, m_threshold = 0.8) {
 #' 
 #' @examples
 #' # Example of usage:
-#' count_TreeFreqsChange_i(tree, data, categorized_data = TRUE,
-#'                                   index_islands = c(1, 2, 3), 
-#'                                   pValue_threshold = 0.05)
 #' 
-count_TreeFreqsChange_i <- function(tree, data, categorized_data = FALSE, index_islands, pValue_threshold, testing=FALSE) {
+#' tree <- "((d:1,e:1):2,a:2);"
+#' 
+#' data <- list(
+#'   #Tip 1
+#'   list(c(rep(1,9), rep(0,1)), 
+#'        c(rep(0,9), 1), 
+#'        c(rep(0,9), rep(0.5,1))), 
+#'   #Tip 2
+#'   list(c(rep(1,9), rep(0.5,1)), 
+#'        c(rep(0.5,9), 1), 
+#'        c(rep(1,9), rep(0,1))), 
+#'   #Tip 3
+#'   list(c(rep(1,9), rep(0.5,1)), 
+#'        c(rep(0.5,9), 1), 
+#'        c(rep(0,9), rep(0.5,1)))) 
+#'        
+#' index_islands <- c(1,3)
+#' 
+#' pValue_threshold <- 0.05
+#' 
+#' mean_TreeFreqsChange_i(tree, data, categorized_data = TRUE,
+#'                             index_islands, 
+#'                             pValue_threshold)
+#' 
+#' @export
+mean_TreeFreqsChange_i <- function(tree, data, categorized_data = FALSE, index_islands, pValue_threshold, testing=FALSE) {
   
   tryCatch({
     # Validate tree
@@ -2231,7 +2254,6 @@ count_TreeFreqsChange_i <- function(tree, data, categorized_data = FALSE, index_
   }
 }
 
-## TODO: Maybe fischer in cherry case for 2x2 contingency tables 
 
 
 
