@@ -540,7 +540,7 @@ A cherry $c$ is defined as a pair of direct offspring (tips \( t_1 \) and \( t_2
 of the same internal node in the phylogenetic tree. 
 For a given cherry $c$, let $\mathcal{I}$ be the set of indices for island structures. 
 For each island structure $i \in \mathcal{I}$ at each cherry tip
-$t_c \in {t_{c,1}, t_{c,2}$ in each phylogenetic tree cherries, 
+$t_c \in \{t_{c,1}, t_{c,2}\}$ in each phylogenetic tree, 
 the number of sites in each 
 methylation state (unmethylated \( 0 \), partially-methylated \( 0.5 \), 
 methylated \( 1 \)) is counted. This count is represented as:
@@ -554,16 +554,13 @@ partially-methylated, and methylated sites at tip \( t_c\), respectively.
 
 The distribution of methylation states at each island between the two tips \( t_1 \) 
 and \( t_2 \) of a given cherry is compared using a chi-squared test. 
-The null hypothesis \( H_0 \) is that the distributions of methylation states at 
-the two tips are the same.
+The null hypothesis of the test is that the frequency distributions of states
+in the two islands follow the same multinomial distribution.
+Note that not only IWEs can lead to deviations from this null hypothesis but
+also neighbor-dependent SSEs can lead to slight deviations from the assumption
+of multinomial distributions.
 The test statistic is calculated using the contingency 
-table \( T \) of the methylation state counts for each tip:
-
-$$
-H_0: \text{distribution}(t_{c,1}) = \text{distribution}(t_{c,2})
-$$
-
-The contingency table \( T_{c,i} \) for tips \( t_{c,1} \) and \( t_{c,2} \) is:
+table \( T_{c,i} \) for tips \( t_{c,1} \) and \( t_{c,2} \):
 
 $$
 T_{c,i} = \begin{pmatrix}
@@ -574,16 +571,11 @@ $$
 
 The p-value for the chi-squared test is calculated via Monte Carlo simulation to 
 improve reliability, even when the expected frequencies do not meet the assumptions 
-of the chi-squared test (i.e., expected counts of at least 5 in each category).
+of the chi-squared approximation (i.e., expected counts of at least 5 in each category).
 
 For each cherry $c$ and each island $i$, the methylation data at each cherry tip 
 for the specified genomic structures (islands) are compared using the chi-squared test.
-
-$$
-p_{\text{value}}(c,i) = \chi^2\text{-test}(T_{c,i})
-$$
-
-These p-values are stored in a dataframe for each cherry and for each island.
+The obtained p-values are stored in a dataframe for each cherry and for each island.
 
 The significance of the methylation frequency changes is determined based on a 
 user-defined threshold \( p_{\text{threshold}} \).
