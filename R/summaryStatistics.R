@@ -2155,7 +2155,6 @@ categorize_siteMethSt <- function(data, u_threshold = 0.2, m_threshold = 0.8) {
 #'        
 #' index_islands <- c(1,3)
 #' 
-#' pValue_threshold <- 0.05
 #' 
 #' mean_TreeFreqsChange_i(tree, data, categorized_data = TRUE,
 #'                             index_islands, 
