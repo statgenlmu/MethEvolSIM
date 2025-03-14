@@ -1,6 +1,4 @@
-## TODO: modify how the package is loaded before submitting
-library(devtools)
-load_all()
+library(MethEvolSIM)
 library(parallel)
 library(optparse)
 
