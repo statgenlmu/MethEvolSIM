@@ -17,10 +17,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r, echo=FALSE}
-## TODO: Update 
-library(devtools)
-load_all()
+```{r}
+library(MethEvolSIM)
 ```
 # Introduction
 
