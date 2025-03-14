@@ -28,18 +28,20 @@ Without the CFTP method, the initial methylation states are sampled independentl
 for each CpG site based on the equilibrium frequencies of its genomic structure 
 (island or non-island).
 As a result, the initial distribution lacks neighbor
-correlations from the correlated Single-Site Event (SSE) process.
+correlations of the correlated Single-Site Event (SSE) process.
 These correlations develop over time during evolution along a branch.
 
-To ensure the root sequence includes neighbor correlations, we addapted the Coupling 
+To ensure the that root sequence includes neighbor correlations, we adapted the Coupling 
 From The Past (CFTP) algorithm (see @ProppWilson96, @ProppWilson98 for details).
 This method samples methylation states from the model's equilibrium 
-accounting for the correlated SSE process. Note that in the current implementation
-CFTP neglects the Island-Wide Event Process.
+accounting for the correlated SSE process.
+Note that in the current implementation CFTP neglects the Island-Wide Event Process
+and thus in particular the reduction of neighbor-specific correlations within CpG islands after
+and island-wide event.
 
 # Use examples
 
-The CFTP method can be applied when simulating 
+The CFTP method can be applied when simulating
 initial methylation data with `simulate_initialData` or when simulating data evolution
 along a tree with `simulate_evolData` with the argument `CFTP`.
 The default value for this argument is FALSE but can be set to TRUE to apply the
@@ -73,7 +75,6 @@ custom_params$mu <- 0.005
 evolD <- simulate_evolData(infoStr = custom_infoStr, tree = tree, params = custom_params, CFTP = TRUE)
 ```
 
-
 # Convergence and Convergence Approximations
 
 Applying the CFTP method increases run time and memmory requirements. This increase
@@ -81,7 +82,7 @@ depends on the parameterization used for the given simulation.
 For example, a combination of high $\iota$ values (leading to the SSE process being mostly independent)
 and low $\alpha_{Ri}$ values (leading to a high variation in the 3 rates of 
 independent SSE) leads to some sites having a rate of change through the SSE process
-of nearly 0.
+of nearly 0, which results in a long runtime of the exact CFTP algorithm.
 To limit the run time and memmory consumption for such cases, the
 maximum number of steps used is limited with the argument `CFTP_step_limit`.
 If after the limiting number of steps the algorithm has not converged, an approximation
@@ -99,7 +100,7 @@ algorithm to try 16 full iterations before applying the approximation.
 
 # Visual Examples
 
-To help understand how CFTP samples an initial sequence of methylation states from
+To help understanding how CFTP samples an initial sequence of methylation states from
 equilibrium, we provide plots from our tests.
 The test used 10 parameter combinations since the model equilibrium depends on them.
 The summary statistic used is the mean correlation of a central segment of
@@ -108,12 +109,11 @@ methylation states per genomic structure type (see vignette "Summary Statistics 
 Without CFTP, the initial states of the sequence are sampled independently based 
 on the equilibrium frequencies of each genomic structure. Over time, local 
 correlations between methylation states develop during evolution.
-
 With CFTP, the initial states of the sequence are sampled from the equilibrium 
 accounting for the correlated SSE process. Therefore, the local correlations are
 already present in the initial states of the sequence.
 
-Our test consists on comparing the change in correlations observed in a sequence
+Our test consists in comparing the change in correlations observed in a sequence
 initiated without CFTP along evolutionary time to the correlations observed in a
 sequence initiated with CFTP.
 We expect the mean correlation of the sequence without CFTP to change with 
@@ -133,7 +133,8 @@ For each combination, 10 replicates were simulated, shown in
 different colors. Dots (with unique shapes for each replicate) indicate the mean
 correlation at each time step for the sequences initated without CFTP. 
 The dashed line represents its value after applying CFTP to the initial data.
-
+The plots show that CFTP leads to a correlation sampled from a distribution
+to which the simulations without CFTP converge.
 
 ![Sampled parameter combination 1](Figures/CFTP_testConvergence_paramsID_01.png)
 
@@ -154,8 +155,6 @@ The dashed line represents its value after applying CFTP to the initial data.
 ![Sampled parameter combination 9](Figures/CFTP_testConvergence_paramsID_09.png)
 
 ![Sampled parameter combination 10](Figures/CFTP_testConvergence_paramsID_10.png)
-
-
 
 
 ## Reproducibility
@@ -219,15 +218,15 @@ and the sampled parameters.
 3.  Rule `run_sim` run by script `run_sim.R`. 
 Takes as input the output of the previous rule. 
 For each parameter combination it simulates a number of replicates (`replicate_n`) and
-(1) simulates evolution along a branch of length `branch_length` a number of times from `start` to `end` and 
-(2) calls the CFTP method on the initial data. 
-Each replicate is simulated with a seed obtained as the index of the corresponding 
-parameter combination * 1000 + the replicate number for reproducibility. 
-The output files are written under the directory `dir` and named
-"CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_{step_n}.RData" 
-for the output of evolution along the branch and
-"CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_cftp.RData"
-for the output of the cftp method. 
+  (1) simulates evolution along a branch of length `branch_length` a number of times from `start` to `end` and 
+  (2) calls the CFTP method on the initial data. 
+      Each replicate is simulated with a seed obtained as the index of the corresponding 
+      parameter combination * 1000 + the replicate number for reproducibility. 
+      The output files are written under the directory `dir` and named
+      "CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_{step_n}.RData" 
+      for the output of evolution along the branch and
+      "CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_cftp.RData"
+      for the output of the cftp method. 
 
 4.  Rule `compute_meanCor` run by script `compute_meanCor.R`. 
 Takes as input the output of the previous rule. 
