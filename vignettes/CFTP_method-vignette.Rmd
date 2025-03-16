@@ -132,7 +132,7 @@ Each figure corresponds to one of the 10 parameter combinations.
 For each combination, 10 replicates were simulated, shown in
 different colors. Dots (with unique shapes for each replicate) indicate the mean
 correlation at each time step for the sequences initated without CFTP. 
-The dashed line represents its value after applying CFTP to the initial data.
+The dashed line represents its value after applying CFTP to the same initial data generated without CFTP.
 The plots show that CFTP leads to a correlation sampled from a distribution
 to which the simulations without CFTP converge.
 
@@ -218,26 +218,29 @@ and the sampled parameters.
 3.  Rule `run_sim` run by script `run_sim.R`. 
 Takes as input the output of the previous rule. 
 For each parameter combination it simulates a number of replicates (`replicate_n`) and
-  (1) simulates evolution along a branch of length `branch_length` a number of times from `start` to `end` and 
-  (2) calls the CFTP method on the initial data. 
-      Each replicate is simulated with a seed obtained as the index of the corresponding 
-      parameter combination * 1000 + the replicate number for reproducibility. 
-      The output files are written under the directory `dir` and named
-      "CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_{step_n}.RData" 
-      for the output of evolution along the branch and
-      "CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_cftp.RData"
-      for the output of the cftp method. 
+each replicate is simulated with a seed obtained as the index of the corresponding 
+parameter combination * 1000 + the replicate number for reproducibility. For each 
+replicate it first generates initial data without the CFTP method and 
+simulates evolution along a branch of length `branch_length` a number of times from `start` to `end` and, then calls the CFTP method on the previously generated initial data. 
+The output files are written under the directory `dir` and named:
+
+  - `"CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_{step_n}.RData"`
+
+  - `"CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}_cftp.RData"`
+
 
 4.  Rule `compute_meanCor` run by script `compute_meanCor.R`. 
 Takes as input the output of the previous rule. 
 For each branch step output and cftp output it computes the mean correlation of 
 a segment of methylation states per genomic structure type (see
 vignette "Summary Statistics with MethEvolSIM"). 
-The output files are written under the directory `dir` and are named as
-"summaryStats_CFTP_testConvergence_paramsID_{parameter_combination_number}_cftp.RData" 
-for the output of the cftp method and
-"summaryStats_CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}.RData"
-for the output of evolution along the branch.
+The output files are written under the directory `dir` and are named:
+
+- `"summaryStats_CFTP_testConvergence_paramsID_{parameter_combination_number}_cftp.RData"`
+
+- `"summaryStats_CFTP_testConvergence_paramsID_{parameter_combination_number}_rep_{replicate_number}.RData"`
+
+
 
 5.  Rule `plot_results` run by script `plot.R`. 
 Takes as input the output of the previous rule.  
