@@ -86,7 +86,7 @@ $\beta_{I_p}$ to encourage minor assignment of partially methylated states.
 
 The second Beta distribution, scaled by $1 - \pi_p$,  corresponds to the proportion
 of methylated and unmethylated states. Currently both parameter values ($\alpha_{I_m}$
-and $\beta_{I_m}$) set to small values while ${\alpha_{I_m} < \beta_{I_m}}$ to favour
+and $\beta_{I_m}$) set to small values while ${\alpha_{I_m} \lt \beta_{I_m}}$ to favour
 shifting the stochastic choice toward homogeneous states with a higher proportion of
 predominantly unmethylated islands, and assigned to $\pi_m$.
 Finally, we set $\pi_u$ as $1 - \pi_p - \pi_m$.

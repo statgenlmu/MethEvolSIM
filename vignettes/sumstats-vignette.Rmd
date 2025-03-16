@@ -600,7 +600,7 @@ comparing each p-value to the threshold:
 $$
 \text{Significant Change}_{c,i} = 
 \begin{cases} 
-1, & \text{if } p_{\text{value}}(c,i) < p_{\text{threshold}} \\
+1, & \text{if } p_{\text{value}}(c,i) \lt p_{\text{threshold}} \\
 0, & \text{if } p_{\text{value}}(c,i) \ge p_{\text{threshold}}
 \end{cases}
 $$
