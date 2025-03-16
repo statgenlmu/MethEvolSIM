@@ -3,7 +3,7 @@ title: "Summary Statistics"
 output: 
   rmarkdown::html_vignette:
     toc: true
-bibliography: ../vignettes/references.bib
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Summary Statistics with MethEvolSIM}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,10 +17,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r, echo=FALSE}
-## TODO: Update 
-library(devtools)
-load_all()
+```{r}
+library(MethEvolSIM)
 ```
 # Introduction
 
@@ -94,7 +92,24 @@ Regardless of the format, methylation values should be represented as follows:
 - `1` for methylated sites.  
 
 Intermediate values (e.g., obtained from pooled empirical data) should be 
-categorized before analysis.  
+categorized before analysis with `categorize_siteMethSt`.
+
+```{r}
+non_categorized_data <- list(
+  # Tip 1
+    list(c(0.1, 0.7, 0.9), # First structure
+         c(0.3, 0.5, 0.9)), # Second structure
+  # Tip 2
+    list(c(0.2, 0.8, 0.6), # First structure
+         c(0.9, 0.4, 0.7)) # Second structure
+  )
+  
+# Transform the data with custom thresholds
+categorized_data <- categorize_siteMethSt(data, u_threshold = 0.15, m_threshold = 0.85)
+
+categorized_data
+```
+
 
 Finally, when phylogenetic data is provided, the order of tips in `data` must 
 match the tip order in the Newick tree format (left to right) or the order of 
@@ -147,11 +162,11 @@ These values can be computed using the following functions:
 sample_n <- 1
 index_islands <- c(1, 3)
 index_nonislands <- c(2, 4)
-data <- list(c(.5, .5, 0, 0, 0, .5), c(.5, 0, 0, .5), c(.5, .5, 0), c(0, 0, .5)) # tip 1
-get_islandMeanFreqP(index_islands, data, sample_n)
-get_nonislandMeanFreqP(index_nonislands, data, sample_n)
-get_islandMeanFreqM(index_islands, data, sample_n)
-get_nonislandMeanFreqM(index_nonislands, data, sample_n)
+data <- list(c(.5, .5, 0, 0, 0, .5), c(.5, 0, 0, .5), c(.5, .5, 0), c(0, 1, .5)) # tip 1
+get_islandMeanFreqP(index_islands, data, categorized_data = T, sample_n)
+get_nonislandMeanFreqP(index_nonislands, data, categorized_data = T, sample_n)
+get_islandMeanFreqM(index_islands, data, categorized_data = T, sample_n)
+get_nonislandMeanFreqM(index_nonislands, data, categorized_data = T, sample_n)
 ```
 
 ```{r}
@@ -163,10 +178,10 @@ data <- list(
   list(c(.5, .5, 0, 0, 0, .5), c(.5, 0, 0, .5), c(.5, .5, 0), c(0, 0, .5)), # tip 1
   list(c(0, .5, .5, 1, 1, .5), c(1, .5, 1, .5), c(0, .5, .5), c(1, .5, 1)) # tip 2
   )
-get_islandMeanFreqP(index_islands, data, sample_n)
-get_nonislandMeanFreqP(index_nonislands, data, sample_n)
-get_islandMeanFreqM(index_islands, data, sample_n)
-get_nonislandMeanFreqM(index_nonislands, data, sample_n)
+get_islandMeanFreqP(index_islands, data, categorized_data = T, sample_n)
+get_nonislandMeanFreqP(index_nonislands, data, categorized_data = T, sample_n)
+get_islandMeanFreqM(index_islands, data, categorized_data = T, sample_n)
+get_nonislandMeanFreqM(index_nonislands, data, categorized_data = T, sample_n)
 ```
 Note that in the calculation of the means the relative frequencies $x_{i, t}$, 
 $y_{j, t}$, $w_{i, t}$ and $z_{j, t}$ are **not** weighted by the lengths of 
@@ -205,10 +220,10 @@ sample_n <- 1
 index_islands <- c(1, 3)
 index_nonislands <- c(2, 4)
 data <- list(c(.5, .5, 0, 1, 1, .5), c(.5, 0, 1, .5), c(.5, .5, 0), c(0, 0, .5))
-get_islandSDFreqP(index_islands, data, sample_n)
-get_nonislandSDFreqP(index_nonislands, data, sample_n)
-get_islandSDFreqM(index_islands, data, sample_n)
-get_nonislandSDFreqM(index_nonislands, data, sample_n)
+get_islandSDFreqP(index_islands, data, categorized_data = T, sample_n)
+get_nonislandSDFreqP(index_nonislands, data, categorized_data = T, sample_n)
+get_islandSDFreqM(index_islands, data, categorized_data = T, sample_n)
+get_nonislandSDFreqM(index_nonislands, data, categorized_data = T, sample_n)
 ```
 
 ```{r}
@@ -220,10 +235,10 @@ data <- list(
   list(c(.5, .5, 0, 0, 0, 1), c(.5, 0, 0, .5), c(1, .5, 0), c(0, 0, .5)), # tip 1
   list(c(0, .5, .5, 1, 1, .5), c(1, .5, 1, .5), c(0, .5, .5), c(1, .5, 1)) # tip 2
   )
-get_islandSDFreqP(index_islands, data, sample_n)
-get_nonislandSDFreqP(index_nonislands, data, sample_n)
-get_islandSDFreqM(index_islands, data, sample_n)
-get_nonislandSDFreqM(index_nonislands, data, sample_n)
+get_islandSDFreqP(index_islands, data, categorized_data = T, sample_n)
+get_nonislandSDFreqP(index_nonislands, data, categorized_data = T, sample_n)
+get_islandSDFreqM(index_islands, data, categorized_data = T, sample_n)
+get_nonislandSDFreqM(index_nonislands, data, categorized_data = T, sample_n)
 ```
 
 Note that we average across tips as there can be correlations between the mean 
@@ -273,9 +288,9 @@ data <- list(c(.5, 0, 0, 0, .5, .5, .5, .5, .5, 1, .5, 0, 0, 0, .5, .5, .5, .5,
                  .5, 1, 1, 1, .5, .5, .5, 0, 0, 0, .5, 
                  .5, 0, 0, 0, .5)) # 35 sites
 compute_meanCor_i(index_islands, minN_CpG = 10, 
-                  shore_length = 5, data, sample_n = 1)
+                  shore_length = 5, data, sample_n = 1, categorized_data = T)
 compute_meanCor_ni(index_nonislands, minN_CpG = 10, 
-                   shore_length = 5, data, sample_n = 1)
+                   shore_length = 5, data, sample_n = 1, categorized_data = T)
 ```
 
 ```{r}
@@ -306,9 +321,9 @@ data <- list(
            1, 1, .5, .5, .5, .5, .5, 0, .5, .5, .5, .5, 0, .5)) # 35 sites
   )
 compute_meanCor_i(index_islands, minN_CpG = 10, 
-                  shore_length = 5, data, sample_n = 2)
+                  shore_length = 5, data, sample_n = 2, categorized_data = T)
 compute_meanCor_ni(index_nonislands, minN_CpG = 10, 
-                   shore_length = 5, data, sample_n = 2)
+                   shore_length = 5, data, sample_n = 2, categorized_data = T)
 ```
 
 
@@ -421,6 +436,7 @@ index_islands <- c(2)
 index_nonislands <- c(1, 3)
 
 MeanSiteFChange_cherry(data = data, 
+                       categorized_data = T, 
                        tree = tree, 
                        index_islands = index_islands, 
                        index_nonislands = index_nonislands)
@@ -530,8 +546,216 @@ mean(computeFitch_islandGlbSt(index_islands, data, tree,
                               u_threshold = 0.1, m_threshold = 0.9))
 ```
 
-# References
 
+
+
+### Mean Number of Significant Methylation Frequency Changes per Island and Cherry
+
+
+A cherry $c$ is defined as a pair of direct offspring (tips \( t_1 \) and \( t_2 \)) 
+of the same internal node in the phylogenetic tree. 
+For a given cherry $c$, let $\mathcal{I}$ be the set of indices for island structures. 
+For each island structure $i \in \mathcal{I}$ at each cherry tip
+$t_c \in \{t_{c,1}, t_{c,2}\}$ in each phylogenetic tree, 
+the number of sites in each 
+methylation state (unmethylated \( 0 \), partially-methylated \( 0.5 \), 
+methylated \( 1 \)) is counted. This count is represented as:
+
+$$
+\text{count}_{\text{UPM}}(c,t_c, i) = \left( n_0, n_{0.5}, n_1 \right)
+$$
+
+where \( n_0\), \( n_{0.5}\), and \( n_1\) are the counts of unmethylated, 
+partially-methylated, and methylated sites at tip \( t_c\), respectively.
+
+The distribution of methylation states at each island between the two tips \( t_1 \) 
+and \( t_2 \) of a given cherry is compared using a chi-squared test. 
+The null hypothesis of the test is that the frequency distributions of states
+in the two islands follow the same multinomial distribution.
+Note that not only IWEs can lead to deviations from this null hypothesis but
+also neighbor-dependent SSEs can lead to slight deviations from the assumption
+of multinomial distributions.
+The test statistic is calculated using the contingency 
+table \( T_{c,i} \) for tips \( t_{c,1} \) and \( t_{c,2} \):
+
+$$
+T_{c,i} = \begin{pmatrix}
+n_0^{t_{c,1}} & n_{0.5}^{t_{c,1}} & n_1^{t_{c,1}} \\
+n_0^{t_{c,2}} & n_{0.5}^{t_{c,2}} & n_1^{t_{c,2}}
+\end{pmatrix}
+$$
+For each cherry $c$ and each island $i$, the methylation frequencies at each cherry tip 
+are compared using the chi-squared test.
+The p-value for the chi-squared test is calculated via Monte Carlo simulation to 
+improve reliability, even when the expected frequencies do not meet the assumptions 
+of the chi-squared approximation (i.e., expected counts of at least 5 in each category).
+The obtained p-values are stored in a dataframe for each cherry and for each island.
+
+The significance of the methylation frequency changes is determined based on a 
+user-defined threshold \( p_{\text{threshold}} \).
+If the p-value is smaller than the threshold, the change is considered significant.
+This is done for each cherry and each island \( i \in \mathcal{I} \) by
+comparing each p-value to the threshold:
+
+$$
+\text{Significant Change}_{c,i} = 
+\begin{cases} 
+1, & \text{if } p_{\text{value}}(c,i) < p_{\text{threshold}} \\
+0, & \text{if } p_{\text{value}}(c,i) \ge p_{\text{threshold}}
+\end{cases}
+$$
+
+
+For each cherry , the mean number of significant changes across all islands 
+\( i \in \mathcal{I} \) is computed as the average of the significant changes
+for each island:
+
+$$
+\text{Mean Number of Significant Changes per Island}_{c}
+= \frac{1}{|\mathcal{I}|} \sum_{i \in \mathcal{I}} \text{Significant Change}_{c,i}
+$$
+
+where \( |\mathcal{I}| \) is the total number of islands.
+
+Functions:
+
+- `compare_CherryFreqs(tip1, tip2)` to perform a chi-squared test to compare the
+distribution of methylation states between two cherry tips.
+
+- `pValue_CherryFreqsChange_i(data, index_islands, tree)` uses `compare_CherryFreqs(tip1, tip2)` to get for each cherry 
+and each island the chi-square p-value of the comparison of the distribution of
+methylation states between two cherry tips.
+
+- `mean_CherryFreqsChange_i(data, categorized_data = FALSE, index_islands, tree, pValue_threshold)`. The function
+uses `pValue_CherryFreqsChange_i(data, index_islands, tree)` and counts the mean
+number of significant changes per island at each cherry.
+
+```{r}
+# Set example tree and methylation data
+  tree <- "((a:1,b:1):2,c:2);"
+  data <- list(
+    #Tip a
+    list(c(rep(1,9), rep(0,1)), # Structure 1: island
+         c(rep(0,9), 1), # Structure 2: non-island
+         c(rep(0,9), rep(0.5,1))),  # Structure 3: island
+    #Tip b
+    list(c(rep(0,9), rep(0.5,1)),  # Structure 1: island
+         c(rep(0.5,9), 1), # Structure 2: non-island
+         c(rep(0,9), rep(0,1))), # Structure 3: island
+    #Tip c
+    list(c(rep(1,9), rep(0.5,1)),  # Structure 1: island
+         c(rep(0.5,9), 1), # Structure 2: non-island
+         c(rep(0,9), rep(0.5,1)))) # Structure 3: island
+  
+  
+  index_islands <- c(1,3)
+  
+  mean_CherryFreqsChange_i(data, categorized_data = T,
+                           index_islands, tree,
+                           pValue_threshold = 0.05)
+```
+
+### Mean Number of Significant Methylation Frequency Changes per Island Across All Tree Tips
+
+For a given phylogenetic tree with a number of tips $N$, 
+let $t_n \in \{t_1, t_2, \cdots, t_N$ represent the tree tips.
+For a given genomic region, let $\mathcal{I}$ be the set of indices for island structures. 
+For each island structure $i \in \mathcal{I}$ at each tip
+$t_n$ in the phylogenetic tree, 
+the number of sites in each 
+methylation state (unmethylated \( 0 \), partially-methylated \( 0.5 \), 
+methylated \( 1 \)) is counted. This count is represented as:
+
+$$
+\text{count}_{\text{UPM}}(t_n, i) = \left( n_0, n_{0.5}, n_1 \right)
+$$
+
+where \( n_0\), \( n_{0.5}\), and \( n_1\) are the counts of unmethylated, 
+partially-methylated, and methylated sites at tip \( t_n\), respectively.
+
+The distribution of methylation states at each island across all tips
+is compared using a chi-squared test. 
+The null hypothesis of the test is that the frequency distributions of states
+in the two islands follow the same multinomial distribution.
+Note that not only IWEs can lead to deviations from this null hypothesis but
+also neighbor-dependent SSEs can lead to slight deviations from the assumption
+of multinomial distributions.
+The test statistic is calculated using the contingency 
+table \( T_{i} \) for all tree tips:
+
+$$
+T_{i} = \begin{pmatrix}
+n_0^{t_{1}} & n_{0.5}^{t_{1}} & n_1^{t_{1}} \\
+n_0^{t_{2}} & n_{0.5}^{t_{2}} & n_1^{t_{2}} \\
+\cdots & \cdots & \cdots \\
+n_0^{t_{N}} & n_{0.5}^{t_{N}} & n_1^{t_{N}} 
+\end{pmatrix}
+$$
+
+
+
+For each island $i$, the methylation frequencies are compared across tips using the 
+chi-squared test. The p-value for the chi-squared test is calculated via Monte Carlo simulation to improve reliability, even when the expected frequencies do not meet the assumptions of the chi-squared approximation (i.e., expected counts of at least 5 in each category).
+
+The significance of the methylation frequency changes for each island \( i \in \mathcal{I} \) across tips
+is determined based on a 
+user-defined threshold \( p_{\text{threshold}} \).
+If the p-value is smaller than the threshold, the change is considered significant.
+
+$$
+\text{Significant Change}_{i} = 
+\begin{cases} 
+1, & \text{if } p_{\text{value}}(i) < p_{\text{threshold}} \\
+0, & \text{if } p_{\text{value}}(i) \ge p_{\text{threshold}}
+\end{cases}
+$$
+
+
+For the given tree, the mean number of significant changes per island across all tips 
+is computed as:
+
+$$
+\text{Mean Number of Significant Changes per Island}
+= \frac{1}{|\mathcal{I}|} \sum_{i \in \mathcal{I}} \text{Significant Change}_{i}
+$$
+
+where \( |\mathcal{I}| \) is the total number of islands.
+
+Function:
+
+- `mean_TreeFreqsChange_i(tree, data, categorized_data = FALSE, index_islands, pValue_threshold)`. 
+
+```{r}
+# Set example tree and methylation data
+tree <- "((a:1,b:1):2,(c:2,d:2):1);"
+  data <- list(
+    #Tip a
+    list(c(rep(1,9), rep(0,1)), # Structure 1: island
+         c(rep(0,9), 1), # Structure 2: non-island
+         c(rep(0,9), rep(0,1))), # Structure 3: island
+    #Tip b
+    list(c(rep(0,9), rep(0.5,1)), # Structure 1: island
+         c(rep(0.5,9), 1), # Structure 2: non-island
+         c(rep(0,9), rep(0,1))),# Structure 3: island
+    #Tip c
+    list(c(rep(0,9), rep(0.5,1)), # Structure 1: island
+         c(rep(0.5,9), 1), # Structure 2: non-island
+         c(rep(1,9), rep(0,1))),# Structure 3: island
+    #Tip d
+    list(c(rep(0,9), rep(0.5,1)), # Structure 1: island
+         c(rep(0.5,9), 1), # Structure 2: non-island
+         c(rep(1,8), rep(0.5,2)))) # Structure 3: island
+  
+  
+  index_islands <- c(1,3)
+  
+  mean_TreeFreqsChange_i(tree, data, categorized_data = T,
+                           index_islands,
+                           pValue_threshold = 0.05)
+```
+
+
+# References
 
 
 

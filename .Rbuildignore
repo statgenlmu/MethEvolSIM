@@ -2,3 +2,5 @@
 ^README\.Rmd$
 ^extensive_tests
 ^application_examples
+^doc$
+^Meta$

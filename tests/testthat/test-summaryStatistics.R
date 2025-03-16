@@ -1407,11 +1407,13 @@ test_that("countSites_cherryMethDiff input control errors", {
 
 test_that("countSites_cherryMethDiff non-categorized input of methylation states", {
   
+  tree <- "(a:1,b:1);"
   data <- list(
     list(c(0.1, 0.2, 0.02), c(0.05, 0.25, 0.15)), # tip 1
     list(c(0.01, 0.7, 0.85), c(0.3, 0.1, 0.98)) # tip 2
   )
   
+  cherryDist <- get_cherryDist(tree)
   o <- countSites_cherryMethDiff(cherryDist, data)
   
   expect_true(all(as.numeric(o[1,-c(1,2,3)]) == c(1,1,1,2)),
@@ -2747,6 +2749,46 @@ test_that("compare_CherryFreqs handling of 0 marginals", {
   expect_false(is.na(o$chi_sq_result$p.value))
 })
 
+test_that("pValue_CherryFreqsChange_i input control",{
+  wrong_tree <- "(a:1);"
+  data <- list(c(rep(0,5), rep(0.5,5)),
+               rep(1,10),
+               c(rep(0,10)))
+  index_islands <- c(1,3)
+  expect_error(pValue_CherryFreqsChange_i(data, categorized_data = T, index_islands, tree = wrong_tree),
+               "The input 'tree' must have a minimum of 2 tips.")
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,10))),
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,5), rep(0.5,5))))
+  
+  wrong_index_islands <- c(1,4)
+  expect_error(pValue_CherryFreqsChange_i(data, categorized_data = T, wrong_index_islands, tree),
+               "Invalid island indices detected: 4. Number of structures in given data: 3")
+})
+
+test_that("pValue_CherryFreqsChange_i non-categorized input of methylation states", {
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(0.1, 0.2, 0.02), c(0.05, 0.15, 0.15)), # tip 1 (u,u,u)(u,u,u)
+    list(c(0.01, 0.05, 0.1), c(0.8, 0.9, 0.98)) # tip 2   (u,u,u)(m,m,m)
+  )
+  index_islands <- c(1,2)
+  
+  o <- pValue_CherryFreqsChange_i(data = data, index_islands = index_islands, tree = tree)
+  
+  expect_equal(o[1, "island_1"], 1,
+              info = "p value for identical categorical states not correct with non-categorized input data")
+  expect_true(o[1, "island_2"] >= 0 && o[1, "island_2"] < 1,
+              info = "p value not different categorical states not correct with non-categorized input data")
+  
+})
 
 test_that("pValue_CherryFreqsChange_i", {
   # Set tree and data
@@ -2768,15 +2810,75 @@ test_that("pValue_CherryFreqsChange_i", {
   
   index_islands <- c(1,3)
   
-  o <- pValue_CherryFreqsChange_i(data, index_islands, tree)
+  o <- pValue_CherryFreqsChange_i(data, categorized_data = T, index_islands, tree)
   expect_true(o[1, "island_1"] >= 0 && o[1, "island_1"] <= 1,
               info = "p value not between 1 and 0 for island_1")
-  expect_true(o[1, "island_3"] >= 0 && o[1, "island_1"] <= 1,
+  expect_true(o[1, "island_3"] >= 0 && o[1, "island_3"] <= 1,
               info = "p value not between 1 and 0 for island_3")
-  ##TODO: Test for 2 cherries
+  
+  # Set tree and data
+  tree <- "((d:1,e:1):2,(a:2,b:2):1);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), 
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), 
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))),
+    #Tip 3
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))),
+    #Tip 4
+    list(c(rep(1,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(0,8), rep(0.5,2)))) 
+  o <- pValue_CherryFreqsChange_i(data, categorized_data = T, index_islands, tree)
+  expect_equal(nrow(o), 2,
+               info = "fails to return a dataframe with 2 rows when tree has 2 cherries")
 })
 
-test_that("count_CherryFreqsChange_i", {
+test_that("mean_CherryFreqsChange_i input control",{
+  wrong_tree <- "(a:1);"
+  data <- list(c(rep(0,5), rep(0.5,5)),
+               rep(1,10),
+               c(rep(0,10)))
+  index_islands <- c(1,3)
+  expect_error(mean_CherryFreqsChange_i(data, categorized_data = T, index_islands, tree = wrong_tree, pValue_threshold = 0.05),
+               "The input 'tree' must have a minimum of 2 tips.")
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,10))),
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,5), rep(0.5,5))))
+  
+  wrong_index_islands <- c(1,4)
+  expect_error(mean_CherryFreqsChange_i(data, categorized_data = T, wrong_index_islands, tree, pValue_threshold = 0.05),
+               "Invalid island indices detected: 4. Number of structures in given data: 3")
+})
+
+test_that("mean_CherryFreqsChange_i non-categorized input of methylation states", {
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(0.1, 0.2, 0.02, 0.2), c(0.05, 0.15, 0.15, 0.2)), # tip 1 (u,u,u,u)(u,u,u,u)
+    list(c(0.01, 0.05, 0.1, 0.2), c(0.8, 0.9, 0.98, 0.8)) # tip 2   (u,u,u,u)(m,m,m,m)
+  )
+  index_islands <- c(1,2)
+  
+  o <- mean_CherryFreqsChange_i(data, categorized_data = F, index_islands, tree, pValue_threshold = 0.05)
+  
+  expect_equal(o$FreqsChange, 0.5,
+               info = "not correct mean number of changes per island with non-categorized input data")
+})
+
+test_that("mean_CherryFreqsChange_i correct output", {
   # Set tree and data
   tree <- "((d:1,e:1):2,a:2);"
   data <- list(
@@ -2796,15 +2898,36 @@ test_that("count_CherryFreqsChange_i", {
   
   index_islands <- c(1,3)
   
-  o <- count_CherryFreqsChange_i(data, index_islands, tree, pValue_threshold = 0.05)
+  o <- mean_CherryFreqsChange_i(data, categorized_data = T, index_islands, tree, pValue_threshold = 0.05)
   expect_true(o[1, "FreqsChange"] == 1,
               info = "does not return the correct mean of observed changes per island")
 
-  ##TODO: Test for 2 cherries
+  ## Test for 2 cherries
+  # Set tree and data
+  tree <- "((d:1,e:1):2,(a:2,b:2):1);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), 
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0,1))), 
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0,1))),
+    #Tip 3
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))),
+    #Tip 4
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2)))) 
+  o <- mean_CherryFreqsChange_i(data, categorized_data = T, index_islands, tree, pValue_threshold = 0.05)
+  expect_equal(nrow(o), 2,
+               info = "fails to return a dataframe with 2 rows when tree has 2 cherries")
+  expect_equal(o$FreqsChange, c(0.5, 0),
+               info = "does not return the correct mean of observed changes per island")
 })
-
-##TODO: count_TreeFreqsChange_i handling of trees with 2 tips or trees with 
-# > 3 tips
 
 
 test_that("validate_dataAcrossTips detects incorrect input structures", {
@@ -2839,8 +2962,6 @@ test_that("validate_dataAcrossTips detects incorrect input structures", {
     list(c(1, 0, 0), c(0, 1, 1))
   )))
 })
-
-
 
 test_that("categorize_siteMethSt works with already categorized data", {
   data <- list(
@@ -2878,7 +2999,7 @@ test_that("categorize_siteMethSt transforms data based on custom thresholds", {
     list(c(0.2, 0.8, 0.6), c(0.9, 0.4, 0.7))
   )
   
-  # Transform the data with default thresholds
+  # Transform the data with custom thresholds
   transformed_data <- categorize_siteMethSt(data, u_threshold = 0.15, m_threshold = 0.85)
   
   expected_data <- list(
@@ -2888,8 +3009,6 @@ test_that("categorize_siteMethSt transforms data based on custom thresholds", {
   
   expect_equal(transformed_data, expected_data)
 })
-
-
 
 test_that("categorize_siteMethSt stops with invalid values", {
   # Test with data that contains a value smaller than 0
@@ -2911,11 +3030,57 @@ test_that("categorize_siteMethSt stops with invalid values", {
                "All values in data must be between 0 and 1.")
 })
 
-##TODO: Add info categorization methState default thresholds and function to
-# customize them in vignette.
 
-## TODO: Update following tests for count_TreeFreqsChange_i
-test_that("count_TreeFreqsChange_i testing output returns pvalue of 1 when upm counts are equal", {
+test_that("mean_TreeFreqsChange_i input control",{
+  wrong_tree <- "(a:1);"
+  data <- list(c(rep(0,5), rep(0.5,5)),
+               rep(1,10),
+               c(rep(0,10)))
+  index_islands <- c(1,3)
+  expect_error(mean_TreeFreqsChange_i(tree = wrong_tree, data, categorized_data = T, index_islands, pValue_threshold = 0.05),
+               "The input 'tree' must have a minimum of 2 tips.")
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,10))),
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,5), rep(0.5,5))))
+  wrong_index_islands <- c(1,4)
+  expect_error(mean_TreeFreqsChange_i(tree, data, categorized_data = T, wrong_index_islands, pValue_threshold = 0.05),
+               "Invalid island indices detected: 4. Number of structures in given data: 3")
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,10))),
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,5), rep(0.5,5))))
+  index_islands <- c(1,3)
+  expect_error(mean_TreeFreqsChange_i(tree, data, categorized_data = T, index_islands, pValue_threshold = 0),
+               "pValue_threshold needs to be between 0 and 1.")
+})
+
+test_that("mean_TreeFreqsChange_i non-categorized input of methylation states", {
+  
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(0.1, 0.2, 0.02, 0.2), c(0.05, 0.15, 0.15, 0.2)), # tip 1 (u,u,u,u)(u,u,u,u)
+    list(c(0.01, 0.05, 0.1, 0.2), c(0.8, 0.9, 0.98, 0.8)) # tip 2   (u,u,u,u)(m,m,m,m)
+  )
+  index_islands <- c(1,2)
+  
+  o <- mean_TreeFreqsChange_i(tree, data, categorized_data = F, index_islands, pValue_threshold = 0.05)
+  
+  expect_equal(o, 0.5,
+               info = "not correct mean number of changes per island with non-categorized input data")
+})
+
+test_that("mean_TreeFreqsChange_i testing output returns pvalue of 1 when upm counts are equal", {
   tree <-"((a:1,b:1):1,c:2);"
   data <- list(
     list(rep(0,11)),
@@ -2924,13 +3089,14 @@ test_that("count_TreeFreqsChange_i testing output returns pvalue of 1 when upm c
   )
   index_islands <- c(1)
   pValue_threshold <- 0.05
-  o <- count_TreeFreqsChange_i(tree, data, index_islands, 
-                          pValue_threshold, testing = TRUE)
+  o <- mean_TreeFreqsChange_i(tree, data, categorized_data = TRUE,
+                               index_islands,
+                               pValue_threshold, testing = TRUE)
   expect_equal(o$pValues[1], 1)
   expect_true(is.na(o$island_upmCounts_list[[1]]))
 })
 
-test_that("count_TreeFreqsChange_i handling of 0 marginals", {
+test_that("mean_TreeFreqsChange_i handling of 0 marginals", {
   tree <-"((a:1,b:1):1,c:2);"
   data <- list(
     list(rep(0,11)),
@@ -2940,11 +3106,85 @@ test_that("count_TreeFreqsChange_i handling of 0 marginals", {
   index_islands <- c(1)
   pValue_threshold <- 0.05
   
-  o <- count_TreeFreqsChange_i(tree, data, index_islands, 
+  o <- mean_TreeFreqsChange_i(tree, data, categorized_data = TRUE,
+                               index_islands, 
                                pValue_threshold, testing = TRUE)
   expect_equal(ncol(o$island_upmCounts_list[[1]]), 2)
   expect_false(is.na(o$pValues[1]))
 })
+
+test_that("mean_CherryFreqsChange_i correct output tree 2 tips",{
+  tree <- "(a:1,b:1);"
+  data <- list(
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,10))),
+    list(c(rep(0,5), rep(0.5,5)),
+         rep(1,10),
+         c(rep(0,5), rep(0.5,5))))
+  index_islands <- c(1,3)
+  pValue_threshold <- 0.05
+  o <- mean_TreeFreqsChange_i(tree, data, categorized_data = TRUE,
+                               index_islands, 
+                               pValue_threshold)
+  expect_equal(o, 0.5)
+})
+
+test_that("mean_CherryFreqsChange_i correct output tree 3 tips",{
+  tree <- "((d:1,e:1):2,a:2);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), 
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0.5,1))), 
+    #Tip 2
+    list(c(rep(1,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))), 
+    #Tip 3
+    list(c(rep(1,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0.5,1)))) 
+  index_islands <- c(1,3)
+  pValue_threshold <- 0.05
+  o <- mean_TreeFreqsChange_i(tree, data, categorized_data = TRUE,
+                               index_islands, 
+                               pValue_threshold)
+  
+  expect_equal(o, 0.5)
+})
+
+test_that("mean_CherryFreqsChange_i correct output tree 4 tips",{
+  tree <- "((d:1,e:1):2,(a:2,b:2):1);"
+  data <- list(
+    #Tip 1
+    list(c(rep(1,9), rep(0,1)), 
+         c(rep(0,9), 1), 
+         c(rep(0,9), rep(0,1))), 
+    #Tip 2
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(0,9), rep(0,1))),
+    #Tip 3
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,9), rep(0,1))),
+    #Tip 4
+    list(c(rep(0,9), rep(0.5,1)), 
+         c(rep(0.5,9), 1), 
+         c(rep(1,8), rep(0.5,2)))) 
+  index_islands <- c(1,3)
+  pValue_threshold <- 0.05
+  o <- mean_TreeFreqsChange_i(tree, data, categorized_data = TRUE,
+                               index_islands, 
+                               pValue_threshold)
+  
+  expect_equal(o, 1)
+})
+
+
+
+
 
 
 
