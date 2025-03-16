@@ -90,6 +90,11 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n, categorized_data 
   
   if(!is.list(data)) stop("Input 'data' is not list.")
   
+  
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -163,6 +168,10 @@ get_islandMeanFreqP <- function(index_islands, data, sample_n, categorized_data 
 get_nonislandMeanFreqP <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
   
   if(!is.list(data)) stop("Input 'data' is not list.")
+  
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
   
   # Restructure data as nested list
   if (sample_n == 1){
@@ -239,7 +248,11 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n, categorized_data 
   
   if(!is.list(data)) stop("Input 'data' is not list.")
   
-  # Restructure data as nested list
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
+  
+  # Restructure data as nested list   
   if (sample_n == 1){
     data_list <- list()
     data_list[[1]] <- data
@@ -308,6 +321,10 @@ get_islandMeanFreqM <- function(index_islands, data, sample_n, categorized_data 
 get_nonislandMeanFreqM <- function(index_nonislands, data, sample_n, categorized_data = FALSE){
   
   if(!is.list(data)) stop("Input 'data' is not list.")
+  
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
   
   # Restructure data as nested list
   if (sample_n == 1){
@@ -382,6 +399,10 @@ get_islandSDFreqP <- function(index_islands, data, sample_n, categorized_data = 
   
   if(!is.list(data)) stop("Input 'data' is not list.")
   
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -453,6 +474,10 @@ get_nonislandSDFreqP <- function(index_nonislands, data, sample_n, categorized_d
   
   if(!is.list(data)) stop("Input 'data' is not list.")
   
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
+  
   # Restructure data as nested list
   if (sample_n == 1){
     data_list <- list()
@@ -523,6 +548,10 @@ get_nonislandSDFreqP <- function(index_nonislands, data, sample_n, categorized_d
 get_islandSDFreqM <- function(index_islands, data, sample_n, categorized_data = FALSE){
   
   if(!is.list(data)) stop("Input 'data' is not list.")
+  
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
   
   # Restructure data as nested list
   if (sample_n == 1){
@@ -596,7 +625,11 @@ get_nonislandSDFreqM <- function(index_nonislands, data, sample_n, categorized_d
   
   if(!is.list(data)) stop("Input 'data' is not list.")
   
-  # Restructure data as nested list
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
+  
+  # Restructure data as nested list   
   if (sample_n == 1){
     data_list <- list()
     data_list[[1]] <- data
@@ -679,7 +712,11 @@ compute_meanCor_i <- function(index_islands, minN_CpG, shore_length, data, sampl
   
   if(!is.list(data)) stop("Input 'data' is not list.")
   
-  # Restructure data as nested list
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
+  
+  # Restructure data as nested list 
   if (sample_n == 1){
     data_list <- list()
     data_list[[1]] <- data
@@ -770,7 +807,11 @@ compute_meanCor_ni <- function(index_nonislands, minN_CpG, shore_length, data, s
   
   if(!is.list(data)) stop("Input 'data' is not list.")
   
-  # Restructure data as nested list
+  if (!(is.numeric(sample_n) && length(sample_n) == 1 && sample_n == floor(sample_n))) {
+    stop("sample_n must be a single non-decimal numeric value.")
+  }
+  
+  # Restructure data as nested list 
   if (sample_n == 1){
     data_list <- list()
     data_list[[1]] <- data
