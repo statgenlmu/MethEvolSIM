@@ -1545,8 +1545,8 @@ get_meanMeth_islands <- function(index_islands, data){
 #'
 #' @details The function assigns each island a state:
 #'   \describe{
-#'     \item{"u"}{if mean methylation lower or equal to \code{u_threshold}}
-#'     \item{"m"}{if mean methylation greater or equal to \code{m_threshold}}
+#'     \item{"u"}{if mean methylation lower or equal than \code{u_threshold}}
+#'     \item{"m"}{if mean methylation greater or equal than \code{m_threshold}}
 #'     \item{"p"}{if mean methylation is in between}
 #'   }
 #'
@@ -1554,7 +1554,7 @@ get_meanMeth_islands <- function(index_islands, data){
 #'
 #' @examples
 #' meanMeth_islands <- c(0.1, 0.4, 0.8)
-#' 
+#'
 #' categorize_islandGlbSt(meanMeth_islands, 0.2, 0.8)
 #'
 #' @export

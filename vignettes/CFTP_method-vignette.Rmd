@@ -130,9 +130,12 @@ In the following figures, the y-axis represents the mean correlation, and the x-
 shows the number of discretized time steps.
 Each figure corresponds to one of the 10 parameter combinations.
 For each combination, 10 replicates were simulated, shown in
-different colors. Dots (with unique shapes for each replicate) indicate the mean
-correlation at each time step for the sequences initated without CFTP. 
-The dashed line represents its value after applying CFTP to the same initial data generated without CFTP.
+different colors.
+Dots (with unique shapes for each replicate) indicate the mean
+correlation at each time step for the sequences initiated without CFTP. 
+For each sequence, the line of the same color represents the value after applying
+CFTP with the same CpG-island-specific equilibrium probabilities of the
+methylation states as in the initialization of the non-CFTP simulations.
 The plots show that CFTP leads to a correlation sampled from a distribution
 to which the simulations without CFTP converge.
 
