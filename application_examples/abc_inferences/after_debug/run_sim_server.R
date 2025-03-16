@@ -107,6 +107,7 @@ mclapply(indices, function(i) {
   })
 }, mc.cores = opt[["n-cores"]])
 
+
 if(length(failed_indices) > 0) {
   print("Done. Failed indices:")
   print(failed_indices)

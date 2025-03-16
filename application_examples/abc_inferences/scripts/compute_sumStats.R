@@ -26,7 +26,9 @@ option_list <- list(
   make_option("--shore-length", type = "integer", default = NULL,
               help = "Number of CpGs at each side of an island to exclude when computing mean correlations", metavar = "integer"),
   make_option("--n-cores", type = "integer", default = NULL,
-              help = "Number of cores", metavar = "integer")
+              help = "Number of cores", metavar = "integer"),
+  make_option("--categorized-data", type = "logical", default = FALSE,
+              help = "Methylation states are categorized", metavar = "logical")
   )
 
 
@@ -36,7 +38,7 @@ opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
 # Get the names of required options (you can update this based on what's mandatory)
-required_options <- c("data-dir", "design-file", "spatialStr-file", "sample-n", "n-sim", "u-threshold", "m-threshold", "cherry-index", "minN-CpG", "shore-length")
+required_options <- c("data-dir", "design-file", "spatialStr-file", "sample-n", "n-sim", "u-threshold", "m-threshold", "cherry-index", "minN-CpG", "shore-length", "categorized-data")
 
 # Check that all required options are not NULL
 missing_options <- required_options[sapply(required_options, function(x) is.null(opt[[x]]))]
@@ -54,6 +56,7 @@ m_threshold <- opt[["m-threshold"]]
 cherry <- opt[["cherry-index"]]
 minN_CpG <- opt[["minN-CpG"]]
 shore_length <- opt[["shore-length"]]
+categorized_data <- opt[["categorized-data"]]
 pad_n <- nchar(as.character(opt[["n-sim"]])) + 1
 
 load(file.path(dir, opt[["design-file"]]))
@@ -75,20 +78,22 @@ compute_sumStats <- function(input_file, dir) {
   # Compute example summary statistics
   MeanSiteFChange <- MeanSiteFChange_cherry(data, tree = scaled_trees[[index]], index_islands, index_nonislands)
   # Initialize the data frame to store the summary statistics
-  sumStats <- data.frame(islandMeanFreqP = get_islandMeanFreqP(index_islands, data, sample_n),
-                         islandSDFreqP = get_islandSDFreqP(index_islands, data, sample_n),
-                         nonislandMeanFreqP = get_nonislandMeanFreqP(index_nonislands, data, sample_n),
-                         nonislandSDFreqP = get_nonislandSDFreqP(index_nonislands, data, sample_n),
-                         islandMeanFreqM = get_islandMeanFreqM(index_islands, data, sample_n),
-                         islandSDFreqM = get_islandSDFreqM(index_islands, data, sample_n),
-                         nonislandMeanFreqM = get_nonislandMeanFreqM(index_nonislands, data, sample_n),
-                         nonislandSDFreqM = get_nonislandSDFreqM(index_nonislands, data, sample_n),
-                         meanCor_i = compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 5, data, sample_n),
-                         meanCor_ni = compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, sample_n),
+  sumStats <- data.frame(islandMeanFreqP = get_islandMeanFreqP(index_islands, data, sample_n, categorized_data),
+                         islandSDFreqP = get_islandSDFreqP(index_islands, data, sample_n, categorized_data),
+                         nonislandMeanFreqP = get_nonislandMeanFreqP(index_nonislands, data, sample_n, categorized_data),
+                         nonislandSDFreqP = get_nonislandSDFreqP(index_nonislands, data, sample_n, categorized_data),
+                         islandMeanFreqM = get_islandMeanFreqM(index_islands, data, sample_n, categorized_data),
+                         islandSDFreqM = get_islandSDFreqM(index_islands, data, sample_n, categorized_data),
+                         nonislandMeanFreqM = get_nonislandMeanFreqM(index_nonislands, data, sample_n, categorized_data),
+                         nonislandSDFreqM = get_nonislandSDFreqM(index_nonislands, data, sample_n, categorized_data),
+                         meanCor_i = compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 5, data, sample_n, categorized_data),
+                         meanCor_ni = compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, sample_n, categorized_data),
                          MeanSiteFChange_i = MeanSiteFChange$island_meanFChange[cherry],
                          MeanSiteFChange_ni = MeanSiteFChange$nonisland_meanFChange[cherry],
                          cherryDist = MeanSiteFChange$dist[cherry],
-                         Fitch_islandGlbSt = mean(computeFitch_islandGlbSt(index_islands, data, tree = scaled_trees[[index]], u_threshold, m_threshold)))
+                         cherryFreqsChange_i = count_CherryFreqsChange_i(data, index_islands, tree = scaled_trees[[index]], pValue_threshold = 0.05)[1,"FreqsChange"],
+                         treeFreqsChange_i = count_TreeFreqsChange_i(tree = scaled_trees[[index]], data, index_islands, pValue_threshold = 0.05)
+  )
   
   # Define output filename
   
