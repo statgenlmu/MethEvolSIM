@@ -76,23 +76,22 @@ compute_sumStats <- function(input_file, dir) {
   index <- as.integer(sub("abc_dataSIM_(\\d+)\\.RData", "\\1", input_file))
   
   # Compute example summary statistics
-  MeanSiteFChange <- MeanSiteFChange_cherry(data, tree = scaled_trees[[index]], index_islands, index_nonislands)
+  MeanSiteFChange <- MeanSiteFChange_cherry(data = data, categorized_data = categorized_data, tree = scaled_trees[[index]], index_islands = index_islands, index_nonislands = index_nonislands)
   # Initialize the data frame to store the summary statistics
-  sumStats <- data.frame(islandMeanFreqP = get_islandMeanFreqP(index_islands, data, sample_n, categorized_data),
-                         islandSDFreqP = get_islandSDFreqP(index_islands, data, sample_n, categorized_data),
-                         nonislandMeanFreqP = get_nonislandMeanFreqP(index_nonislands, data, sample_n, categorized_data),
-                         nonislandSDFreqP = get_nonislandSDFreqP(index_nonislands, data, sample_n, categorized_data),
-                         islandMeanFreqM = get_islandMeanFreqM(index_islands, data, sample_n, categorized_data),
-                         islandSDFreqM = get_islandSDFreqM(index_islands, data, sample_n, categorized_data),
-                         nonislandMeanFreqM = get_nonislandMeanFreqM(index_nonislands, data, sample_n, categorized_data),
-                         nonislandSDFreqM = get_nonislandSDFreqM(index_nonislands, data, sample_n, categorized_data),
-                         meanCor_i = compute_meanCor_i(index_islands, minN_CpG = 10, shore_length = 5, data, sample_n, categorized_data),
-                         meanCor_ni = compute_meanCor_ni(index_nonislands, minN_CpG = 10, shore_length = 5, data, sample_n, categorized_data),
+  sumStats <- data.frame(islandMeanFreqP = get_islandMeanFreqP(index_islands = index_islands, data = data, categorized_data = categorized_data, sample_n = sample_n),
+                         islandSDFreqP = get_islandSDFreqP(index_islands = index_islands, data = data, categorized_data = categorized_data, sample_n = sample_n),
+                         nonislandMeanFreqP = get_nonislandMeanFreqP(index_nonislands = index_nonislands, data = data, categorized_data = categorized_data, sample_n = sample_n),
+                         nonislandSDFreqP = get_nonislandSDFreqP(index_nonislands = index_nonislands, data = data, categorized_data = categorized_data, sample_n = sample_n),
+                         islandMeanFreqM = get_islandMeanFreqM(index_islands = index_islands, data = data, categorized_data = categorized_data, sample_n = sample_n),
+                         islandSDFreqM = get_islandSDFreqM(index_islands = index_islands, data = data, categorized_data = categorized_data, sample_n = sample_n),
+                         nonislandMeanFreqM = get_nonislandMeanFreqM(index_nonislands = index_nonislands, data = data, categorized_data = categorized_data, sample_n = sample_n),
+                         nonislandSDFreqM = get_nonislandSDFreqM(index_nonislands = index_nonislands, data = data, categorized_data = categorized_data, sample_n = sample_n),
+                         meanCor_i = compute_meanCor_i(index_islands = index_islands, minN_CpG = minN_CpG, shore_length = shore_length, data = data, sample_n = sample_n, categorized_data = categorized_data),
+                         meanCor_ni = compute_meanCor_ni(index_nonislands = index_nonislands, minN_CpG = minN_CpG, shore_length = shore_length, data = data, sample_n = sample_n, categorized_data = categorized_data),
                          MeanSiteFChange_i = MeanSiteFChange$island_meanFChange[cherry],
                          MeanSiteFChange_ni = MeanSiteFChange$nonisland_meanFChange[cherry],
-                         cherryDist = MeanSiteFChange$dist[cherry],
-                         cherryFreqsChange_i = count_CherryFreqsChange_i(data, index_islands, tree = scaled_trees[[index]], pValue_threshold = 0.05)[1,"FreqsChange"],
-                         treeFreqsChange_i = count_TreeFreqsChange_i(tree = scaled_trees[[index]], data, index_islands, pValue_threshold = 0.05)
+                         cherryFreqsChange_i = mean_CherryFreqsChange_i(data = data, categorized_data = categorized_data, index_islands = index_islands, tree = scaled_trees[[index]], pValue_threshold = 0.05)[1,"FreqsChange"],
+                         treeFreqsChange_i = mean_TreeFreqsChange_i(tree = scaled_trees[[index]], data = data, categorized_data = categorized_data, index_islands = index_islands, pValue_threshold = 0.05)
   )
   
   # Define output filename
