@@ -1,6 +1,6 @@
 Package: MethEvolSIM
 Title: Simulate DNA Methylation Dynamics on Different Genomic Structures along Genealogies
-Version: 0.1.7
+Version: 0.2
 Authors@R: c(
     person('Sara', 'Castillo Vicente', , 'castillo@bio.lmu.de', role=c('aut', 'cre')),
     person('Dirk', 'Metzler', , 'metzler@bio.lmu.de', role=c('aut', 'ths'))
