@@ -1730,8 +1730,8 @@ computeFitch_islandGlbSt <- function(index_islands, data, tree, u_threshold, m_t
   })
   
   # Organize data in matrix with rownames as the corresponding tip labels
-  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
-  rownames(upmdata)<-tree$tip.label
+  upmdata  <- matrix(as.character(unlist(upmdata_list)), nrow=length(tree$tip.label), byrow=TRUE)
+  rownames(upmdata) <- tree$tip.label
   
   # Compute fitch to extract the minimum number of changes for the observed methylation states at the tips
   result <- compute_fitch(ape::write.tree(tree), upmdata, input_control = FALSE)$minChange_number

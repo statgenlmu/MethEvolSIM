@@ -2258,7 +2258,7 @@ test_that("compute_fitch 8 tips numeric labels 2 structures", {
   tree <- validate_tree(tree)
   meanMeth_islands <- get_meanMeth_islands(index_islands, data)
   upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
-  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  upmdata  <- matrix(as.character(unlist(upmdata_list)), nrow=length(tree$tip.label), byrow=TRUE)
   rownames(upmdata)<-tree$tip.label
   o <- compute_fitch(ape::write.tree(tree), upmdata)
   expect_equal(o$optStateSet[[1]], "m")
@@ -2356,11 +2356,11 @@ test_that("compute_fitch 8 tips non-numeric labels 2 structures", {
   tree <- validate_tree(tree)
   meanMeth_islands <- get_meanMeth_islands(index_islands, data)
   upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
-  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  upmdata  <- matrix(as.character(unlist(upmdata_list)), nrow=length(tree$tip.label), byrow=TRUE)
   rownames(upmdata)<-tree$tip.label
   o <- compute_fitch(ape::write.tree(tree), upmdata)
-  expect_true(all(c("u", "p", "m") %in% o$optStateSet[[1]]))
-  expect_true(all(c("u", "p", "m") %in% o$optStateSet[[2]]))
+  expect_true(all(o$optStateSet[[1]] %in% c("u", "p", "m")))
+  expect_true(all(o$optStateSet[[2]] %in% c("u", "p", "m")))
   expect_equal(o$minChange_number, c(2,4))
 })
 
@@ -2438,7 +2438,7 @@ test_that("compute_fitch 4 tips numeric labels 2 structures", {
   tree <- validate_tree(tree)
   meanMeth_islands <- get_meanMeth_islands(index_islands, data)
   upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
-  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  upmdata  <- matrix(as.character(unlist(upmdata_list)), nrow=length(tree$tip.label), byrow=TRUE)
   rownames(upmdata)<-tree$tip.label
   o <- compute_fitch(ape::write.tree(tree), upmdata)
   expect_true(all(c("u", "m") %in% o$optStateSet[[1]]))
@@ -2504,7 +2504,7 @@ test_that("compute_fitch 4 tips non-numeric labels 2 structures", {
   tree <- validate_tree(tree)
   meanMeth_islands <- get_meanMeth_islands(index_islands, data)
   upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
-  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  upmdata  <- matrix(as.character(unlist(upmdata_list)), nrow=length(tree$tip.label), byrow=TRUE)
   rownames(upmdata)<-tree$tip.label
   o <- compute_fitch(ape::write.tree(tree), upmdata)
   expect_true(all(c("u", "m") %in% o$optStateSet[[1]]))
@@ -2560,7 +2560,7 @@ test_that("compute_fitch 3 tips unordered numeric labels 1 structure", {
   tree <- validate_tree(tree)
   meanMeth_islands <- get_meanMeth_islands(index_islands, data)
   upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
-  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  upmdata  <- matrix(as.character(unlist(upmdata_list)), nrow=length(tree$tip.label), byrow=TRUE)
   rownames(upmdata)<-tree$tip.label
   o <- compute_fitch(ape::write.tree(tree), upmdata)
   expect_true(all(c("u", "p", "m") %in% o$optStateSet[[1]]))
@@ -2605,7 +2605,7 @@ test_that("compute_fitch 3 tips non-numeric labels 1 structure", {
   tree <- validate_tree(tree)
   meanMeth_islands <- get_meanMeth_islands(index_islands, data)
   upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
-  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  upmdata  <- matrix(as.character(unlist(upmdata_list)), nrow=length(tree$tip.label), byrow=TRUE)
   rownames(upmdata)<-tree$tip.label
   o <- compute_fitch(ape::write.tree(tree), upmdata)
   expect_equal(o$optStateSet[[1]], "p")
@@ -2653,7 +2653,7 @@ test_that("compute_fitch 4 tips asymmetric tree numeric labels 1 structure", {
   tree <- validate_tree(tree)
   meanMeth_islands <- get_meanMeth_islands(index_islands, data)
   upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
-  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  upmdata  <- matrix(as.character(unlist(upmdata_list)), nrow=length(tree$tip.label), byrow=TRUE)
   rownames(upmdata)<-tree$tip.label
   o <- compute_fitch(ape::write.tree(tree), upmdata)
   expect_equal(o$optStateSet[[1]], "p")
@@ -2702,7 +2702,7 @@ test_that("compute_fitch 4 tips asymmetric tree non-numeric labels 1 structure",
   tree <- validate_tree(tree)
   meanMeth_islands <- get_meanMeth_islands(index_islands, data)
   upmdata_list <- lapply(meanMeth_islands, categorize_islandGlbSt, u_threshold, m_threshold)
-  upmdata  <- matrix(unlist(upmdata_list), nrow=length(tree$tip.label), byrow=TRUE)
+  upmdata  <- matrix(as.character(unlist(upmdata_list)), nrow=length(tree$tip.label), byrow=TRUE)
   rownames(upmdata)<-tree$tip.label
   o <- compute_fitch(ape::write.tree(tree), upmdata)
   expect_equal(o$optStateSet[[1]], "p")
