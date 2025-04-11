@@ -2350,8 +2350,8 @@ test_that("compute_fitch 8 tips non-numeric labels 2 structures", {
          c(rep(0,9), rep(0.5,1)))) # u
   
   index_islands <- c(1,3)
-  u_threshold <- 0.1
-  m_threshold <- 0.9
+  u_threshold <- 0.11
+  m_threshold <- 0.89
   
   tree <- validate_tree(tree)
   meanMeth_islands <- get_meanMeth_islands(index_islands, data)
@@ -2404,7 +2404,7 @@ test_that("computeFitch_islandGlbSt 8 tips non-numeric labels 2 structures", {
   
   index_islands <- c(1,3)
   
-  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.1, m_threshold = 0.9)
+  o <- computeFitch_islandGlbSt(index_islands, data, tree, u_threshold = 0.11, m_threshold = 0.89)
   expect_equal(o, c(2,4))
 })
 
